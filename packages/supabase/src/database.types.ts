@@ -1,38 +1,99 @@
 // Este arquivo é gerado automaticamente pelo Supabase CLI.
 // Execute: pnpm --filter @contabhub/supabase gen:types
-// NÃO edite manualmente.
+// NÃO edite manualmente — edições serão sobrescritas.
+//
+// Para regenerar após rodar as migrations:
+//   supabase gen types typescript --local > packages/supabase/src/database.types.ts
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export interface Database {
   public: {
     Tables: {
-      tenants: {
+      planos: {
         Row: {
           id: string
           nome: string
-          cnpj: string
-          email: string
-          plano: string
-          status: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+          preco_mensal: number
+          limite_empresas: number
+          limite_funcionarios: number
+          ativo: boolean
           created_at: string
         }
         Insert: {
           id?: string
           nome: string
-          cnpj: string
-          email: string
-          plano: string
-          status?: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+          preco_mensal: number
+          limite_empresas: number
+          limite_funcionarios: number
+          ativo?: boolean
           created_at?: string
         }
         Update: {
           id?: string
           nome?: string
+          preco_mensal?: number
+          limite_empresas?: number
+          limite_funcionarios?: number
+          ativo?: boolean
+          created_at?: string
+        }
+      }
+      tenants: {
+        Row: {
+          id: string
+          auth_user_id: string | null
+          nome: string
+          cnpj: string
+          email: string
+          status: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          auth_user_id?: string | null
+          nome: string
+          cnpj: string
+          email: string
+          status?: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          auth_user_id?: string | null
+          nome?: string
           cnpj?: string
           email?: string
-          plano?: string
           status?: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+          created_at?: string
+        }
+      }
+      subscriptions: {
+        Row: {
+          id: string
+          tenant_id: string
+          plano_id: string
+          status: 'trial' | 'ativo' | 'inadimplente' | 'cancelado'
+          proximo_vencimento: string | null
+          gateway_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          plano_id: string
+          status?: 'trial' | 'ativo' | 'inadimplente' | 'cancelado'
+          proximo_vencimento?: string | null
+          gateway_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          plano_id?: string
+          status?: 'trial' | 'ativo' | 'inadimplente' | 'cancelado'
+          proximo_vencimento?: string | null
+          gateway_id?: string | null
           created_at?: string
         }
       }
@@ -40,6 +101,7 @@ export interface Database {
         Row: {
           id: string
           tenant_id: string
+          auth_user_id: string | null
           nome: string
           cnpj: string
           senha_hash: string
@@ -50,6 +112,7 @@ export interface Database {
         Insert: {
           id?: string
           tenant_id: string
+          auth_user_id?: string | null
           nome: string
           cnpj: string
           senha_hash: string
@@ -60,6 +123,7 @@ export interface Database {
         Update: {
           id?: string
           tenant_id?: string
+          auth_user_id?: string | null
           nome?: string
           cnpj?: string
           senha_hash?: string
@@ -73,6 +137,7 @@ export interface Database {
           id: string
           empresa_id: string
           tenant_id: string
+          auth_user_id: string | null
           nome: string
           cpf_hash: string
           data_nascimento_hash: string
@@ -85,6 +150,7 @@ export interface Database {
           id?: string
           empresa_id: string
           tenant_id: string
+          auth_user_id?: string | null
           nome: string
           cpf_hash: string
           data_nascimento_hash: string
@@ -97,6 +163,7 @@ export interface Database {
           id?: string
           empresa_id?: string
           tenant_id?: string
+          auth_user_id?: string | null
           nome?: string
           cpf_hash?: string
           data_nascimento_hash?: string
@@ -208,9 +275,67 @@ export interface Database {
           created_at?: string
         }
       }
+      auth_codes: {
+        Row: {
+          id: string
+          funcionario_id: string
+          code_hash: string
+          expires_at: string
+          used_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          funcionario_id: string
+          code_hash: string
+          expires_at: string
+          used_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          funcionario_id?: string
+          code_hash?: string
+          expires_at?: string
+          used_at?: string | null
+          created_at?: string
+        }
+      }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      hash_texto: {
+        Args: { p_texto: string }
+        Returns: string
+      }
+      verificar_hash: {
+        Args: { p_texto: string; p_hash: string }
+        Returns: boolean
+      }
+      verificar_senha_empresa: {
+        Args: { p_cnpj: string; p_senha: string }
+        Returns: Array<{
+          id: string
+          tenant_id: string
+          auth_user_id: string | null
+          ativo: boolean
+        }>
+      }
+      verificar_credenciais_funcionario: {
+        Args: { p_empresa_id: string; p_cpf: string; p_data_nascimento: string }
+        Returns: Array<{
+          id: string
+          tenant_id: string
+          auth_user_id: string | null
+          email: string
+          ativo: boolean
+        }>
+      }
+      custom_access_token_hook: {
+        Args: { event: Json }
+        Returns: Json
+      }
+    }
     Enums: Record<string, never>
   }
 }

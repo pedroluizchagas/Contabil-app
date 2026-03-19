@@ -34,5 +34,11 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
+# Custom JWT Hook: injeta tenant_id, user_role, empresa_id e funcionario_id
+# A função é criada pela migration 0007.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+
 [analytics]
 enabled = false
