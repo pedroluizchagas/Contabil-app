@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "ContaHub",
+    "slug": "contabhub-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.contabhub.mobile"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.contabhub.mobile"
+    },
+    "plugins": ["expo-router", "expo-notifications"],
+    "scheme": "contabhub",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
