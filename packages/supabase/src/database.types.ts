@@ -301,8 +301,55 @@ export interface Database {
           created_at?: string
         }
       }
+      expo_push_tokens: {
+        Row: {
+          id: string
+          funcionario_id: string
+          token: string
+          ativo: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          funcionario_id: string
+          token: string
+          ativo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          funcionario_id?: string
+          token?: string
+          ativo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
-    Views: Record<string, never>
+    Views: {
+      v_status_documentos: {
+        Row: {
+          documento_id: string
+          funcionario_id: string
+          funcionario_nome: string
+          funcionario_codigo: string
+          empresa_id: string
+          empresa_nome: string
+          tenant_id: string
+          tipo: 'holerite' | 'ferias'
+          mes_referencia: number
+          ano_referencia: number
+          status_envio: 'pendente' | 'enviado' | 'erro'
+          storage_path: string
+          enviado_em: string
+          visualizado_em: string | null
+          assinado_em: string | null
+          total_visualizacoes: number
+        }
+      }
+    }
     Functions: {
       hash_texto: {
         Args: { p_texto: string }
@@ -334,6 +381,14 @@ export interface Database {
       custom_access_token_hook: {
         Args: { event: Json }
         Returns: Json
+      }
+      incrementar_processados_lote: {
+        Args: { p_lote_id: string }
+        Returns: void
+      }
+      incrementar_erros_lote: {
+        Args: { p_lote_id: string }
+        Returns: void
       }
     }
     Enums: Record<string, never>
