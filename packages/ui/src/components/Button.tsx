@@ -10,21 +10,21 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClass: Record<Variant, string> = {
-  default:     'bg-blue-600 text-white hover:bg-blue-700 border-transparent',
-  outline:     'border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white',
-  ghost:       'text-gray-700 hover:bg-gray-100 border-transparent bg-transparent',
-  destructive: 'bg-red-600 text-white hover:bg-red-700 border-transparent',
+  default:     'bg-[#7ED321] text-[#111] hover:opacity-90 border-transparent',
+  outline:     'border border-[#e0e0e0] text-[#1A1A1A] hover:bg-[#f5f5f5] bg-white',
+  ghost:       'text-[#555] hover:text-[#1A1A1A] hover:bg-[#f0f0f0] border-transparent bg-transparent',
+  destructive: 'bg-[#E84444] text-white hover:opacity-90 border-transparent',
 }
 
 const sizeClass: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-5 py-2.5 text-base',
+  sm: 'px-3 py-1.5 text-[11px]',
+  md: 'px-4 py-2 text-[12.5px]',
+  lg: 'px-5 py-2.5 text-[14px]',
 }
 
 export function buttonVariants({ variant = 'default', size = 'md' }: Pick<ButtonProps, 'variant' | 'size'> = {}) {
-  return `inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors border
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+  return `inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all border
+    focus:outline-none focus:ring-2 focus:ring-[#7ED321] focus:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed
     ${variantClass[variant]} ${sizeClass[size]}`
 }

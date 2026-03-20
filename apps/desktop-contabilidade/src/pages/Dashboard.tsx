@@ -9,14 +9,7 @@ interface Stats {
   totalFuncionarios: number
   documentosEnviados: number
   documentosPendentes: number
-  lotesRecentes: Array<{
-    id: string
-    empresa_nome: string
-    status: string
-    total_documentos: number
-    processados: number
-    created_at: string
-  }>
+  lotesRecentes: LoteRecente[]
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
@@ -128,49 +121,102 @@ const IcoClock = () => (
 
 /* ── Page ────────────────────────────────────────────────────────── */
 export function DashboardPage() {
-  const { tenantId } = useAuth()
+  const { user } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
+  const [mesData, setMesData] = useState<MesData[]>([])
   const [carregando, setCarregando] = useState(true)
 
+  const [hoje] = useState(() => new Date())
+  const diaAtual = hoje.getDate()
+  const mesHoje = hoje.getMonth()
+  const anoHoje = hoje.getFullYear()
+
+  const [calMes, setCalMes] = useState(mesHoje)
+  const [calAno, setCalAno] = useState(anoHoje)
+
+  const nomeCompleto =
+    (user?.user_metadata?.full_name as string | undefined) ??
+    user?.email
+      ?.split('@')[0]
+      ?.replace(/[._-]/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase()) ??
+    'Contador'
+  const primeiroNome = nomeCompleto.split(' ')[0]
+  const emailUsuario = user?.email ?? ''
+  const iniciais = nomeCompleto
+    .split(' ')
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase()
+
   useEffect(() => {
-    if (!tenantId) return
-    carregarStats()
-  }, [tenantId])
+    carregarDados()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  async function carregarStats() {
+  async function carregarDados() {
     setCarregando(true)
+    try {
+      const [empresasRes, funcionariosRes, documentosRes, lotesRes] = await Promise.all([
+        supabase.from('empresas').select('id', { count: 'exact', head: true }).eq('ativo', true),
+        supabase.from('funcionarios').select('id', { count: 'exact', head: true }).eq('ativo', true),
+        supabase.from('documentos').select('created_at, status_envio'),
+        supabase
+          .from('lotes')
+          .select('id, status, total_documentos, processados, created_at, empresas(nome)')
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ])
 
-    const [empresasRes, funcionariosRes, documentosRes, lotesRes] = await Promise.all([
-      supabase.from('empresas').select('id', { count: 'exact', head: true }).eq('ativo', true),
-      supabase.from('funcionarios').select('id', { count: 'exact', head: true }).eq('ativo', true),
-      supabase.from('documentos').select('status_envio', { count: 'exact' }),
-      supabase
-        .from('lotes')
-        .select('id, status, total_documentos, processados, created_at, empresas(nome)')
-        .order('created_at', { ascending: false })
-        .limit(5),
-    ])
+      const docs = documentosRes.data ?? []
+      const documentosEnviados = docs.filter((d) => d.status_envio === 'enviado').length
+      const documentosPendentes = docs.filter((d) => d.status_envio === 'pendente').length
 
     const documentosEnviados  = documentosRes.data?.filter((d) => d.status_envio === 'enviado').length ?? 0
     const documentosPendentes = documentosRes.data?.filter((d) => d.status_envio === 'pendente').length ?? 0
 
-    setStats({
-      totalEmpresas: empresasRes.count ?? 0,
-      totalFuncionarios: funcionariosRes.count ?? 0,
-      documentosEnviados,
-      documentosPendentes,
-      lotesRecentes: (lotesRes.data ?? []).map((l) => ({
-        id: l.id,
-        empresa_nome: (l.empresas as unknown as { nome: string })?.nome ?? '—',
-        status: l.status,
-        total_documentos: l.total_documentos,
-        processados: l.processados,
-        created_at: l.created_at,
-      })),
-    })
-
-    setCarregando(false)
+      setStats({
+        totalEmpresas: empresasRes.count ?? 0,
+        totalFuncionarios: funcionariosRes.count ?? 0,
+        documentosEnviados,
+        documentosPendentes,
+        lotesRecentes: (lotesRes.data ?? []).map((l) => ({
+          id: l.id,
+          empresa_nome: (l.empresas as { nome: string } | null)?.nome ?? '—',
+          status: l.status,
+          total_documentos: l.total_documentos,
+          processados: l.processados,
+          created_at: l.created_at,
+        })),
+      })
+    } catch (err) {
+      console.error('Erro ao carregar dados do dashboard:', err)
+    } finally {
+      setCarregando(false)
+    }
   }
+
+  function prevMes() {
+    setCalMes((m) => {
+      if (m === 0) { setCalAno((y) => y - 1); return 11 }
+      return m - 1
+    })
+  }
+
+  function nextMes() {
+    setCalMes((m) => {
+      if (m === 11) { setCalAno((y) => y + 1); return 0 }
+      return m + 1
+    })
+  }
+
+  const primeiroDiaMes = new Date(calAno, calMes, 1).getDay()
+  const diasNoMes = new Date(calAno, calMes + 1, 0).getDate()
+  const calDias: (number | null)[] = [
+    ...Array<null>(primeiroDiaMes).fill(null),
+    ...Array.from({ length: diasNoMes }, (_, i) => i + 1),
+  ]
 
   return (
     <div className="p-8">

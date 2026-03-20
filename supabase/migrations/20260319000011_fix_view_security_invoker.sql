@@ -1,31 +1,15 @@
 -- ============================================================
--- Migration 0010: Funções auxiliares do process-lote
+-- Migration 0011: Corrige SECURITY DEFINER na view v_status_documentos
+--
+-- Por padrao, views no PostgreSQL rodam com as permissoes do
+-- criador (SECURITY DEFINER), bypassando o RLS do usuario que
+-- consulta. Com security_invoker = on, a view respeita as
+-- politicas RLS do usuario chamador — garantindo isolamento
+-- de tenant.
+-- Ref: https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view
 -- ============================================================
 
--- Incrementa o contador de documentos processados com sucesso
-CREATE OR REPLACE FUNCTION incrementar_processados_lote(p_lote_id uuid)
-RETURNS void
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  UPDATE lotes
-  SET processados = processados + 1
-  WHERE id = p_lote_id;
-$$;
-
--- Incrementa o contador de erros
-CREATE OR REPLACE FUNCTION incrementar_erros_lote(p_lote_id uuid)
-RETURNS void
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  UPDATE lotes
-  SET erros = erros + 1
-  WHERE id = p_lote_id;
-$$;
-
--- View útil para o dashboard da contabilidade: status de leitura por documento
-CREATE OR REPLACE VIEW v_status_documentos AS
+CREATE OR REPLACE VIEW public.v_status_documentos WITH (security_invoker = on) AS
 SELECT
   d.id                    AS documento_id,
   d.funcionario_id,
@@ -48,7 +32,3 @@ JOIN funcionarios f ON f.id = d.funcionario_id
 JOIN empresas e     ON e.id = d.empresa_id
 LEFT JOIN eventos_documento ev ON ev.documento_id = d.id
 GROUP BY d.id, f.nome, f.codigo, e.nome;
-
--- ATENCAO: esta view foi criada sem security_invoker, o que faz ela rodar
--- com permissoes do criador (SECURITY DEFINER implicito), bypassando RLS.
--- Corrigido na migration 0011 com security_invoker = on.

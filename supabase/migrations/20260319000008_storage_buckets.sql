@@ -31,22 +31,22 @@ VALUES (
 CREATE POLICY "lotes_contabilidade_insert" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'lotes'
-    AND auth.user_role() = 'contabilidade'
-    AND (storage.foldername(name))[1] = auth.tenant_id()::text
+    AND public.jwt_user_role() = 'contabilidade'
+    AND (storage.foldername(name))[1] = public.jwt_tenant_id()::text
   );
 
 CREATE POLICY "lotes_contabilidade_select" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'lotes'
-    AND auth.user_role() = 'contabilidade'
-    AND (storage.foldername(name))[1] = auth.tenant_id()::text
+    AND public.jwt_user_role() = 'contabilidade'
+    AND (storage.foldername(name))[1] = public.jwt_tenant_id()::text
   );
 
 CREATE POLICY "lotes_contabilidade_delete" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'lotes'
-    AND auth.user_role() = 'contabilidade'
-    AND (storage.foldername(name))[1] = auth.tenant_id()::text
+    AND public.jwt_user_role() = 'contabilidade'
+    AND (storage.foldername(name))[1] = public.jwt_tenant_id()::text
   );
 
 -- ============================================================
@@ -58,16 +58,16 @@ CREATE POLICY "lotes_contabilidade_delete" ON storage.objects
 CREATE POLICY "documentos_contabilidade_all" ON storage.objects
   FOR ALL USING (
     bucket_id = 'documentos'
-    AND auth.user_role() = 'contabilidade'
-    AND (storage.foldername(name))[1] = auth.tenant_id()::text
+    AND public.jwt_user_role() = 'contabilidade'
+    AND (storage.foldername(name))[1] = public.jwt_tenant_id()::text
   );
 
 -- Empresa: leitura de documentos da sua empresa
 CREATE POLICY "documentos_empresa_select" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'documentos'
-    AND auth.user_role() = 'empresa'
-    AND (storage.foldername(name))[1] = auth.tenant_id()::text
+    AND public.jwt_user_role() = 'empresa'
+    AND (storage.foldername(name))[1] = public.jwt_tenant_id()::text
     AND (storage.foldername(name))[2] = (auth.jwt() ->> 'empresa_id')
   );
 
@@ -75,7 +75,7 @@ CREATE POLICY "documentos_empresa_select" ON storage.objects
 CREATE POLICY "documentos_funcionario_select" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'documentos'
-    AND auth.user_role() = 'funcionario'
-    AND (storage.foldername(name))[1] = auth.tenant_id()::text
+    AND public.jwt_user_role() = 'funcionario'
+    AND (storage.foldername(name))[1] = public.jwt_tenant_id()::text
     AND (storage.foldername(name))[3] = (auth.jwt() ->> 'funcionario_id')
   );
