@@ -62,10 +62,10 @@ function IconLogout() {
 
 /* ── Nav items ──────────────────────────────────────────────────── */
 const navMain = [
-  { to: '/dashboard',    label: 'Dashboard',   Icon: IconGrid },
-  { to: '/empresas',     label: 'Empresas',    Icon: IconBuilding },
-  { to: '/lotes/upload', label: 'Enviar Lote', Icon: IconUpload },
-  { to: '/documentos',   label: 'Documentos',  Icon: IconFile },
+  { to: '/dashboard',  label: 'Dashboard',  Icon: IconGrid },
+  { to: '/empresas',   label: 'Empresas',   Icon: IconBuilding },
+  { to: '/lotes',      label: 'Lotes',      Icon: IconUpload },
+  { to: '/documentos', label: 'Documentos', Icon: IconFile },
 ]
 
 const navConfig = [

@@ -157,7 +157,7 @@ export function UploadLotePage() {
           <CardContent className="space-y-5">
             {/* Empresa */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Empresa *</label>
+              <label className="mb-1.5 block text-sm font-medium text-ink-muted">Empresa *</label>
               <Select
                 value={empresaId}
                 onChange={(e) => setEmpresaId(e.target.value)}
@@ -171,7 +171,7 @@ export function UploadLotePage() {
 
             {/* Tipo */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Tipo de documento *</label>
+              <label className="mb-1.5 block text-sm font-medium text-ink-muted">Tipo de documento *</label>
               <div className="grid grid-cols-2 gap-3">
                 {(['holerite', 'ferias'] as const).map((t) => (
                   <button
@@ -194,7 +194,7 @@ export function UploadLotePage() {
             {/* Mês / Ano */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Mês *</label>
+                <label className="mb-1.5 block text-sm font-medium text-ink-muted">Mês *</label>
                 <Select value={mes} onChange={(e) => setMes(Number(e.target.value))}>
                   {MESES.map((m, i) => (
                     <option key={i + 1} value={i + 1}>{m}</option>
@@ -202,7 +202,7 @@ export function UploadLotePage() {
                 </Select>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Ano *</label>
+                <label className="mb-1.5 block text-sm font-medium text-ink-muted">Ano *</label>
                 <Select value={ano} onChange={(e) => setAno(Number(e.target.value))}>
                   {[anoAtual - 1, anoAtual, anoAtual + 1].map((a) => (
                     <option key={a} value={a}>{a}</option>
@@ -213,7 +213,7 @@ export function UploadLotePage() {
 
             {/* Dropzone */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Arquivo PDF *</label>
+              <label className="mb-1.5 block text-sm font-medium text-ink-muted">Arquivo PDF *</label>
               {arquivo ? (
                 <div className="flex items-center justify-between rounded-xl border border-brand/40 bg-brand-muted px-4 py-3">
                   <div>
@@ -241,10 +241,10 @@ export function UploadLotePage() {
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-2xl">
                     📄
                   </div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-ink-muted">
                     {isDragActive ? 'Solte o PDF aqui' : 'Arraste o PDF ou clique para selecionar'}
                   </p>
-                  <p className="mt-1 text-xs text-gray-400">Apenas .pdf · máx. 50 MB</p>
+                  <p className="mt-1 text-xs text-ink-faint">Apenas .pdf · máx. 50 MB</p>
                 </div>
               )}
             </div>
@@ -268,8 +268,8 @@ export function UploadLotePage() {
             {etapa === 'enviando' && (
               <>
                 <div>
-                  <p className="font-semibold text-gray-900">Enviando PDF...</p>
-                  <p className="text-sm text-gray-500">{uploadPct}% carregado</p>
+                  <p className="font-semibold text-ink">Enviando PDF...</p>
+                  <p className="text-sm text-ink-muted">{uploadPct}% carregado</p>
                 </div>
                 <BarraProgresso valor={uploadPct} cor="blue" />
               </>
@@ -278,12 +278,12 @@ export function UploadLotePage() {
             {etapa === 'processando' && (
               <>
                 <div>
-                  <p className="font-semibold text-gray-900">Processando documentos...</p>
-                  <p className="text-sm text-gray-500">Identificando funcionários e gerando PDFs individuais</p>
+                  <p className="font-semibold text-ink">Processando documentos...</p>
+                  <p className="text-sm text-ink-muted">Identificando funcionários e gerando PDFs individuais</p>
                 </div>
                 <BarraProgresso valor={pctProcessado} />
                 {progresso && (
-                  <p className="text-center text-sm text-gray-500">
+                  <p className="text-center text-sm text-ink-muted">
                     {progresso.processados} de {progresso.total_documentos} documentos
                     {progresso.erros > 0 && (
                       <span className="ml-2 text-red-500">({progresso.erros} erros)</span>
@@ -297,8 +297,8 @@ export function UploadLotePage() {
               <>
                 <div className="text-center">
                   <div className="mb-3 text-5xl">✅</div>
-                  <p className="font-semibold text-gray-900">Lote processado com sucesso!</p>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="font-semibold text-ink">Lote processado com sucesso!</p>
+                  <p className="mt-1 text-sm text-ink-muted">
                     <strong>{progresso.processados}</strong> documentos enviados para os funcionários
                     {progresso.erros > 0 && (
                       <span className="text-red-500"> · {progresso.erros} com erro</span>
@@ -315,8 +315,8 @@ export function UploadLotePage() {
               <>
                 <div className="text-center">
                   <div className="mb-3 text-5xl">❌</div>
-                  <p className="font-semibold text-gray-900">Erro no processamento</p>
-                  {erroMsg && <p className="mt-1 text-sm text-gray-500">{erroMsg}</p>}
+                  <p className="font-semibold text-ink">Erro no processamento</p>
+                  {erroMsg && <p className="mt-1 text-sm text-ink-muted">{erroMsg}</p>}
                 </div>
                 <Button variant="secondary" onClick={reiniciar} className="w-full justify-center">
                   Tentar novamente
