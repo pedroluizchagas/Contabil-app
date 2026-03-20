@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@contabhub/supabase'
+import { Button, Badge, Card, PageHeader, EmptyState, PageSpinner, Input } from '@/components/ui'
+import { formatarCnpj } from '@contabhub/shared'
 
 type Empresa = Database['public']['Tables']['empresas']['Row']
 
@@ -10,118 +12,120 @@ export function EmpresasPage() {
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
 
-  useEffect(() => {
-    carregarEmpresas()
-  }, [])
+  useEffect(() => { carregarEmpresas() }, [])
 
   async function carregarEmpresas() {
     setCarregando(true)
-    const { data } = await supabase
-      .from('empresas')
-      .select('*')
-      .order('nome')
+    const { data } = await supabase.from('empresas').select('*').order('nome')
     setEmpresas(data ?? [])
     setCarregando(false)
   }
 
   async function toggleAtivo(empresa: Empresa) {
-    await supabase
-      .from('empresas')
-      .update({ ativo: !empresa.ativo })
-      .eq('id', empresa.id)
-    setEmpresas((prev) =>
-      prev.map((e) => (e.id === empresa.id ? { ...e, ativo: !e.ativo } : e))
-    )
+    await supabase.from('empresas').update({ ativo: !empresa.ativo }).eq('id', empresa.id)
+    setEmpresas((prev) => prev.map((e) => (e.id === empresa.id ? { ...e, ativo: !e.ativo } : e)))
   }
 
-  const empresasFiltradas = empresas.filter((e) =>
-    e.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    e.cnpj.includes(busca.replace(/\D/g, ''))
+  const empresasFiltradas = empresas.filter(
+    (e) =>
+      e.nome.toLowerCase().includes(busca.toLowerCase()) ||
+      e.cnpj.includes(busca.replace(/\D/g, '')),
   )
+
+  const ativas = empresas.filter((e) => e.ativo).length
 
   return (
     <div className="p-8">
-      {/* Cabeçalho */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Empresas</h1>
-          <p className="text-sm text-gray-500">
-            {empresas.filter((e) => e.ativo).length} ativas de {empresas.length} cadastradas
-          </p>
-        </div>
-        <Link
-          to="/empresas/nova"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-        >
-          + Nova Empresa
-        </Link>
-      </div>
+      <PageHeader
+        titulo="Empresas"
+        subtitulo={`${ativas} ativas de ${empresas.length} cadastradas`}
+        acao={
+          <Link
+            to="/empresas/nova"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            Nova Empresa
+          </Link>
+        }
+      />
 
       {/* Busca */}
       <div className="mb-4">
-        <input
-          type="text"
+        <Input
           placeholder="Buscar por nome ou CNPJ..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="w-full max-w-sm rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="max-w-sm"
+          leftIcon={
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          }
         />
       </div>
 
       {/* Tabela */}
-      <div className="rounded-xl border border-gray-200 bg-white">
+      <Card>
         {carregando ? (
-          <div className="flex justify-center py-16">
-            <div className="h-7 w-7 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          </div>
+          <PageSpinner />
         ) : empresasFiltradas.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-400">
-            {busca ? 'Nenhuma empresa encontrada.' : 'Nenhuma empresa cadastrada ainda.'}
-          </p>
+          <EmptyState
+            icone="🏢"
+            titulo={busca ? 'Nenhuma empresa encontrada.' : 'Nenhuma empresa cadastrada ainda.'}
+            acao={
+              !busca && (
+                <Link to="/empresas/nova">
+                  <Button size="sm">Cadastrar primeira empresa</Button>
+                </Link>
+              )
+            }
+          />
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-gray-400">
-                <th className="px-6 py-3">Nome</th>
-                <th className="px-6 py-3">CNPJ</th>
-                <th className="px-6 py-3">E-mail</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3">Ações</th>
+              <tr className="border-b border-gray-100">
+                {['Nome', 'CNPJ', 'E-mail', 'Status', 'Ações'].map((col) => (
+                  <th key={col} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
+                    {col}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {empresasFiltradas.map((empresa) => (
-                <tr key={empresa.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-gray-900">{empresa.nome}</td>
-                  <td className="px-6 py-3 text-gray-500 font-mono">{formatarCnpj(empresa.cnpj)}</td>
-                  <td className="px-6 py-3 text-gray-500">{empresa.email}</td>
-                  <td className="px-6 py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        empresa.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
+                <tr key={empresa.id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60">
+                  <td className="px-6 py-3.5 font-medium text-gray-900">{empresa.nome}</td>
+                  <td className="px-6 py-3.5 font-mono text-sm text-gray-500">{formatarCnpj(empresa.cnpj)}</td>
+                  <td className="px-6 py-3.5 text-gray-500">{empresa.email}</td>
+                  <td className="px-6 py-3.5">
+                    <Badge variant={empresa.ativo ? 'success' : 'neutral'}>
                       {empresa.ativo ? 'Ativa' : 'Inativa'}
-                    </span>
+                    </Badge>
                   </td>
-                  <td className="px-6 py-3">
-                    <div className="flex items-center gap-3">
+                  <td className="px-6 py-3.5">
+                    <div className="flex items-center gap-4">
                       <Link
                         to={`/empresas/${empresa.id}/funcionarios`}
-                        className="text-blue-600 hover:underline"
+                        className="text-xs font-medium text-brand hover:text-brand-dark"
                       >
                         Funcionários
                       </Link>
                       <Link
                         to={`/empresas/${empresa.id}`}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-xs font-medium text-gray-500 hover:text-gray-800"
                       >
                         Editar
                       </Link>
                       <button
                         onClick={() => toggleAtivo(empresa)}
-                        className={`text-xs ${
-                          empresa.ativo ? 'text-red-500 hover:text-red-700' : 'text-green-600 hover:text-green-800'
+                        className={`text-xs font-medium transition-colors ${
+                          empresa.ativo
+                            ? 'text-red-500 hover:text-red-700'
+                            : 'text-emerald-600 hover:text-emerald-800'
                         }`}
                       >
                         {empresa.ativo ? 'Desativar' : 'Reativar'}
@@ -133,13 +137,7 @@ export function EmpresasPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
     </div>
   )
-}
-
-function formatarCnpj(cnpj: string): string {
-  const s = cnpj.replace(/\D/g, '')
-  if (s.length !== 14) return cnpj
-  return `${s.slice(0, 2)}.${s.slice(2, 5)}.${s.slice(5, 8)}/${s.slice(8, 12)}-${s.slice(12)}`
 }

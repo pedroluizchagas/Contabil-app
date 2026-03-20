@@ -1,21 +1,65 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 
-interface NavItem {
-  to: string
-  label: string
-  icon: string
+/* ── SVG icons ──────────────────────────────────────────────────── */
+function IconGrid() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  )
+}
+function IconBuilding() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M2 16V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M1 16h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M6 8h2M10 8h2M6 11.5h2M10 11.5h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7 16v-3h4v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+function IconUpload() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M9 12V3M5 7l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 13v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+function IconFile() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M10 1H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-5-5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 1v5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 10h6M6 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+function IconLogout() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+      <path d="M6 14.5H3a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M11.5 11.5L14.5 8.5L11.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14.5 8.5H6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
 }
 
-const navItems: NavItem[] = [
-  { to: '/dashboard',   label: 'Dashboard',    icon: '⊞' },
-  { to: '/empresas',    label: 'Empresas',      icon: '🏢' },
-  { to: '/lotes/upload',label: 'Enviar Lote',   icon: '↑' },
-  { to: '/documentos',  label: 'Documentos',    icon: '📄' },
+/* ── Nav items ──────────────────────────────────────────────────── */
+const navItems = [
+  { to: '/dashboard',    label: 'Dashboard',   Icon: IconGrid },
+  { to: '/empresas',     label: 'Empresas',    Icon: IconBuilding },
+  { to: '/lotes/upload', label: 'Enviar Lote', Icon: IconUpload },
+  { to: '/documentos',   label: 'Documentos',  Icon: IconFile },
 ]
 
+/* ── Component ──────────────────────────────────────────────────── */
 export function Sidebar() {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const navigate = useNavigate()
 
   async function handleLogout() {
@@ -23,41 +67,74 @@ export function Sidebar() {
     navigate('/login')
   }
 
+  const email = user?.email ?? ''
+  const iniciais = email.slice(0, 2).toUpperCase()
+
   return (
-    <aside className="flex h-screen w-56 flex-col bg-gray-900 text-gray-100">
-      {/* Logo */}
-      <div className="flex h-16 items-center px-5 border-b border-gray-700">
-        <span className="text-lg font-bold tracking-tight text-white">ContaHub</span>
+    <aside
+      className="flex h-screen w-60 flex-col"
+      style={{ background: '#101214' }}
+    >
+      {/* ── Logo ────────────────────────────────────────────────── */}
+      <div className="flex h-16 items-center gap-3 px-5">
+        <div
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white"
+          style={{ background: '#7DC82E' }}
+        >
+          C
+        </div>
+        <span className="text-[15px] font-semibold tracking-tight text-white">ContaHub</span>
       </div>
 
-      {/* Navegação */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2">
-        {navItems.map((item) => (
+      {/* ── Navegação ────────────────────────────────────────────── */}
+      <nav className="flex-1 overflow-y-auto px-3 py-3">
+        <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+          Menu Principal
+        </p>
+
+        {navItems.map(({ to, label, Icon }) => (
           <NavLink
-            key={item.to}
-            to={item.to}
+            key={to}
+            to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors mb-0.5 ${
+              [
+                'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-              }`
+                  ? 'text-white'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-gray-200',
+              ].join(' ')
             }
+            style={({ isActive }) => isActive ? { background: '#7DC82E' } : {}}
           >
-            <span className="text-base leading-none">{item.icon}</span>
-            {item.label}
+            <Icon />
+            {label}
           </NavLink>
         ))}
       </nav>
 
-      {/* Rodapé */}
-      <div className="border-t border-gray-700 p-3">
+      {/* ── Rodapé: usuário + logout ──────────────────────────────── */}
+      <div className="border-t px-3 py-4" style={{ borderColor: '#1E2129' }}>
+        {/* User info */}
+        <div className="mb-2 flex items-center gap-3 rounded-lg px-3 py-2">
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
+            style={{ background: '#2A2D35' }}
+          >
+            {iniciais}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-medium text-gray-300">{email}</p>
+            <p className="text-[10px] text-gray-500">Contabilidade</p>
+          </div>
+        </div>
+
+        {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-500 transition-colors hover:bg-white/5 hover:text-gray-300"
         >
-          <span>⎋</span>
-          Sair
+          <IconLogout />
+          Sair da conta
         </button>
       </div>
     </aside>

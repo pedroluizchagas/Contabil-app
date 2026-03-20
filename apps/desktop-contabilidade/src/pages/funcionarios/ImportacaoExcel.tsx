@@ -15,6 +15,7 @@ import { useDropzone } from 'react-dropzone'
 import * as XLSX from 'xlsx'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { Button, Badge, AlertaErro } from '@/components/ui'
 
 interface LinhaPreview {
   nome: string
@@ -95,101 +96,111 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
   const validas = linhas.filter((l) => l.valida).length
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-3xl rounded-xl bg-white shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onFechar} />
+
+      {/* Dialog */}
+      <div className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">Importar Funcionários via Excel</h2>
-          <button onClick={onFechar} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <h2 className="text-base font-semibold text-gray-900">Importar Funcionários via Excel</h2>
+          <button
+            onClick={onFechar}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+          >
+            ✕
+          </button>
         </div>
 
         <div className="p-6">
           {resultado ? (
-            // ── Resultado da importação ─────────────────────────────────────
-            <div className="space-y-4 text-center">
-              <p className="text-4xl">🎉</p>
+            /* ── Resultado ────────────────────────────────────────── */
+            <div className="space-y-4 py-4 text-center">
+              <p className="text-5xl">🎉</p>
               <p className="text-lg font-semibold text-gray-900">Importação concluída</p>
               <div className="flex justify-center gap-6 text-sm">
-                <span className="text-green-600">{resultado.ok} importados com sucesso</span>
-                {resultado.erro > 0 && <span className="text-red-500">{resultado.erro} com erro</span>}
+                <span className="font-medium text-emerald-600">{resultado.ok} importados com sucesso</span>
+                {resultado.erro > 0 && (
+                  <span className="font-medium text-red-500">{resultado.erro} com erro</span>
+                )}
               </div>
-              <button
-                onClick={onConcluir}
-                className="mt-4 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
-              >
-                Fechar
-              </button>
+              <Button onClick={onConcluir} className="mt-2">Fechar</Button>
             </div>
           ) : linhas.length === 0 ? (
-            // ── Upload da planilha ──────────────────────────────────────────
+            /* ── Upload ───────────────────────────────────────────── */
             <div className="space-y-4">
               <div
                 {...getRootProps()}
-                className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 cursor-pointer transition-colors ${
-                  isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
-                }`}
+                className={[
+                  'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors',
+                  isDragActive
+                    ? 'border-brand bg-brand-light'
+                    : 'border-gray-200 hover:border-brand/50 hover:bg-brand-muted',
+                ].join(' ')}
               >
                 <input {...getInputProps()} />
-                <p className="text-4xl mb-3">📊</p>
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-2xl">📊</div>
                 <p className="text-sm font-medium text-gray-700">
                   {isDragActive ? 'Solte o arquivo aqui' : 'Arraste a planilha ou clique para selecionar'}
                 </p>
                 <p className="mt-1 text-xs text-gray-400">Apenas arquivos .xlsx</p>
               </div>
 
-              {erroGeral && (
-                <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
-                  {erroGeral}
-                </p>
-              )}
+              <AlertaErro mensagem={erroGeral} />
 
-              <div className="rounded-lg bg-gray-50 px-4 py-3 text-xs text-gray-500">
-                <p className="font-medium mb-1">Colunas esperadas na planilha:</p>
-                <p>Nome | CPF | Data Nascimento (DD/MM/AAAA ou AAAA-MM-DD) | Código | E-mail</p>
+              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-xs text-gray-500">
+                <p className="mb-1 font-medium text-gray-600">Colunas esperadas na planilha:</p>
+                <p>Nome · CPF · Data Nascimento (DD/MM/AAAA ou AAAA-MM-DD) · Código · E-mail</p>
               </div>
             </div>
           ) : (
-            // ── Preview dos dados ───────────────────────────────────────────
+            /* ── Preview ──────────────────────────────────────────── */
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  <span className="font-semibold text-green-600">{validas} válidos</span>
+                <div className="flex items-center gap-3 text-sm">
+                  <Badge variant="success">{validas} válidos</Badge>
                   {linhas.length - validas > 0 && (
-                    <span className="ml-2 text-red-500">{linhas.length - validas} com erro</span>
+                    <Badge variant="error">{linhas.length - validas} com erro</Badge>
                   )}
-                  {' '}de {linhas.length} linhas
-                </p>
+                  <span className="text-gray-400">de {linhas.length} linhas</span>
+                </div>
                 <button
                   onClick={() => setLinhas([])}
-                  className="text-sm text-gray-400 hover:text-gray-600"
+                  className="text-xs font-medium text-gray-400 transition-colors hover:text-gray-700"
                 >
                   Trocar arquivo
                 </button>
               </div>
 
-              <div className="max-h-72 overflow-y-auto rounded-lg border border-gray-200">
+              <div className="max-h-72 overflow-y-auto rounded-xl border border-gray-100">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-gray-50">
-                    <tr className="text-left font-medium text-gray-500">
-                      <th className="px-3 py-2">Nome</th>
-                      <th className="px-3 py-2">CPF</th>
-                      <th className="px-3 py-2">Código</th>
-                      <th className="px-3 py-2">E-mail</th>
-                      <th className="px-3 py-2">Status</th>
+                  <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
+                    <tr>
+                      {['Nome', 'CPF', 'Código', 'E-mail', 'Status'].map((col) => (
+                        <th key={col} className="px-3 py-2.5 text-left font-medium text-gray-400 uppercase tracking-wide text-[10px]">
+                          {col}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
                     {linhas.map((linha, i) => (
-                      <tr key={i} className={`border-t border-gray-100 ${!linha.valida ? 'bg-red-50' : ''}`}>
-                        <td className="px-3 py-1.5">{linha.nome || '—'}</td>
-                        <td className="px-3 py-1.5 font-mono">{linha.cpf || '—'}</td>
-                        <td className="px-3 py-1.5">{linha.codigo || '—'}</td>
-                        <td className="px-3 py-1.5">{linha.email || '—'}</td>
-                        <td className="px-3 py-1.5">
+                      <tr
+                        key={i}
+                        className={`border-b border-gray-50 ${!linha.valida ? 'bg-red-50/60' : 'hover:bg-gray-50/60'}`}
+                      >
+                        <td className="px-3 py-2">{linha.nome || '—'}</td>
+                        <td className="px-3 py-2 font-mono">{linha.cpf || '—'}</td>
+                        <td className="px-3 py-2">{linha.codigo || '—'}</td>
+                        <td className="px-3 py-2">{linha.email || '—'}</td>
+                        <td className="px-3 py-2">
                           {linha.valida ? (
-                            <span className="text-green-600">✓</span>
+                            <span className="font-medium text-emerald-600">✓ OK</span>
                           ) : (
-                            <span className="text-red-500" title={linha.erros.join(', ')}>✕ {linha.erros[0]}</span>
+                            <span className="font-medium text-red-500" title={linha.erros.join(', ')}>
+                              ✕ {linha.erros[0]}
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -199,19 +210,16 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
               </div>
 
               <div className="flex gap-3">
-                <button
+                <Button
                   onClick={importar}
-                  disabled={validas === 0 || importando}
-                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  disabled={validas === 0}
+                  loading={importando}
                 >
                   {importando ? 'Importando...' : `Importar ${validas} funcionário${validas !== 1 ? 's' : ''}`}
-                </button>
-                <button
-                  onClick={onFechar}
-                  className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
+                </Button>
+                <Button variant="secondary" onClick={onFechar}>
                   Cancelar
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -221,7 +229,7 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
   )
 }
 
-// ─── Parsing e validação de linhas da planilha ─────────────────────────────────
+// ─── Parsing e validação de linhas da planilha ────────────────────────────────
 
 function parsearLinha(row: Record<string, unknown>): LinhaPreview {
   const get = (keys: string[]) => {
@@ -232,16 +240,15 @@ function parsearLinha(row: Record<string, unknown>): LinhaPreview {
     return ''
   }
 
-  const nome = get(['Nome', 'NOME', 'name'])
-  const cpf = get(['CPF', 'cpf'])
-  const rawData = get(['Data Nascimento', 'DataNascimento', 'data_nascimento', 'Nascimento'])
-  const codigo = get(['Código', 'Codigo', 'CODIGO', 'codigo', 'Matricula', 'Matrícula'])
-  const email = get(['E-mail', 'Email', 'EMAIL', 'email'])
-
+  const nome            = get(['Nome', 'NOME', 'name'])
+  const cpf             = get(['CPF', 'cpf'])
+  const rawData         = get(['Data Nascimento', 'DataNascimento', 'data_nascimento', 'Nascimento'])
+  const codigo          = get(['Código', 'Codigo', 'CODIGO', 'codigo', 'Matricula', 'Matrícula'])
+  const email           = get(['E-mail', 'Email', 'EMAIL', 'email'])
   const data_nascimento = normalizarData(rawData)
   const erros: string[] = []
 
-  if (!nome) erros.push('Nome obrigatório')
+  if (!nome)  erros.push('Nome obrigatório')
   if (!cpf || cpf.replace(/\D/g, '').length !== 11) erros.push('CPF inválido')
   if (!data_nascimento) erros.push('Data de nascimento inválida')
   if (!codigo) erros.push('Código obrigatório')
@@ -252,13 +259,10 @@ function parsearLinha(row: Record<string, unknown>): LinhaPreview {
 
 function normalizarData(valor: string): string {
   if (!valor) return ''
-  // Tenta DD/MM/AAAA
   const brMatch = valor.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
   if (brMatch) return `${brMatch[3]}-${brMatch[2].padStart(2, '0')}-${brMatch[1].padStart(2, '0')}`
-  // Tenta AAAA-MM-DD
   const isoMatch = valor.match(/^(\d{4})-(\d{2})-(\d{2})$/)
   if (isoMatch) return valor
-  // Tenta Date object serializado
   if (valor.includes('T')) return valor.split('T')[0]
   return ''
 }
