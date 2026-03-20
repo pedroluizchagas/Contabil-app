@@ -31,27 +31,33 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm">
+    <div className="flex h-screen items-center justify-center bg-sidebar-bg">
+      <div className="w-full max-w-[360px]">
+
         {/* Logo */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">ContaHub</h1>
-          <p className="mt-1 text-sm text-gray-500">Acesso para Contabilidades</p>
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-[11px] bg-brand text-[20px] font-extrabold text-[#111]">
+            C
+          </div>
+          <div className="text-center">
+            <h1 className="text-[22px] font-bold text-white">ContaHub</h1>
+            <p className="mt-0.5 text-[12px] text-[#666]">Acesso para Contabilidades</p>
+          </div>
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-800">Entrar na sua conta</h2>
+        <div className="rounded-card bg-card p-8 shadow-card">
+          <h2 className="mb-5 text-[15px] font-semibold text-ink">Entrar na sua conta</h2>
 
           {erro && (
-            <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-danger">
               {erro}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">E-mail</label>
+              <label className="mb-1.5 block text-[12px] font-medium text-ink">E-mail</label>
               <input
                 type="email"
                 value={email}
@@ -59,26 +65,26 @@ export function LoginPage() {
                 placeholder="contador@suacontabilidade.com.br"
                 required
                 autoFocus
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border border-[#e0e0e0] px-3 py-2.5 text-[12.5px] text-ink placeholder-[#bbb] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand-muted"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Senha</label>
+              <label className="mb-1.5 block text-[12px] font-medium text-ink">Senha</label>
               <input
                 type="password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border border-[#e0e0e0] px-3 py-2.5 text-[12.5px] text-ink placeholder-[#bbb] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand-muted"
               />
             </div>
 
             <button
               type="submit"
               disabled={carregando}
-              className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-1 w-full rounded-lg bg-brand px-4 py-2.5 text-[12.5px] font-semibold text-[#111] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {carregando ? 'Entrando...' : 'Entrar'}
             </button>

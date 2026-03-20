@@ -19,7 +19,7 @@ ALTER TABLE expo_push_tokens ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "expo_token_funcionario_all" ON expo_push_tokens
   FOR ALL USING (
     funcionario_id = (auth.jwt() ->> 'funcionario_id')::uuid
-    AND auth.user_role() = 'funcionario'
+    AND public.jwt_user_role() = 'funcionario'
   );
 
 -- Índice para busca por funcionário

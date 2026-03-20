@@ -12,6 +12,14 @@ interface FormData {
 
 const VAZIO: FormData = { nome: '', cnpj: '', email: '', senha: '' }
 
+function IconArrowLeft() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+    </svg>
+  )
+}
+
 export function EmpresaFormPage() {
   const { empresaId } = useParams<{ empresaId: string }>()
   const { tenantId } = useAuth()
@@ -48,18 +56,16 @@ export function EmpresaFormPage() {
 
     const cnpjLimpo = form.cnpj.replace(/\D/g, '')
     if (cnpjLimpo.length !== 14) {
-      setErro('CNPJ inválido. Informe os 14 dígitos.')
+      setErro('CNPJ invalido. Informe os 14 digitos.')
       setSalvando(false)
       return
     }
 
     if (ehEdicao) {
-      // Edição: atualiza campos (senha só se preenchida)
       const update: Record<string, string> = { nome: form.nome, email: form.email }
       const { error } = await supabase.from('empresas').update(update).eq('id', empresaId!)
       if (error) { setErro(error.message); setSalvando(false); return }
     } else {
-      // Criação: chama Edge Function que cria o auth user e a empresa
       if (!form.senha || form.senha.length < 8) {
         setErro('A senha deve ter pelo menos 8 caracteres.')
         setSalvando(false)
@@ -83,34 +89,45 @@ export function EmpresaFormPage() {
   if (carregando) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-7 w-7 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="h-7 w-7 animate-spin rounded-full border-[3px] border-brand border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
+    <div className="flex flex-col gap-4 p-6">
+
+      {/* Top Bar */}
+      <div>
         <button
           onClick={() => navigate('/empresas')}
-          className="mb-4 text-sm text-gray-500 hover:text-gray-700"
+          className="mb-3 flex items-center gap-1.5 text-[12px] text-ink-muted transition-colors hover:text-ink"
         >
-          ← Voltar para Empresas
+          <IconArrowLeft />
+          Voltar para Empresas
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-[24px] font-bold leading-tight text-ink">
           {ehEdicao ? 'Editar Empresa' : 'Nova Empresa'}
         </h1>
+        <p className="mt-0.5 text-[12.5px] text-ink-muted">
+          {ehEdicao
+            ? 'Atualize os dados cadastrais da empresa'
+            : 'Preencha os dados para cadastrar uma nova empresa cliente'}
+        </p>
       </div>
 
-      <div className="max-w-lg rounded-xl border border-gray-200 bg-white p-8">
+      {/* Card do formulario */}
+      <div className="max-w-lg rounded-card bg-card p-8 shadow-card">
+
         {erro && (
-          <div className="mb-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-danger">
             {erro}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <Campo label="Razão Social / Nome" obrigatorio>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+          <Campo label="Razao Social / Nome" obrigatorio>
             <input
               type="text"
               value={form.nome}
@@ -130,8 +147,13 @@ export function EmpresaFormPage() {
               required={!ehEdicao}
               disabled={ehEdicao}
               maxLength={18}
-              className={`${inputClass} ${ehEdicao ? 'bg-gray-50 text-gray-400' : ''}`}
+              className={`${inputClass} ${ehEdicao ? 'cursor-not-allowed bg-[#f9f9f9] text-ink-xfaint' : ''}`}
             />
+            {ehEdicao && (
+              <p className="mt-1 text-[11px] text-ink-xfaint">
+                O CNPJ nao pode ser alterado apos o cadastro.
+              </p>
+            )}
           </Campo>
 
           <Campo label="E-mail de acesso" obrigatorio>
@@ -151,33 +173,34 @@ export function EmpresaFormPage() {
                 type="password"
                 value={form.senha}
                 onChange={atualizar('senha')}
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Minimo 8 caracteres"
                 required
                 minLength={8}
                 className={inputClass}
               />
-              <p className="mt-1 text-xs text-gray-400">
-                A empresa usará esta senha + CNPJ para acessar o app.
+              <p className="mt-1 text-[11px] text-ink-xfaint">
+                A empresa usara esta senha junto com o CNPJ para acessar o app.
               </p>
             </Campo>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-1">
             <button
               type="submit"
               disabled={salvando}
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-brand px-5 py-2.5 text-[12.5px] font-semibold text-[#111] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {salvando ? 'Salvando...' : ehEdicao ? 'Salvar alterações' : 'Cadastrar empresa'}
+              {salvando ? 'Salvando...' : ehEdicao ? 'Salvar alteracoes' : 'Cadastrar empresa'}
             </button>
             <button
               type="button"
               onClick={() => navigate('/empresas')}
-              className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="rounded-lg border border-[#e0e0e0] px-5 py-2.5 text-[12.5px] font-medium text-ink-muted transition-colors hover:bg-[#f9f9f9] hover:text-ink"
             >
               Cancelar
             </button>
           </div>
+
         </form>
       </div>
     </div>
@@ -185,7 +208,7 @@ export function EmpresaFormPage() {
 }
 
 const inputClass =
-  'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+  'w-full rounded-lg border border-[#e0e0e0] px-3 py-2.5 text-[12.5px] text-ink placeholder-ink-xfaint outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand-muted'
 
 function Campo({
   label,
@@ -198,9 +221,9 @@ function Campo({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+      <label className="mb-1.5 block text-[12px] font-medium text-ink">
         {label}
-        {obrigatorio && <span className="ml-0.5 text-red-500">*</span>}
+        {obrigatorio && <span className="ml-0.5 text-danger">*</span>}
       </label>
       {children}
     </div>

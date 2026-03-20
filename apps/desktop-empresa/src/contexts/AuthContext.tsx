@@ -102,5 +102,5 @@ function traduzirErro(msg: string): string {
     'Empresa inativa. Contate sua contabilidade.': 'Empresa inativa. Contate sua contabilidade.',
     'Conta não configurada. Contate sua contabilidade.': 'Conta não configurada. Contate sua contabilidade.',
   }
-  return map[msg] ?? msg || 'Erro ao fazer login. Tente novamente.'
+  return map[msg] ?? (msg || 'Erro ao fazer login. Tente novamente.')
 }
