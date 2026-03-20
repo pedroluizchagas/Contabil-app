@@ -112,10 +112,30 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* ── Rodapé: usuário + logout ──────────────────────────────── */}
-      <div className="border-t px-3 py-4" style={{ borderColor: '#1E2129' }}>
+      {/* ── Rodapé ───────────────────────────────────────────────── */}
+      <div className="border-t border-sidebar-border px-3 pb-4 pt-3">
+        {/* Próximos documentos */}
+        <div className="mb-3 rounded-[11px] bg-sidebar-next p-3">
+          <div className="mb-1 text-[9px] uppercase tracking-[0.07em] text-[#3a3a3a]">
+            Próximos Documentos
+          </div>
+          <div className="mb-0.5 text-[12px] font-semibold text-[#ddd]">Folha de Pagamento</div>
+          <div className="mb-2 text-[10px] text-[#444]">Vence em 3 dias</div>
+          <div className="flex items-center justify-between">
+            <span className="rounded-full bg-brand-muted px-2 py-0.5 text-[9px] font-medium text-brand">
+              Holerite
+            </span>
+            <button className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-brand">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
         {/* User info */}
-        <div className="mb-2 flex items-center gap-3 rounded-lg px-3 py-2">
+        <div className="mb-1 flex items-center gap-3 rounded-lg px-3 py-2">
           <div
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
             style={{ background: '#2A2D35' }}
@@ -136,30 +156,6 @@ export function Sidebar() {
           <IconLogout />
           Sair da conta
         </button>
-      </nav>
-
-      {/* Rodape — proximo evento */}
-      <div className="mt-auto border-t border-sidebar-border pt-2">
-        <div className="mx-3 mt-2.5 rounded-[11px] bg-sidebar-next p-3">
-          <div className="mb-1 text-[9px] uppercase tracking-[0.07em] text-[#3a3a3a]">
-            Proximos Documentos
-          </div>
-          <div className="mb-0.5 text-[12px] font-semibold text-[#ddd]">Folha de Pagamento</div>
-          <div className="mb-2 text-[10px] text-[#444]">Vence em 3 dias</div>
-          <div className="flex items-center justify-between">
-            <div className="flex gap-1">
-              <span className="rounded-full bg-brand-muted px-2 py-0.5 text-[9px] font-medium text-brand">
-                Holerite
-              </span>
-            </div>
-            <button className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-brand text-[#111]">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12 5 19 12 12 19"/>
-              </svg>
-            </button>
-          </div>
-        </div>
       </div>
     </aside>
   )

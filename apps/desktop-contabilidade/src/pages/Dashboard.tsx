@@ -4,6 +4,15 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardHeader, CardContent, Badge, PageSpinner } from '@/components/ui'
 
+interface LoteRecente {
+  id: string
+  empresa_nome: string
+  status: string
+  total_documentos: number
+  processados: number
+  created_at: string
+}
+
 interface Stats {
   totalEmpresas: number
   totalFuncionarios: number
@@ -123,7 +132,6 @@ const IcoClock = () => (
 export function DashboardPage() {
   const { user } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
-  const [mesData, setMesData] = useState<MesData[]>([])
   const [carregando, setCarregando] = useState(true)
 
   const [hoje] = useState(() => new Date())
@@ -170,11 +178,8 @@ export function DashboardPage() {
       ])
 
       const docs = documentosRes.data ?? []
-      const documentosEnviados = docs.filter((d) => d.status_envio === 'enviado').length
+      const documentosEnviados  = docs.filter((d) => d.status_envio === 'enviado').length
       const documentosPendentes = docs.filter((d) => d.status_envio === 'pendente').length
-
-    const documentosEnviados  = documentosRes.data?.filter((d) => d.status_envio === 'enviado').length ?? 0
-    const documentosPendentes = documentosRes.data?.filter((d) => d.status_envio === 'pendente').length ?? 0
 
       setStats({
         totalEmpresas: empresasRes.count ?? 0,
