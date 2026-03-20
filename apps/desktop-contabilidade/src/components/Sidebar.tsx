@@ -39,6 +39,17 @@ function IconFile() {
     </svg>
   )
 }
+function IconSettings() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M9 1.5v1.2M9 15.3v1.2M1.5 9h1.2M15.3 9h1.2M3.7 3.7l.85.85M13.45 13.45l.85.85M3.7 14.3l.85-.85M13.45 4.55l.85-.85"
+        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+      />
+    </svg>
+  )
+}
 function IconLogout() {
   return (
     <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
@@ -50,11 +61,15 @@ function IconLogout() {
 }
 
 /* ── Nav items ──────────────────────────────────────────────────── */
-const navItems = [
+const navMain = [
   { to: '/dashboard',    label: 'Dashboard',   Icon: IconGrid },
   { to: '/empresas',     label: 'Empresas',    Icon: IconBuilding },
   { to: '/lotes/upload', label: 'Enviar Lote', Icon: IconUpload },
   { to: '/documentos',   label: 'Documentos',  Icon: IconFile },
+]
+
+const navConfig = [
+  { to: '/configuracoes', label: 'Configurações', Icon: IconSettings },
 ]
 
 /* ── Component ──────────────────────────────────────────────────── */
@@ -92,7 +107,30 @@ export function Sidebar() {
           Menu Principal
         </p>
 
-        {navItems.map(({ to, label, Icon }) => (
+        {navMain.map(({ to, label, Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              [
+                'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                isActive
+                  ? 'text-white'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-gray-200',
+              ].join(' ')
+            }
+            style={({ isActive }) => isActive ? { background: '#7DC82E' } : {}}
+          >
+            <Icon />
+            {label}
+          </NavLink>
+        ))}
+
+        <p className="mb-2 mt-5 px-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+          Configurações
+        </p>
+
+        {navConfig.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}
