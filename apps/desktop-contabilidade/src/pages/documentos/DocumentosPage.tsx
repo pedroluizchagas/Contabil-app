@@ -67,13 +67,13 @@ export function DocumentosPage() {
       {/* ── Resumo ────────────────────────────────────────────────── */}
       <div className="mb-6 grid grid-cols-4 gap-3">
         {[
-          { label: 'Total',           valor: totais.total,      accent: 'text-gray-700' },
+          { label: 'Total',           valor: totais.total,      accent: 'text-ink' },
           { label: 'Não visualizados', valor: totais.naoVis,    accent: 'text-amber-600' },
           { label: 'Visualizados',    valor: totais.visualizado, accent: 'text-blue-600' },
           { label: 'Assinados',       valor: totais.assinado,   accent: 'text-brand' },
         ].map((item) => (
           <div key={item.label} className="rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-card">
-            <p className="text-xs text-gray-400">{item.label}</p>
+            <p className="text-xs text-ink-faint">{item.label}</p>
             <p className={`mt-1 text-2xl font-bold ${item.accent}`}>{item.valor}</p>
           </div>
         ))}
@@ -128,7 +128,7 @@ export function DocumentosPage() {
       {/* ── Tabela ────────────────────────────────────────────────── */}
       <Card>
         <CardHeader className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-gray-800">
+          <p className="text-sm font-semibold text-ink">
             {filtrados.length} documento{filtrados.length !== 1 ? 's' : ''}
           </p>
         </CardHeader>
@@ -142,7 +142,7 @@ export function DocumentosPage() {
             <thead>
               <tr className="border-b border-gray-100">
                 {['Funcionário', 'Empresa', 'Tipo', 'Período', 'Leitura', 'Assinatura', ''].map((col) => (
-                  <th key={col} className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
+                  <th key={col} className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-faint">
                     {col}
                   </th>
                 ))}
@@ -152,16 +152,16 @@ export function DocumentosPage() {
               {filtrados.map((doc) => (
                 <tr key={doc.documento_id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60">
                   <td className="px-5 py-3.5">
-                    <p className="font-medium text-gray-900">{doc.funcionario_nome}</p>
-                    <p className="font-mono text-xs text-gray-400">{doc.funcionario_codigo}</p>
+                    <p className="font-medium text-ink">{doc.funcionario_nome}</p>
+                    <p className="font-mono text-xs text-ink-faint">{doc.funcionario_codigo}</p>
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500">{doc.empresa_nome}</td>
+                  <td className="px-5 py-3.5 text-ink-muted">{doc.empresa_nome}</td>
                   <td className="px-5 py-3.5">
                     <Badge variant={doc.tipo === 'holerite' ? 'info' : 'purple'}>
                       {doc.tipo === 'holerite' ? 'Holerite' : 'Férias'}
                     </Badge>
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500">
+                  <td className="px-5 py-3.5 text-ink-muted">
                     {MESES[doc.mes_referencia]}/{doc.ano_referencia}
                   </td>
                   <td className="px-5 py-3.5">
@@ -181,7 +181,7 @@ export function DocumentosPage() {
                         {new Date(doc.assinado_em).toLocaleDateString('pt-BR')}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-300">—</span>
+                      <span className="text-xs text-ink-xfaint">—</span>
                     )}
                   </td>
                   <td className="px-5 py-3.5">

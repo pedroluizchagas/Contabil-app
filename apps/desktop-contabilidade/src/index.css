@@ -12,9 +12,9 @@
   }
 
   body {
-    background-color: #F2F4F7;
+    background-color: #151515;
     color: #111214;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
   }
 
   ::-webkit-scrollbar { width: 6px; height: 6px; }

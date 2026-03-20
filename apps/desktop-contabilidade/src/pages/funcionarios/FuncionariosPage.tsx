@@ -121,9 +121,9 @@ export function FuncionariosPage() {
             <tbody>
               {filtrados.map((func) => (
                 <tr key={func.id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60">
-                  <td className="px-6 py-3.5 font-medium text-gray-900">{func.nome}</td>
-                  <td className="px-6 py-3.5 font-mono text-sm text-gray-500">{func.codigo}</td>
-                  <td className="px-6 py-3.5 text-gray-500">{func.email}</td>
+                  <td className="px-6 py-3.5 font-medium text-ink">{func.nome}</td>
+                  <td className="px-6 py-3.5 font-mono text-sm text-ink-muted">{func.codigo}</td>
+                  <td className="px-6 py-3.5 text-ink-muted">{func.email}</td>
                   <td className="px-6 py-3.5">
                     <Badge variant={func.ativo ? 'success' : 'neutral'}>
                       {func.ativo ? 'Ativo' : 'Inativo'}
@@ -133,7 +133,7 @@ export function FuncionariosPage() {
                     <div className="flex items-center gap-4">
                       <Link
                         to={`/empresas/${empresaId}/funcionarios/${func.id}`}
-                        className="text-xs font-medium text-gray-500 hover:text-gray-800"
+                        className="text-xs font-medium text-ink-muted hover:text-gray-800"
                       >
                         Editar
                       </Link>

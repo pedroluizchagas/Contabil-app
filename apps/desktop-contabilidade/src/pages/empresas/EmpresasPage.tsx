@@ -7,22 +7,6 @@ import { formatarCnpj } from '@contabhub/shared'
 
 type Empresa = Database['public']['Tables']['empresas']['Row']
 
-function IconPlus() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  )
-}
-
-function IconSearch() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    </svg>
-  )
-}
-
 function IconUsers() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -131,9 +115,9 @@ export function EmpresasPage() {
             <tbody>
               {empresasFiltradas.map((empresa) => (
                 <tr key={empresa.id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60">
-                  <td className="px-6 py-3.5 font-medium text-gray-900">{empresa.nome}</td>
-                  <td className="px-6 py-3.5 font-mono text-sm text-gray-500">{formatarCnpj(empresa.cnpj)}</td>
-                  <td className="px-6 py-3.5 text-gray-500">{empresa.email}</td>
+                  <td className="px-6 py-3.5 font-medium text-ink">{empresa.nome}</td>
+                  <td className="px-6 py-3.5 font-mono text-sm text-ink-muted">{formatarCnpj(empresa.cnpj)}</td>
+                  <td className="px-6 py-3.5 text-ink-muted">{empresa.email}</td>
                   <td className="px-6 py-3.5">
                     <Badge variant={empresa.ativo ? 'success' : 'neutral'}>
                       {empresa.ativo ? 'Ativa' : 'Inativa'}
@@ -143,14 +127,14 @@ export function EmpresasPage() {
                     <div className="flex items-center gap-4">
                       <Link
                         to={`/empresas/${empresa.id}/funcionarios`}
-                        className="text-xs font-medium text-brand hover:text-brand-dark"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-brand-dark"
                       >
                         <IconUsers />
-                        Funcionarios
+                        Funcionários
                       </Link>
                       <Link
                         to={`/empresas/${empresa.id}`}
-                        className="text-xs font-medium text-gray-500 hover:text-gray-800"
+                        className="text-xs font-medium text-ink-muted hover:text-gray-800"
                       >
                         Editar
                       </Link>
