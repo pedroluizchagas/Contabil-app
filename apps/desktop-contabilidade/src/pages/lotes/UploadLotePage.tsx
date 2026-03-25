@@ -110,7 +110,15 @@ export function UploadLotePage() {
 
     const { data: lote, error: loteError } = await supabase
       .from('lotes')
-      .insert({ tenant_id: tenantId, empresa_id: empresaId, storage_path_original: storagePath, status: 'aguardando' })
+      .insert({
+        tenant_id: tenantId,
+        empresa_id: empresaId,
+        storage_path_original: storagePath,
+        tipo,
+        mes_referencia: mes,
+        ano_referencia: ano,
+        status: 'aguardando',
+      })
       .select('id, status, total_documentos, processados, erros')
       .single()
 

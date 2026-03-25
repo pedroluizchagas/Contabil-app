@@ -106,7 +106,7 @@ export function EmpresasPage() {
             <thead>
               <tr className="border-b border-gray-100">
                 {['Nome', 'CNPJ', 'E-mail', 'Status', 'Ações'].map((col) => (
-                  <th key={col} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
+                  <th key={col} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint">
                     {col}
                   </th>
                 ))}
@@ -134,7 +134,7 @@ export function EmpresasPage() {
                       </Link>
                       <Link
                         to={`/empresas/${empresa.id}`}
-                        className="text-xs font-medium text-ink-muted hover:text-gray-800"
+                        className="text-xs font-medium text-ink-muted hover:text-ink"
                       >
                         Editar
                       </Link>

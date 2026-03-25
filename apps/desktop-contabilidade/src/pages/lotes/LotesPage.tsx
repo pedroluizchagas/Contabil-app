@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { Button, Badge, Card, PageHeader, EmptyState, PageSpinner, Select } from '@/components/ui'
+
+const MESES_ABREV = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 interface Lote {
   id: string
   empresa_id: string
   empresa_nome: string
+  tipo: 'holerite' | 'ferias'
+  mes_referencia: number
+  ano_referencia: number
   status: string
   total_documentos: number
   processados: number
@@ -34,6 +39,7 @@ function statusBadge(status: string) {
 }
 
 export function LotesPage() {
+  const navigate = useNavigate()
   const [lotes, setLotes] = useState<Lote[]>([])
   const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([])
   const [filtroEmpresa, setFiltroEmpresa] = useState('')
@@ -48,7 +54,7 @@ export function LotesPage() {
     setCarregando(true)
     const { data } = await supabase
       .from('lotes')
-      .select('id, empresa_id, status, total_documentos, processados, erros, created_at, empresas(nome)')
+      .select('id, empresa_id, tipo, mes_referencia, ano_referencia, status, total_documentos, processados, erros, created_at, empresas(nome)')
       .order('created_at', { ascending: false })
       .limit(200)
     setLotes(
@@ -56,6 +62,9 @@ export function LotesPage() {
         id: l.id,
         empresa_id: l.empresa_id,
         empresa_nome: (l.empresas as { nome: string } | null)?.nome ?? '—',
+        tipo: l.tipo,
+        mes_referencia: l.mes_referencia,
+        ano_referencia: l.ano_referencia,
         status: l.status,
         total_documentos: l.total_documentos,
         processados: l.processados,
@@ -155,10 +164,10 @@ export function LotesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {['Empresa', 'Status', 'Progresso', 'Documentos', 'Erros', 'Data'].map((col) => (
+                {['Empresa', 'Período', 'Tipo', 'Status', 'Progresso', 'Erros', 'Data'].map((col) => (
                   <th
                     key={col}
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-400"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint"
                   >
                     {col}
                   </th>
@@ -173,9 +182,18 @@ export function LotesPage() {
                 return (
                   <tr
                     key={lote.id}
-                    className="border-b border-gray-50 transition-colors hover:bg-gray-50/60"
+                    onClick={() => navigate(`/lotes/${lote.id}`)}
+                    className="cursor-pointer border-b border-gray-50 transition-colors hover:bg-gray-50/60"
                   >
                     <td className="px-6 py-3.5 font-medium text-ink">{lote.empresa_nome}</td>
+                    <td className="px-6 py-3.5 text-ink-muted">
+                      {MESES_ABREV[lote.mes_referencia]}/{lote.ano_referencia}
+                    </td>
+                    <td className="px-6 py-3.5">
+                      <Badge variant={lote.tipo === 'holerite' ? 'info' : 'purple'}>
+                        {lote.tipo === 'holerite' ? 'Holerite' : 'Férias'}
+                      </Badge>
+                    </td>
                     <td className="px-6 py-3.5">{statusBadge(lote.status)}</td>
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-2.5">
@@ -185,14 +203,10 @@ export function LotesPage() {
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="text-xs text-ink-faint">{pct}%</span>
+                        <span className="text-xs text-ink-faint">
+                          {lote.processados}/{lote.total_documentos}
+                        </span>
                       </div>
-                    </td>
-                    <td className="px-6 py-3.5 text-ink-muted">
-                      {lote.processados}
-                      {lote.total_documentos > 0 && (
-                        <span className="text-ink-xfaint"> / {lote.total_documentos}</span>
-                      )}
                     </td>
                     <td className="px-6 py-3.5">
                       {lote.erros > 0 ? (
@@ -202,13 +216,7 @@ export function LotesPage() {
                       )}
                     </td>
                     <td className="px-6 py-3.5 text-ink-muted">
-                      {new Date(lote.created_at).toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {new Date(lote.created_at).toLocaleDateString('pt-BR')}
                     </td>
                   </tr>
                 )

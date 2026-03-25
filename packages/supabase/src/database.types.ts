@@ -246,6 +246,9 @@ export interface Database {
           tenant_id: string
           empresa_id: string
           storage_path_original: string
+          tipo: 'holerite' | 'ferias'
+          mes_referencia: number
+          ano_referencia: number
           total_documentos: number
           processados: number
           erros: number
@@ -257,6 +260,9 @@ export interface Database {
           tenant_id: string
           empresa_id: string
           storage_path_original: string
+          tipo?: 'holerite' | 'ferias'
+          mes_referencia?: number
+          ano_referencia?: number
           total_documentos?: number
           processados?: number
           erros?: number
@@ -268,6 +274,9 @@ export interface Database {
           tenant_id?: string
           empresa_id?: string
           storage_path_original?: string
+          tipo?: 'holerite' | 'ferias'
+          mes_referencia?: number
+          ano_referencia?: number
           total_documentos?: number
           processados?: number
           erros?: number

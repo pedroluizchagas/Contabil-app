@@ -112,7 +112,7 @@ export function FuncionariosPage() {
             <thead>
               <tr className="border-b border-gray-100">
                 {['Nome', 'Código', 'E-mail', 'Status', 'Ações'].map((col) => (
-                  <th key={col} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
+                  <th key={col} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint">
                     {col}
                   </th>
                 ))}
@@ -133,7 +133,7 @@ export function FuncionariosPage() {
                     <div className="flex items-center gap-4">
                       <Link
                         to={`/empresas/${empresaId}/funcionarios/${func.id}`}
-                        className="text-xs font-medium text-ink-muted hover:text-gray-800"
+                        className="text-xs font-medium text-ink-muted hover:text-ink"
                       >
                         Editar
                       </Link>
