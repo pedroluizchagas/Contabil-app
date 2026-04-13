@@ -197,5 +197,5 @@ function traduzirErro(msg: string): string {
     'Nenhum código válido encontrado. Solicite um novo.': 'Código expirado. Solicite um novo.',
     'Empresa não encontrada ou inativa.': 'CNPJ da empresa não encontrado.',
   }
-  return map[msg] ?? msg || 'Erro ao fazer login. Tente novamente.'
+  return map[msg] ?? (msg || 'Erro ao fazer login. Tente novamente.')
 }

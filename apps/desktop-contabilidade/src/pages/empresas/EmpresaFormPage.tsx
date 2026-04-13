@@ -15,7 +15,7 @@ const VAZIO: FormData = { nome: '', cnpj: '', email: '', senha: '' }
 
 export function EmpresaFormPage() {
   const { empresaId } = useParams<{ empresaId: string }>()
-  const { tenantId } = useAuth()
+  const { tenantId, refreshTenantId } = useAuth()
   const navigate = useNavigate()
   const ehEdicao = Boolean(empresaId)
 
@@ -61,15 +61,26 @@ export function EmpresaFormPage() {
         .eq('id', empresaId!)
       if (error) { setErro(error.message); setSalvando(false); return }
     } else {
+      const tid = tenantId ?? await refreshTenantId()
+      if (!tid) {
+        setErro('Sessão inválida. Faça login novamente.')
+        setSalvando(false)
+        return
+      }
       if (!form.senha || form.senha.length < 8) {
         setErro('A senha deve ter pelo menos 8 caracteres.')
         setSalvando(false)
         return
       }
-      const { error } = await supabase.functions.invoke('criar-empresa', {
-        body: { tenant_id: tenantId, nome: form.nome, cnpj: cnpjLimpo, email: form.email, senha: form.senha },
+      const { data, error } = await supabase.functions.invoke('criar-empresa', {
+        body: { tenant_id: tid, nome: form.nome, cnpj: cnpjLimpo, email: form.email, senha: form.senha },
       })
-      if (error) { setErro(error.message); setSalvando(false); return }
+      if (error) {
+        const mensagem = (data as { error?: string } | null)?.error ?? error.message
+        setErro(mensagem)
+        setSalvando(false)
+        return
+      }
     }
 
     navigate('/empresas')
