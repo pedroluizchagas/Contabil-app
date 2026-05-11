@@ -238,6 +238,58 @@ TypeScript não pega B1 porque `from()` aceita string genérica para tabelas
 ausentes. Considerar gerar types com `--schema public` e quebrar build se
 algum app referenciar tabela inexistente.
 
+### B9 — Workflow do CI conflita com `packageManager` no package.json (HIGH, infra)
+
+`.github/workflows/ci.yml` passava `pnpm/action-setup@v4` com
+`version: 9`. Em conjunto com `package.json: "packageManager": "pnpm@9.15.0"`,
+a versão atual da action aborta com "Multiple versions of pnpm specified" —
+**bloqueia todos os jobs antes de executar lint/type-check/prettier**.
+
+→ Corrigido no commit `8e2f1ef` (remover o input `version`); a action passa
+a ler `packageManager` do `package.json`.
+
+### B10 — Repositório com 75 arquivos fora do padrão Prettier (LOW, qualidade)
+
+`pnpm format:check` reprova 75 arquivos espalhados pelos 4 apps + 3 packages
+
+- Edge Functions + `CLAUDE.md` + `ROADMAP.md`. Antes do fix do B9, isso
+  estava mascarado pelo erro do pnpm. Não é regressão deste PR — é dívida
+  acumulada.
+
+→ Abrir PR separado `chore: prettier --write` rodando o formatador em todo
+o repositório. Recomendo congelar outros PRs durante o merge para reduzir
+conflitos.
+
+### B11 — 2 imports não usados quebram o `pnpm lint` (LOW, qualidade)
+
+- `apps/mobile/app/(tabs)/documentos.tsx:5` importa `ScrollView` sem usar.
+- `apps/mobile/app/(auth)/otp.tsx:16` declara `loginStep1` sem usar.
+
+→ PR separado `chore: cleanup unused imports`. Trivial.
+
+### B12 — Admin lê env vars com nomes inconsistentes (MEDIUM, build/runtime)
+
+No `apps/admin`:
+
+- `src/middleware.ts` e `src/lib/supabase/server.ts` usam `process.env.SUPABASE_URL`
+  e `process.env.SUPABASE_ANON_KEY` (sem prefixo — só funcionam server-side).
+- `src/lib/supabase/client.ts` usa `process.env.NEXT_PUBLIC_SUPABASE_URL` e
+  `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY` (com prefixo — necessário para
+  client components).
+
+Se o Vercel tiver apenas as variáveis sem prefixo configuradas, o cliente
+browser recebe `undefined` e a hidratação falha; se tiver apenas com
+prefixo, o middleware morre. Suspeita forte para a falha atual do deploy
+Vercel — checks pré-existentes mostram "Deployment has failed" em todos os
+commits, inclusive os do main antes deste PR.
+
+→ Padronizar para `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+em todos os pontos do admin (são valores públicos, podem ir para o cliente).
+Manter `SUPABASE_SERVICE_ROLE_KEY` sem prefixo (segredo). Configurar as 3
+variáveis no Vercel Project Settings antes do próximo deploy.
+
+→ PR separado sugerido: `fix(admin): padroniza env vars do Supabase`.
+
 ---
 
 ## 4. Plano de Implementação por Fase
