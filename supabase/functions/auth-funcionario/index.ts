@@ -63,12 +63,14 @@ Deno.serve(async (req) => {
       const dataNormalizada = data_nascimento.trim() // espera YYYY-MM-DD
 
       // Verifica CPF + data de nascimento via função SECURITY DEFINER
-      const { data: funcionarios, error: rpcError } = await supabaseAdmin
-        .rpc('verificar_credenciais_funcionario', {
+      const { data: funcionarios, error: rpcError } = await supabaseAdmin.rpc(
+        'verificar_credenciais_funcionario',
+        {
           p_empresa_id: empresa_id,
           p_cpf: cpfLimpo,
           p_data_nascimento: dataNormalizada,
-        })
+        }
+      )
 
       if (rpcError) {
         console.error('Erro RPC:', rpcError)
@@ -97,8 +99,9 @@ Deno.serve(async (req) => {
       const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString()
 
       // Hash do código via RPC (usa pgcrypto)
-      const { data: hashData } = await supabaseAdmin
-        .rpc('hash_texto', { p_texto: codigo }) as { data: string }
+      const { data: hashData } = (await supabaseAdmin.rpc('hash_texto', { p_texto: codigo })) as {
+        data: string
+      }
 
       await supabaseAdmin.from('auth_codes').insert({
         funcionario_id: funcionario.id,
@@ -153,12 +156,11 @@ Deno.serve(async (req) => {
 
       // Nota: não podemos filtrar por cpf_hash diretamente no .eq() pois é bcrypt
       // Buscamos todos e verificamos via função SQL
-      const { data: funcionarios } = await supabaseAdmin
-        .rpc('verificar_credenciais_funcionario', {
-          p_empresa_id: empresa_id,
-          p_cpf: cpfLimpo,
-          p_data_nascimento: '1900-01-01', // placeholder — não verificamos data aqui
-        })
+      const { data: funcionarios } = await supabaseAdmin.rpc('verificar_credenciais_funcionario', {
+        p_empresa_id: empresa_id,
+        p_cpf: cpfLimpo,
+        p_data_nascimento: '1900-01-01', // placeholder — não verificamos data aqui
+      })
 
       // Busca direta pelo auth_user ou por código ativo
       // Abordagem mais segura: buscar o código ativo mais recente para o funcionário
@@ -178,8 +180,10 @@ Deno.serve(async (req) => {
       let codigoValido: { id: string; funcionario_id: string } | null = null
 
       for (const c of codigoAtivo) {
-        const { data: valid } = await supabaseAdmin
-          .rpc('verificar_hash', { p_texto: codigo, p_hash: c.code_hash }) as { data: boolean }
+        const { data: valid } = (await supabaseAdmin.rpc('verificar_hash', {
+          p_texto: codigo,
+          p_hash: c.code_hash,
+        })) as { data: boolean }
 
         if (valid) {
           codigoValido = c

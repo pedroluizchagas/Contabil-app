@@ -1,7 +1,7 @@
 /**
  * Hook: useNotifications
  *
- * Registra o token de push do Expo no Supabase (tabela expo_tokens)
+ * Registra o token de push do Expo no Supabase (tabela expo_push_tokens)
  * na primeira vez que o funcionário abre o app após autenticar.
  *
  * Executado na HomeScreen para garantir que o token esteja atualizado.
@@ -18,6 +18,8 @@ import { useAuth } from '@/contexts/AuthContext'
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -55,13 +57,13 @@ export function useNotifications() {
     if (!token) return
 
     // Salva/atualiza no banco
-    await supabase.from('expo_tokens').upsert(
+    await supabase.from('expo_push_tokens').upsert(
       {
         funcionario_id: funcionario!.id,
         token,
         platform: Platform.OS,
       },
-      { onConflict: 'funcionario_id' }
+      { onConflict: 'funcionario_id,token' }
     )
 
     // Canal de notificação para Android

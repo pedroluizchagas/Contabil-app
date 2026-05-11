@@ -22,9 +22,7 @@ export interface ResultadoPush {
  * Envia notificações push em batch para uma lista de tokens.
  * A Expo Push API aceita até 100 mensagens por request.
  */
-export async function enviarNotificacoes(
-  mensagens: MensagemPush[]
-): Promise<ResultadoPush[]> {
+export async function enviarNotificacoes(mensagens: MensagemPush[]): Promise<ResultadoPush[]> {
   if (mensagens.length === 0) return []
 
   const resultados: ResultadoPush[] = []

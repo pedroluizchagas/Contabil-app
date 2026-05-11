@@ -3,9 +3,5 @@
   "identifier": "default",
   "description": "Permissões padrão do app ContaHub Empresa",
   "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "dialog:default",
-    "updater:default"
-  ]
+  "permissions": ["core:default", "dialog:default", "updater:default"]
 }

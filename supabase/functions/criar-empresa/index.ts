@@ -51,12 +51,15 @@ Deno.serve(async (req) => {
     if (authError) return r(400, { error: `Erro ao criar usuário: ${authError.message}` })
 
     // Gera hash da senha via pgcrypto
-    const { data: senhaHash, error: hashError } = await supabase
-      .rpc('hash_texto', { p_texto: senha })
+    const { data: senhaHash, error: hashError } = await supabase.rpc('hash_texto', {
+      p_texto: senha,
+    })
 
     if (hashError || !senhaHash) {
       await supabase.auth.admin.deleteUser(authUser.user.id)
-      return r(500, { error: `Erro ao gerar hash da senha: ${hashError?.message ?? 'resultado vazio'}` })
+      return r(500, {
+        error: `Erro ao gerar hash da senha: ${hashError?.message ?? 'resultado vazio'}`,
+      })
     }
 
     // Cria empresa no banco

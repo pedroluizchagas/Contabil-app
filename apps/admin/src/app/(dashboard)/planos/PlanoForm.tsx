@@ -22,7 +22,8 @@ export function PlanoForm() {
     setOk(false)
     setSalvando(true)
 
-    const { error } = await supabase.from('planos').insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from('planos') as any).insert({
       nome: nome.trim(),
       preco_mensal: parseFloat(preco.replace(',', '.')),
       limite_empresas: parseInt(limitEmp, 10),

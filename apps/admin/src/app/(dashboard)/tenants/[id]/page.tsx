@@ -8,14 +8,50 @@ import type { StatusTenant, StatusSubscription } from '@contabhub/shared'
 
 export const dynamic = 'force-dynamic'
 
+type TenantDetalhe = {
+  id: string
+  nome: string
+  cnpj: string
+  email: string
+  status: StatusTenant
+  created_at: string
+  subscriptions: Array<{
+    id: string
+    status: StatusSubscription
+    proximo_vencimento: string | null
+    planos: {
+      nome: string
+      preco_mensal: number
+      limite_empresas: number
+      limite_funcionarios: number
+    }
+  }> | null
+}
+
+type EmpresaRow = {
+  id: string
+  nome: string
+  cnpj: string
+  ativo: boolean
+  created_at: string
+}
+
+type DocumentoRow = {
+  id: string
+  tipo: 'holerite' | 'ferias'
+  created_at: string
+}
+
 export default async function TenantDetalhePage({ params }: { params: { id: string } }) {
   const supabase = createClient()
 
   const [tenantRes, empresasRes, docsRes] = await Promise.all([
     supabase
       .from('tenants')
-      .select(`id, nome, cnpj, email, status, created_at,
-        subscriptions(id, status, proximo_vencimento, planos(nome, preco_mensal, limite_empresas, limite_funcionarios))`)
+      .select(
+        `id, nome, cnpj, email, status, created_at,
+        subscriptions(id, status, proximo_vencimento, planos(nome, preco_mensal, limite_empresas, limite_funcionarios))`
+      )
       .eq('id', params.id)
       .single(),
     supabase
@@ -27,19 +63,18 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
       .from('documentos')
       .select('id, tipo, created_at')
       .eq('tenant_id', params.id)
-      .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+      .gte(
+        'created_at',
+        new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+      ),
   ])
 
-  if (!tenantRes.data) notFound()
+  const tenant = (tenantRes as { data: TenantDetalhe | null }).data
+  if (!tenant) notFound()
 
-  const tenant = tenantRes.data
-  const empresas = empresasRes.data ?? []
-  const sub = (tenant.subscriptions as unknown as Array<{
-    id: string
-    status: StatusSubscription
-    proximo_vencimento: string | null
-    planos: { nome: string; preco_mensal: number; limite_empresas: number; limite_funcionarios: number }
-  }>)?.[0]
+  const empresas = ((empresasRes as { data: unknown }).data ?? []) as EmpresaRow[]
+  const documentos = ((docsRes as { data: unknown }).data ?? []) as DocumentoRow[]
+  const sub = tenant.subscriptions?.[0]
 
   return (
     <div className="p-8">
@@ -74,7 +109,9 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Valor</span>
-                <span className="font-medium">{formatarMoeda(sub.planos?.preco_mensal ?? 0)}/mês</span>
+                <span className="font-medium">
+                  {formatarMoeda(sub.planos?.preco_mensal ?? 0)}/mês
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Status</span>
@@ -92,7 +129,13 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Uso atual</span>
-                <span className={empresas.length > sub.planos?.limite_empresas ? 'text-red-600 font-semibold' : ''}>
+                <span
+                  className={
+                    empresas.length > sub.planos?.limite_empresas
+                      ? 'text-red-600 font-semibold'
+                      : ''
+                  }
+                >
                   {empresas.length} / {sub.planos?.limite_empresas}
                 </span>
               </div>
@@ -106,9 +149,12 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
         <div className="col-span-2 grid grid-cols-3 gap-3">
           <MiniCard label="Empresas" valor={empresas.length} />
           <MiniCard label="Ativas" valor={empresas.filter((e) => e.ativo).length} cor="green" />
-          <MiniCard label="Docs este mês" valor={docsRes.data?.length ?? 0} cor="blue" />
-          <MiniCard label="Holerites" valor={(docsRes.data ?? []).filter((d) => d.tipo === 'holerite').length} />
-          <MiniCard label="Férias" valor={(docsRes.data ?? []).filter((d) => d.tipo === 'ferias').length} />
+          <MiniCard label="Docs este mês" valor={documentos.length} cor="blue" />
+          <MiniCard
+            label="Holerites"
+            valor={documentos.filter((d) => d.tipo === 'holerite').length}
+          />
+          <MiniCard label="Férias" valor={documentos.filter((d) => d.tipo === 'ferias').length} />
           <MiniCard label="Cliente desde" valor={new Date(tenant.created_at).getFullYear()} />
         </div>
       </div>
@@ -134,13 +180,19 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
               {empresas.map((empresa) => (
                 <tr key={empresa.id} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="px-6 py-3 font-medium text-gray-900">{empresa.nome}</td>
-                  <td className="px-6 py-3 font-mono text-gray-500 text-xs">{formatarCnpj(empresa.cnpj)}</td>
+                  <td className="px-6 py-3 font-mono text-gray-500 text-xs">
+                    {formatarCnpj(empresa.cnpj)}
+                  </td>
                   <td className="px-6 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${empresa.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${empresa.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                    >
                       {empresa.ativo ? 'Ativa' : 'Inativa'}
                     </span>
                   </td>
-                  <td className="px-6 py-3 text-xs text-gray-400">{formatarData(empresa.created_at)}</td>
+                  <td className="px-6 py-3 text-xs text-gray-400">
+                    {formatarData(empresa.created_at)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -151,9 +203,19 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
   )
 }
 
-function MiniCard({ label, valor, cor = 'gray' }: { label: string; valor: number | string; cor?: string }) {
+function MiniCard({
+  label,
+  valor,
+  cor = 'gray',
+}: {
+  label: string
+  valor: number | string
+  cor?: string
+}) {
   const cores: Record<string, string> = {
-    gray: 'text-gray-900', green: 'text-green-600', blue: 'text-blue-600',
+    gray: 'text-gray-900',
+    green: 'text-green-600',
+    blue: 'text-blue-600',
   }
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4">

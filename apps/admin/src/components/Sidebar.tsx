@@ -3,15 +3,17 @@ import { createClient } from '@/lib/supabase/server'
 import { LogoutButton } from './LogoutButton'
 
 const navItems = [
-  { href: '/dashboard',      label: 'Dashboard',     icon: '⊞' },
-  { href: '/tenants',        label: 'Tenants',        icon: '🏢' },
-  { href: '/planos',         label: 'Planos',         icon: '📋' },
-  { href: '/subscriptions',  label: 'Subscriptions',  icon: '💳' },
+  { href: '/dashboard', label: 'Dashboard', icon: '⊞' },
+  { href: '/tenants', label: 'Tenants', icon: '🏢' },
+  { href: '/planos', label: 'Planos', icon: '📋' },
+  { href: '/subscriptions', label: 'Subscriptions', icon: '💳' },
 ]
 
 export async function Sidebar() {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   return (
     <aside className="flex h-screen w-56 flex-col bg-gray-900 text-gray-100">
@@ -30,9 +32,7 @@ export async function Sidebar() {
 
       {/* Usuário + logout */}
       <div className="border-t border-gray-700 p-3">
-        {user && (
-          <p className="mb-2 truncate px-3 text-xs text-gray-500">{user.email}</p>
-        )}
+        {user && <p className="mb-2 truncate px-3 text-xs text-gray-500">{user.email}</p>}
         <LogoutButton />
       </div>
     </aside>

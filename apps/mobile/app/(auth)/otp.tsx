@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext'
 const TAMANHO = 6
 
 export default function OtpScreen() {
-  const { pendingAuth, loginStep1, loginStep2, cancelarLogin } = useAuth()
+  const { pendingAuth, loginStep2, cancelarLogin } = useAuth()
   const router = useRouter()
 
   const [digitos, setDigitos] = useState<string[]>(Array(TAMANHO).fill(''))
@@ -28,7 +28,9 @@ export default function OtpScreen() {
     if (valor.length > 1) {
       const limpo = valor.replace(/\D/g, '').slice(0, TAMANHO)
       const novos = [...Array(TAMANHO).fill('')]
-      limpo.split('').forEach((c, i) => { novos[i] = c })
+      limpo.split('').forEach((c, i) => {
+        novos[i] = c
+      })
       setDigitos(novos)
       inputs.current[Math.min(limpo.length, TAMANHO - 1)]?.focus()
       return
@@ -121,7 +123,9 @@ export default function OtpScreen() {
         {digitos.map((digito, i) => (
           <TextInput
             key={i}
-            ref={(el) => { inputs.current[i] = el }}
+            ref={(el) => {
+              inputs.current[i] = el
+            }}
             value={digito}
             onChangeText={(v) => handleDigito(v, i)}
             onKeyPress={({ nativeEvent }) => {

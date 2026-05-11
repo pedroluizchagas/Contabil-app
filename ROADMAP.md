@@ -6,7 +6,7 @@
 
 ## 🧭 Visão Geral do Projeto
 
-**Nome provisório:** ContaHub *(renomear conforme identidade definida)*
+**Nome provisório:** ContaHub _(renomear conforme identidade definida)_
 
 **Proposta de valor:** Plataforma que permite contabilidades enviarem holerites e recibos de férias de forma automatizada e individualizada para cada funcionário, com assinatura digital e rastreabilidade de leitura.
 
@@ -37,7 +37,7 @@ Contabilidade (tenant)
 ### Módulos do sistema
 
 | Módulo            | Tipo                         | Usuário         |
-|-------------------|------------------------------|-----------------|
+| ----------------- | ---------------------------- | --------------- |
 | App Contabilidade | Desktop (Tauri + React)      | Contador        |
 | App Empresa       | Desktop (Tauri + React)      | Empresa cliente |
 | App Funcionário   | Mobile (Expo + React Native) | Funcionário     |
@@ -50,7 +50,7 @@ Contabilidade (tenant)
 ### Backend & Dados
 
 | Camada         | Tecnologia              | Função                               |
-|----------------|-------------------------|--------------------------------------|
+| -------------- | ----------------------- | ------------------------------------ |
 | Banco de dados | Supabase (PostgreSQL)   | Dados relacionais com RLS            |
 | Autenticação   | Supabase Auth           | 3 perfis de usuário                  |
 | Storage        | Supabase Storage        | PDFs por tenant/empresa/funcionário  |
@@ -59,12 +59,12 @@ Contabilidade (tenant)
 
 ### Frontend
 
-| App                   | Stack                         | Alvo                        |
-|-----------------------|-------------------------------|-----------------------------|
-| Desktop Contabilidade | Tauri v2 + React + TypeScript | Windows (prioritário), macOS|
-| Desktop Empresa       | Tauri v2 + React + TypeScript | Windows (prioritário), macOS|
-| Mobile Funcionário    | Expo SDK + React Native       | Android (prioritário), iOS  |
-| Admin Web             | Next.js 14 + Vercel           | Web                         |
+| App                   | Stack                         | Alvo                         |
+| --------------------- | ----------------------------- | ---------------------------- |
+| Desktop Contabilidade | Tauri v2 + React + TypeScript | Windows (prioritário), macOS |
+| Desktop Empresa       | Tauri v2 + React + TypeScript | Windows (prioritário), macOS |
+| Mobile Funcionário    | Expo SDK + React Native       | Android (prioritário), iOS   |
+| Admin Web             | Next.js 14 + Vercel           | Web                          |
 
 ### Design System
 
@@ -74,12 +74,12 @@ Contabilidade (tenant)
 
 ### Serviços Externos
 
-| Serviço                 | Função                                    | Quando integrar |
-|-------------------------|-------------------------------------------|-----------------|
-| Autentique              | Assinatura digital com validade jurídica  | MVP             |
-| Pagar.me                | Billing recorrente (PIX + boleto + cartão)| MVP             |
-| Resend                  | E-mails transacionais                     | MVP             |
-| Expo Push Notifications | Notificações push mobile                  | MVP             |
+| Serviço                 | Função                                     | Quando integrar |
+| ----------------------- | ------------------------------------------ | --------------- |
+| Autentique              | Assinatura digital com validade jurídica   | MVP             |
+| Pagar.me                | Billing recorrente (PIX + boleto + cartão) | MVP             |
+| Resend                  | E-mails transacionais                      | MVP             |
+| Expo Push Notifications | Notificações push mobile                   | MVP             |
 
 ---
 
@@ -420,7 +420,7 @@ Sistema validado com pelo menos 1 contabilidade real processando documentos de f
 ## ⚠️ Riscos e Mitigações
 
 | Risco                                                           | Probabilidade | Impacto | Mitigação                                           |
-|-----------------------------------------------------------------|---------------|---------|-----------------------------------------------------|
+| --------------------------------------------------------------- | ------------- | ------- | --------------------------------------------------- |
 | PDFs com formato imprevisível                                   | Alta          | Alto    | Coletar amostras antes de codar o parser            |
 | Baixa adesão dos funcionários ao app mobile                     | Média         | Alto    | UX simples, notificação por e-mail como fallback    |
 | Problemas de instalação dos apps desktop em Windows corporativo | Média         | Médio   | Testar em máquinas reais cedo, assinar o executável |
@@ -459,18 +459,18 @@ Itens intencionalmente fora do MVP para não atrasar o lançamento:
 
 ## 📅 Timeline Estimada (MVP)
 
-| Fase                       | Estimativa   | Acumulado      |
-|----------------------------|--------------|----------------|
-| Fase 0 — Fundação          | 1 semana     | 1 semana       |
-| Fase 1 — Banco + Auth      | 1 semana     | 2 semanas      |
-| Fase 2 — Engine PDF        | 1,5 semanas  | 3,5 semanas    |
-| Fase 3 — App Contabilidade | 2 semanas    | 5,5 semanas    |
-| Fase 4 — App Empresa       | 1,5 semanas  | 7 semanas      |
-| Fase 5 — App Mobile        | 2 semanas    | 9 semanas      |
-| Fase 6 — Billing           | 1 semana     | 10 semanas     |
-| Fase 7 — Admin             | 1 semana     | 11 semanas     |
-| Fase 8 — Beta e Testes     | 2 semanas    | 13 semanas     |
-| Fase 9 — Lançamento        | 1 semana     | **14 semanas** |
+| Fase                       | Estimativa  | Acumulado      |
+| -------------------------- | ----------- | -------------- |
+| Fase 0 — Fundação          | 1 semana    | 1 semana       |
+| Fase 1 — Banco + Auth      | 1 semana    | 2 semanas      |
+| Fase 2 — Engine PDF        | 1,5 semanas | 3,5 semanas    |
+| Fase 3 — App Contabilidade | 2 semanas   | 5,5 semanas    |
+| Fase 4 — App Empresa       | 1,5 semanas | 7 semanas      |
+| Fase 5 — App Mobile        | 2 semanas   | 9 semanas      |
+| Fase 6 — Billing           | 1 semana    | 10 semanas     |
+| Fase 7 — Admin             | 1 semana    | 11 semanas     |
+| Fase 8 — Beta e Testes     | 2 semanas   | 13 semanas     |
+| Fase 9 — Lançamento        | 1 semana    | **14 semanas** |
 
 > Estimativas para desenvolvimento solo com dedicação principal ao projeto.
 > Com time ou dedicação parcial, ajustar proporcionalmente.
@@ -486,4 +486,4 @@ Itens intencionalmente fora do MVP para não atrasar o lançamento:
 
 ---
 
-*Última atualização: Março 2026*
+_Última atualização: Março 2026_

@@ -26,11 +26,12 @@ export function AlterarStatusTenant({
   async function alterar(novoStatus: StatusTenant) {
     if (novoStatus === statusAtual) return
     setSalvando(true)
-    await supabase.from('tenants').update({ status: novoStatus }).eq('id', tenantId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from('tenants') as any).update({ status: novoStatus }).eq('id', tenantId)
     // Sincroniza subscription se necessário
     if (novoStatus === 'inativo' || novoStatus === 'inadimplente') {
-      await supabase
-        .from('subscriptions')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from('subscriptions') as any)
         .update({ status: novoStatus === 'inadimplente' ? 'inadimplente' : 'cancelado' })
         .eq('tenant_id', tenantId)
         .in('status', ['ativo', 'trial'])
@@ -48,7 +49,9 @@ export function AlterarStatusTenant({
         className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-violet-500 disabled:opacity-50"
       >
         {opcoes.map((op) => (
-          <option key={op.valor} value={op.valor}>{op.label}</option>
+          <option key={op.valor} value={op.valor}>
+            {op.label}
+          </option>
         ))}
       </select>
     </div>

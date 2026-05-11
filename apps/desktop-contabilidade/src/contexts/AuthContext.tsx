@@ -61,7 +61,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const tenantId = extrairClaim(session, 'tenant_id')
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, tenantId, carregando, login, logout, refreshTenantId }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user: session?.user ?? null,
+        tenantId,
+        carregando,
+        login,
+        logout,
+        refreshTenantId,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

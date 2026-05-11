@@ -12,8 +12,15 @@ export default async function PlanosPage() {
     supabase.from('subscriptions').select('plano_id, status'),
   ])
 
-  const planos = planosRes.data ?? []
-  const subs = subsRes.data ?? []
+  const planos = (planosRes.data ?? []) as Array<{
+    id: string
+    nome: string
+    preco_mensal: number
+    limite_empresas: number
+    limite_funcionarios: number
+    ativo: boolean
+  }>
+  const subs = (subsRes.data ?? []) as Array<{ plano_id: string; status: string }>
 
   // Conta subscribers por plano
   const countPorPlano = new Map<string, number>()
@@ -49,11 +56,14 @@ export default async function PlanosPage() {
                     <div>
                       <h3 className="font-semibold text-gray-900">{plano.nome}</h3>
                       <p className="text-xl font-bold text-violet-600 mt-0.5">
-                        {formatarMoeda(plano.preco_mensal)}<span className="text-sm font-normal text-gray-400">/mês</span>
+                        {formatarMoeda(plano.preco_mensal)}
+                        <span className="text-sm font-normal text-gray-400">/mês</span>
                       </p>
                     </div>
                     {!plano.ativo && (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Inativo</span>
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                        Inativo
+                      </span>
                     )}
                   </div>
 
@@ -73,7 +83,10 @@ export default async function PlanosPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>MRR deste plano: <strong className="text-gray-700">{formatarMoeda(mrr)}</strong></span>
+                    <span>
+                      MRR deste plano:{' '}
+                      <strong className="text-gray-700">{formatarMoeda(mrr)}</strong>
+                    </span>
                     <PlanoToggle planoId={plano.id} ativo={plano.ativo} />
                   </div>
                 </div>

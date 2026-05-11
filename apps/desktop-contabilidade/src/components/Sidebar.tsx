@@ -15,26 +15,65 @@ function IconGrid() {
 function IconBuilding() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M2 16V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M2 16V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v11"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
       <path d="M1 16h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M6 8h2M10 8h2M6 11.5h2M10 11.5h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M7 16v-3h4v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 8h2M10 8h2M6 11.5h2M10 11.5h2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7 16v-3h4v3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
 function IconUpload() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M9 12V3M5 7l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 13v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M9 12V3M5 7l4-4 4 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M2 13v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }
 function IconFile() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M10 1H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-5-5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M10 1v5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M10 1H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-5-5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 1v5h5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <path d="M6 10h6M6 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
@@ -45,7 +84,9 @@ function IconSettings() {
       <circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M9 1.5v1.2M9 15.3v1.2M1.5 9h1.2M15.3 9h1.2M3.7 3.7l.85.85M13.45 13.45l.85.85M3.7 14.3l.85-.85M13.45 4.55l.85-.85"
-        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
       />
     </svg>
   )
@@ -53,8 +94,19 @@ function IconSettings() {
 function IconLogout() {
   return (
     <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-      <path d="M6 14.5H3a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M11.5 11.5L14.5 8.5L11.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 14.5H3a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M11.5 11.5L14.5 8.5L11.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <path d="M14.5 8.5H6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
@@ -62,15 +114,13 @@ function IconLogout() {
 
 /* ── Nav items ──────────────────────────────────────────────────── */
 const navMain = [
-  { to: '/dashboard',  label: 'Dashboard',  Icon: IconGrid },
-  { to: '/empresas',   label: 'Empresas',   Icon: IconBuilding },
-  { to: '/lotes',      label: 'Lotes',      Icon: IconUpload },
+  { to: '/dashboard', label: 'Dashboard', Icon: IconGrid },
+  { to: '/empresas', label: 'Empresas', Icon: IconBuilding },
+  { to: '/lotes', label: 'Lotes', Icon: IconUpload },
   { to: '/documentos', label: 'Documentos', Icon: IconFile },
 ]
 
-const navConfig = [
-  { to: '/configuracoes', label: 'Configurações', Icon: IconSettings },
-]
+const navConfig = [{ to: '/configuracoes', label: 'Configurações', Icon: IconSettings }]
 
 /* ── Component ──────────────────────────────────────────────────── */
 export function Sidebar() {
@@ -86,10 +136,7 @@ export function Sidebar() {
   const iniciais = email.slice(0, 2).toUpperCase()
 
   return (
-    <aside
-      className="flex h-screen w-60 flex-col"
-      style={{ background: '#101214' }}
-    >
+    <aside className="flex h-screen w-60 flex-col" style={{ background: '#101214' }}>
       {/* ── Logo ────────────────────────────────────────────────── */}
       <div className="flex h-16 items-center gap-3 px-5">
         <div
@@ -114,12 +161,10 @@ export function Sidebar() {
             className={({ isActive }) =>
               [
                 'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                isActive
-                  ? 'text-white'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-gray-200',
+                isActive ? 'text-white' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200',
               ].join(' ')
             }
-            style={({ isActive }) => isActive ? { background: '#7DC82E' } : {}}
+            style={({ isActive }) => (isActive ? { background: '#7DC82E' } : {})}
           >
             <Icon />
             {label}
@@ -137,12 +182,10 @@ export function Sidebar() {
             className={({ isActive }) =>
               [
                 'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                isActive
-                  ? 'text-white'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-gray-200',
+                isActive ? 'text-white' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200',
               ].join(' ')
             }
-            style={({ isActive }) => isActive ? { background: '#7DC82E' } : {}}
+            style={({ isActive }) => (isActive ? { background: '#7DC82E' } : {})}
           >
             <Icon />
             {label}
@@ -164,9 +207,18 @@ export function Sidebar() {
               Holerite
             </span>
             <button className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-brand">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12 5 19 12 12 19"/>
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#111"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
               </svg>
             </button>
           </div>

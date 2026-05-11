@@ -7,7 +7,10 @@
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
-export interface Database {
+export type Database = {
+  __InternalSupabase: {
+    PostgrestVersion: '12'
+  }
   public: {
     Tables: {
       planos: {
@@ -100,19 +103,19 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "subscriptions_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'subscriptions_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "subscriptions_plano_id_fkey"
-            columns: ["plano_id"]
+            foreignKeyName: 'subscriptions_plano_id_fkey'
+            columns: ['plano_id']
             isOneToOne: false
-            referencedRelation: "planos"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'planos'
+            referencedColumns: ['id']
+          },
         ]
       }
       empresas: {
@@ -151,12 +154,12 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "empresas_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'empresas_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
+          },
         ]
       }
       funcionarios: {
@@ -201,19 +204,19 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "funcionarios_empresa_id_fkey"
-            columns: ["empresa_id"]
+            foreignKeyName: 'funcionarios_empresa_id_fkey'
+            columns: ['empresa_id']
             isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
+            referencedRelation: 'empresas'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "funcionarios_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'funcionarios_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
+          },
         ]
       }
       documentos: {
@@ -255,26 +258,26 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "documentos_funcionario_id_fkey"
-            columns: ["funcionario_id"]
+            foreignKeyName: 'documentos_funcionario_id_fkey'
+            columns: ['funcionario_id']
             isOneToOne: false
-            referencedRelation: "funcionarios"
-            referencedColumns: ["id"]
+            referencedRelation: 'funcionarios'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "documentos_empresa_id_fkey"
-            columns: ["empresa_id"]
+            foreignKeyName: 'documentos_empresa_id_fkey'
+            columns: ['empresa_id']
             isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
+            referencedRelation: 'empresas'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "documentos_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'documentos_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
+          },
         ]
       }
       eventos_documento: {
@@ -307,19 +310,19 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "eventos_documento_documento_id_fkey"
-            columns: ["documento_id"]
+            foreignKeyName: 'eventos_documento_documento_id_fkey'
+            columns: ['documento_id']
             isOneToOne: false
-            referencedRelation: "documentos"
-            referencedColumns: ["id"]
+            referencedRelation: 'documentos'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "eventos_documento_funcionario_id_fkey"
-            columns: ["funcionario_id"]
+            foreignKeyName: 'eventos_documento_funcionario_id_fkey'
+            columns: ['funcionario_id']
             isOneToOne: false
-            referencedRelation: "funcionarios"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'funcionarios'
+            referencedColumns: ['id']
+          },
         ]
       }
       lotes: {
@@ -367,19 +370,19 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "lotes_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'lotes_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "lotes_empresa_id_fkey"
-            columns: ["empresa_id"]
+            foreignKeyName: 'lotes_empresa_id_fkey'
+            columns: ['empresa_id']
             isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'empresas'
+            referencedColumns: ['id']
+          },
         ]
       }
       auth_codes: {
@@ -409,12 +412,12 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "auth_codes_funcionario_id_fkey"
-            columns: ["funcionario_id"]
+            foreignKeyName: 'auth_codes_funcionario_id_fkey'
+            columns: ['funcionario_id']
             isOneToOne: false
-            referencedRelation: "funcionarios"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'funcionarios'
+            referencedColumns: ['id']
+          },
         ]
       }
       expo_push_tokens: {
@@ -444,12 +447,12 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "expo_push_tokens_funcionario_id_fkey"
-            columns: ["funcionario_id"]
+            foreignKeyName: 'expo_push_tokens_funcionario_id_fkey'
+            columns: ['funcionario_id']
             isOneToOne: false
-            referencedRelation: "funcionarios"
-            referencedColumns: ["id"]
-          }
+            referencedRelation: 'funcionarios'
+            referencedColumns: ['id']
+          },
         ]
       }
     }

@@ -6,6 +6,20 @@ import type { StatusTenant, StatusSubscription } from '@contabhub/shared'
 
 export const dynamic = 'force-dynamic'
 
+type TenantRow = {
+  id: string
+  nome: string
+  cnpj: string
+  email: string
+  status: StatusTenant
+  created_at: string
+  subscriptions: Array<{
+    status: StatusSubscription
+    planos: { nome: string; preco_mensal: number } | null
+  }> | null
+  empresas: Array<{ count: number }> | null
+}
+
 export default async function TenantsPage({
   searchParams,
 }: {
@@ -15,27 +29,30 @@ export default async function TenantsPage({
 
   let query = supabase
     .from('tenants')
-    .select(`
+    .select(
+      `
       id, nome, cnpj, email, status, created_at,
       subscriptions(status, planos(nome, preco_mensal)),
       empresas(count)
-    `)
+    `
+    )
     .order('created_at', { ascending: false })
 
   if (searchParams.status) {
     query = query.eq('status', searchParams.status)
   }
 
-  const { data: tenants } = await query
+  const { data } = await query
+  const tenants = (data ?? []) as unknown as TenantRow[]
 
   const filtrados = searchParams.busca
-    ? (tenants ?? []).filter(
+    ? tenants.filter(
         (t) =>
           t.nome.toLowerCase().includes(searchParams.busca!.toLowerCase()) ||
           t.cnpj.includes(searchParams.busca!.replace(/\D/g, '')) ||
           t.email.toLowerCase().includes(searchParams.busca!.toLowerCase())
       )
-    : (tenants ?? [])
+    : tenants
 
   return (
     <div className="p-8">
@@ -56,9 +73,7 @@ export default async function TenantsPage({
       <div className="mb-4 flex gap-3">
         <FiltroStatus atual={searchParams.status} />
         <form>
-          {searchParams.status && (
-            <input type="hidden" name="status" value={searchParams.status} />
-          )}
+          {searchParams.status && <input type="hidden" name="status" value={searchParams.status} />}
           <input
             name="busca"
             defaultValue={searchParams.busca}
@@ -87,8 +102,8 @@ export default async function TenantsPage({
             </thead>
             <tbody>
               {filtrados.map((tenant) => {
-                const sub = (tenant.subscriptions as unknown as Array<{ status: StatusSubscription; planos: { nome: string; preco_mensal: number } | null }>)?.[0]
-                const qtdEmpresas = (tenant.empresas as unknown as Array<{ count: number }>)?.[0]?.count ?? 0
+                const sub = tenant.subscriptions?.[0]
+                const qtdEmpresas = tenant.empresas?.[0]?.count ?? 0
 
                 return (
                   <tr key={tenant.id} className="border-b border-gray-50 hover:bg-gray-50">

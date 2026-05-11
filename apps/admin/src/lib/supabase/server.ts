@@ -1,4 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createClient as createSupabase } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { Database } from '@contabhub/supabase'
 
@@ -15,15 +16,18 @@ export function createClient() {
   const cookieStore = cookies()
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get: (name) => cookieStore.get(name)?.value,
-      set: (name, value, options) => { cookieStore.set({ name, value, ...options }) },
-      remove: (name, options) => { cookieStore.set({ name, value: '', ...options }) },
+      get: (name: string) => cookieStore.get(name)?.value,
+      set: (name: string, value: string, options: CookieOptions) => {
+        cookieStore.set({ name, value, ...options })
+      },
+      remove: (name: string, options: CookieOptions) => {
+        cookieStore.set({ name, value: '', ...options })
+      },
     },
   })
 }
 
 /** Cliente admin com service role — usa apenas em Server Actions protegidas */
 export function createAdminClient() {
-  const { createClient: createSupabase } = require('@supabase/supabase-js')
   return createSupabase<Database>(supabaseUrl, supabaseServiceRoleKey)
 }

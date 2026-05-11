@@ -16,10 +16,7 @@ export function Modal({ aberto, onFechar, titulo, children, largura = 'md' }: Mo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
-        onClick={onFechar}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onFechar} />
 
       {/* Dialog */}
       <div className={`relative w-full ${larguras[largura]} rounded-2xl bg-white shadow-2xl`}>

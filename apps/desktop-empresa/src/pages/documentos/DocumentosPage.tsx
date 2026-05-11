@@ -5,8 +5,21 @@ import type { Database } from '@contabhub/supabase'
 
 type StatusDoc = Database['public']['Views']['v_status_documentos']['Row']
 
-const MESES = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+const MESES = [
+  '',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+]
 
 export function DocumentosPage() {
   const { empresa } = useAuth()
@@ -16,7 +29,9 @@ export function DocumentosPage() {
   // Filtros
   const [busca, setBusca] = useState('')
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'holerite' | 'ferias'>('todos')
-  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'nao_lido' | 'lido' | 'assinado'>('todos')
+  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'nao_lido' | 'lido' | 'assinado'>(
+    'todos'
+  )
   const [filtroAno, setFiltroAno] = useState<number>(new Date().getFullYear())
 
   useEffect(() => {
@@ -44,8 +59,12 @@ export function DocumentosPage() {
 
   const filtrados = documentos.filter((d) => {
     if (filtroTipo !== 'todos' && d.tipo !== filtroTipo) return false
-    if (busca && !d.funcionario_nome.toLowerCase().includes(busca.toLowerCase()) &&
-        !d.funcionario_codigo.toLowerCase().includes(busca.toLowerCase())) return false
+    if (
+      busca &&
+      !d.funcionario_nome.toLowerCase().includes(busca.toLowerCase()) &&
+      !d.funcionario_codigo.toLowerCase().includes(busca.toLowerCase())
+    )
+      return false
     if (filtroStatus === 'nao_lido') return !d.visualizado_em
     if (filtroStatus === 'lido') return Boolean(d.visualizado_em) && !d.assinado_em
     if (filtroStatus === 'assinado') return Boolean(d.assinado_em)
@@ -77,7 +96,11 @@ export function DocumentosPage() {
           onChange={(e) => setFiltroAno(Number(e.target.value))}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500"
         >
-          {anos.map((a) => <option key={a} value={a}>{a}</option>)}
+          {anos.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
         </select>
 
         <select
@@ -104,7 +127,8 @@ export function DocumentosPage() {
 
       {/* Contador */}
       <p className="mb-3 text-sm text-gray-400">
-        {filtrados.length} documento{filtrados.length !== 1 ? 's' : ''} encontrado{filtrados.length !== 1 ? 's' : ''}
+        {filtrados.length} documento{filtrados.length !== 1 ? 's' : ''} encontrado
+        {filtrados.length !== 1 ? 's' : ''}
       </p>
 
       {/* Tabela agrupada por mês */}
@@ -114,7 +138,9 @@ export function DocumentosPage() {
         </div>
       ) : filtrados.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white py-12 text-center">
-          <p className="text-sm text-gray-400">Nenhum documento encontrado para os filtros selecionados.</p>
+          <p className="text-sm text-gray-400">
+            Nenhum documento encontrado para os filtros selecionados.
+          </p>
         </div>
       ) : (
         <DocumentosAgrupados documentos={filtrados} onAbrirPdf={abrirPdf} />
@@ -176,9 +202,13 @@ function DocumentosAgrupados({
                       <p className="text-xs font-mono text-gray-400">{doc.funcionario_codigo}</p>
                     </td>
                     <td className="px-5 py-2.5">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        doc.tipo === 'holerite' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                      }`}>
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                          doc.tipo === 'holerite'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-purple-100 text-purple-700'
+                        }`}
+                      >
                         {doc.tipo === 'holerite' ? 'Holerite' : 'Férias'}
                       </span>
                     </td>
