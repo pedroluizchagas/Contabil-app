@@ -15,14 +15,20 @@
  * 9. Atualiza o lote com totais e status final
  *
  * POST /functions/v1/process-lote
- * Headers: Authorization: Bearer <service_role_key>
+ * Headers: Authorization: Bearer <jwt do contador | service_role_key>
  * Body: {
  *   "lote_id": "uuid",
  *   "tipo": "holerite" | "ferias",
  *   "mes_referencia": 3,
  *   "ano_referencia": 2026,
- *   "estrategia": { "tipo": "codigo" }  // opcional, padrão: codigo
+ *   "estrategia": { "tipo": "codigo" }, // opcional, padrão: codigo
+ *   "dry_run": false                    // opcional; ver abaixo
  * }
+ *
+ * dry_run = true: NÃO grava documentos nem altera o lote. Apenas devolve a
+ * previsão do matching (quais páginas vão para qual funcionário, páginas sem
+ * associação e funcionários sem páginas). Serve para auditar um PDF novo de um
+ * software contábil antes de processá-lo de verdade.
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -106,6 +112,10 @@ Deno.serve(async (req) => {
       mes_referencia,
       ano_referencia,
       estrategia = { tipo: 'codigo' } as EstrategiaParser,
+      // dry_run: apenas calcula e devolve a previsão de matching (quais páginas
+      // vão para qual funcionário), SEM gravar documentos nem alterar o lote.
+      // Útil para auditar um PDF novo antes de processar de verdade.
+      dry_run = false,
     } = await req.json()
 
     // ── Validação básica ──────────────────────────────────────────────────────
@@ -144,8 +154,10 @@ Deno.serve(async (req) => {
       return resposta(409, { error: 'Lote já foi processado.' })
     }
 
-    // Marca como "processando"
-    await supabase.from('lotes').update({ status: 'processando' }).eq('id', lote_id)
+    // Marca como "processando" (dry-run não altera o estado do lote)
+    if (!dry_run) {
+      await supabase.from('lotes').update({ status: 'processando' }).eq('id', lote_id)
+    }
 
     // ── Carrega funcionários ativos da empresa ────────────────────────────────
     const { data: funcionarios, error: funcError } = await supabase
@@ -187,7 +199,7 @@ Deno.serve(async (req) => {
     let totalPaginas: number
 
     try {
-      textosPorPagina = extrairTextoPorPagina(pdfBytes)
+      textosPorPagina = await extrairTextoPorPagina(pdfBytes)
       totalPaginas = await contarPaginas(pdfBytes)
 
       // Garante que temos o mesmo número de entradas que páginas reais
@@ -195,6 +207,13 @@ Deno.serve(async (req) => {
         textosPorPagina.push('')
       }
       textosPorPagina = textosPorPagina.slice(0, totalPaginas)
+
+      // Se nenhuma página rendeu texto, a extração falhou (PDF escaneado ou
+      // formato não suportado) — cai para a estratégia de páginas-fixas.
+      if (textosPorPagina.every((t) => t.trim() === '')) {
+        estrategia.tipo = 'paginas-fixas'
+        estrategia.paginas_por_funcionario = Math.floor(totalPaginas / funcionarios.length) || 1
+      }
     } catch (err) {
       console.error('Erro na extração de texto:', err)
       // Fallback: usa estratégia de páginas fixas
@@ -214,6 +233,35 @@ Deno.serve(async (req) => {
       funcionarios as FuncionarioRow[],
       estrategia
     )
+
+    // ── dry-run: devolve a previsão sem gravar nada ───────────────────────────
+    if (dry_run) {
+      const paginasAssociadas = new Set(associacoes.flatMap((a) => a.indices_pagina))
+      const idsAssociados = new Set(associacoes.map((a) => a.funcionario.id))
+
+      const paginasSemAssociacao: number[] = []
+      for (let i = 0; i < totalPaginas; i++) {
+        if (!paginasAssociadas.has(i)) paginasSemAssociacao.push(i + 1)
+      }
+
+      return resposta(200, {
+        dry_run: true,
+        total_paginas: totalPaginas,
+        estrategia: estrategia.tipo,
+        total_associacoes: associacoes.length,
+        associacoes: associacoes.map((a) => ({
+          funcionario_id: a.funcionario.id,
+          nome: a.funcionario.nome,
+          codigo: a.funcionario.codigo,
+          // páginas em 1-based, mais legível para auditoria humana
+          paginas: a.indices_pagina.map((i) => i + 1),
+        })),
+        paginas_sem_associacao: paginasSemAssociacao,
+        funcionarios_sem_paginas: (funcionarios as FuncionarioRow[])
+          .filter((f) => !idsAssociados.has(f.id))
+          .map((f) => ({ id: f.id, nome: f.nome, codigo: f.codigo })),
+      })
+    }
 
     if (associacoes.length === 0) {
       await finalizarLoteComErro(

@@ -2,128 +2,239 @@
  * Utilitários de extração de texto e split de PDF.
  *
  * Estratégia de extração:
- * - PDFs gerados digitalmente (Domínio, Alterdata, Questor) armazenam
- *   o texto em streams com operadores BT/ET e Tj/TJ.
- * - Não usamos OCR — apenas parsing de texto embedado.
- *
- * Dependências (Deno / esm.sh):
- * - pdf-lib: manipulação e split de páginas
- * - pdfjs-dist: extração de texto por página
+ * - PDFs gerados digitalmente (Domínio, Alterdata, Questor) armazenam o texto
+ *   no content stream de cada página, com operadores BT/ET e Tj/TJ.
+ * - O content stream quase sempre vem comprimido com FlateDecode (zlib). Aqui
+ *   acessamos o stream de cada página via pdf-lib, descomprimimos com a Web API
+ *   `DecompressionStream` (disponível no Deno) e só então fazemos o parsing do
+ *   texto. Isso resolve dois problemas do parser anterior:
+ *     1. PDFs comprimidos (o caso comum) passam a ser lidos;
+ *     2. o texto fica corretamente associado à SUA página, em vez de dividido
+ *        igualmente entre as páginas.
+ * - Não usamos OCR — apenas texto embedado. PDFs escaneados (imagens) não são
+ *   suportados e devem cair na estratégia de páginas-fixas.
  */
 
-// @deno-types="https://esm.sh/v135/@types/node@20.11.5/index.d.ts"
-import { PDFDocument } from 'https://esm.sh/pdf-lib@1.17.1'
-
-// ─── Extração de texto via parsing direto dos bytes do PDF ───────────────────
-//
-// pdfjs-dist possui dependências do ambiente browser/Node que conflitam com
-// o Deno isolado das Edge Functions. Como alternativa, fazemos parsing
-// lightweight dos streams de texto do PDF (suficiente para PDFs gerados
-// digitalmente pelos softwares contábeis do Brasil).
-//
-// TODO: Caso algum software contábil gere PDFs com texto encodado em
-// streams comprimidos (FlateDecode), será necessário integrar pdfjs-dist
-// com flag --compat ou processar via worker externo.
+import {
+  PDFDocument,
+  PDFName,
+  PDFRawStream,
+  PDFArray,
+  PDFRef,
+  type PDFObject,
+  type PDFContext,
+  type PDFPage,
+} from 'https://esm.sh/pdf-lib@1.17.1'
 
 /**
  * Extrai o texto de cada página de um PDF.
- * Retorna um array onde o índice corresponde ao número da página (0-based).
- *
- * Funciona para PDFs gerados por software (texto embedado).
- * Não funciona para PDFs escaneados (imagens).
+ * Retorna um array onde o índice corresponde à página (0-based), com o mesmo
+ * comprimento que o número real de páginas do documento.
  */
-export function extrairTextoPorPagina(pdfBytes: Uint8Array): string[] {
-  const raw = new TextDecoder('latin1').decode(pdfBytes)
+export async function extrairTextoPorPagina(pdfBytes: Uint8Array): Promise<string[]> {
+  const pdf = await PDFDocument.load(pdfBytes, { throwOnInvalidObject: false })
+  const context = pdf.context
+  const paginas = pdf.getPages()
 
-  // Divide o PDF em objetos (simplificado — o suficiente para parsing de texto)
-  // Captura blocos de texto entre operadores BT (Begin Text) e ET (End Text)
-  const blocosTexto = extrairBlocosBT(raw)
+  const textos: string[] = []
+  for (const pagina of paginas) {
+    try {
+      const bytesConteudo = await obterConteudoPagina(pagina, context)
+      const conteudo = new TextDecoder('latin1').decode(bytesConteudo)
+      textos.push(extrairTextoDeConteudo(conteudo))
+    } catch (err) {
+      console.error('Falha ao extrair texto de uma página:', err)
+      textos.push('')
+    }
+  }
 
-  // Associa blocos às páginas usando os operadores de página do PDF
-  const paginas = associarBlocosPaginas(raw, blocosTexto)
-
-  return paginas
+  return textos
 }
 
 /**
- * Extrai os blocos BT...ET do PDF com os textos renderizados.
- * Suporta operadores Tj (texto simples) e TJ (texto com kerning).
+ * Retorna os bytes (descomprimidos) do(s) content stream(s) de uma página.
+ * O /Contents pode ser um único stream ou um array de streams.
  */
-function extrairBlocosBT(raw: string): string[] {
-  const blocos: string[] = []
+async function obterConteudoPagina(pagina: PDFPage, context: PDFContext): Promise<Uint8Array> {
+  let contents: PDFObject | undefined = pagina.node.get(PDFName.of('Contents'))
+  if (contents instanceof PDFRef) contents = context.lookup(contents)
+
+  const streams: PDFRawStream[] = []
+  if (contents instanceof PDFArray) {
+    for (let i = 0; i < contents.size(); i++) {
+      let item: PDFObject | undefined = contents.get(i)
+      if (item instanceof PDFRef) item = context.lookup(item)
+      if (item instanceof PDFRawStream) streams.push(item)
+    }
+  } else if (contents instanceof PDFRawStream) {
+    streams.push(contents)
+  }
+
+  const partes: Uint8Array[] = []
+  for (const stream of streams) {
+    partes.push(await decodificarStream(stream))
+    partes.push(new Uint8Array([0x0a])) // separador entre streams
+  }
+  return concatenar(partes)
+}
+
+/** Descomprime um stream FlateDecode; se não for comprimido, devolve os bytes crus. */
+async function decodificarStream(stream: PDFRawStream): Promise<Uint8Array> {
+  const filtro = stream.dict.get(PDFName.of('Filter'))
+  const usaFlate = filtro ? String(filtro).includes('FlateDecode') : false
+  if (!usaFlate) return stream.contents
+  try {
+    return await inflar(stream.contents)
+  } catch {
+    // Stream com filtro desconhecido ou já descomprimido: usa os bytes crus.
+    return stream.contents
+  }
+}
+
+/** Inflate via Web Streams (zlib e, como fallback, deflate cru). */
+async function inflar(bytes: Uint8Array): Promise<Uint8Array> {
+  const formatos: Array<'deflate' | 'deflate-raw'> = ['deflate', 'deflate-raw']
+  let ultimoErro: unknown
+  for (const formato of formatos) {
+    try {
+      const ds = new DecompressionStream(formato)
+      const stream = new Blob([bytes]).stream().pipeThrough(ds)
+      const buffer = await new Response(stream).arrayBuffer()
+      return new Uint8Array(buffer)
+    } catch (err) {
+      ultimoErro = err
+    }
+  }
+  throw ultimoErro ?? new Error('Falha ao descomprimir o stream.')
+}
+
+function concatenar(partes: Uint8Array[]): Uint8Array {
+  const total = partes.reduce((acc, p) => acc + p.length, 0)
+  const saida = new Uint8Array(total)
+  let offset = 0
+  for (const p of partes) {
+    saida.set(p, offset)
+    offset += p.length
+  }
+  return saida
+}
+
+// ─── Parsing do content stream (operadores de texto) ─────────────────────────
+
+/** Extrai todo o texto renderizado de um content stream já descomprimido. */
+function extrairTextoDeConteudo(conteudo: string): string {
+  const partes: string[] = []
   const btEtRegex = /BT([\s\S]*?)ET/g
-  let match: RegExpExecArray | null
-
-  while ((match = btEtRegex.exec(raw)) !== null) {
-    const bloco = match[1]
-    const textos: string[] = []
-
-    // Operador Tj: (texto) Tj
-    const tjRegex = /\(([^)]*)\)\s*Tj/g
-    let tj: RegExpExecArray | null
-    while ((tj = tjRegex.exec(bloco)) !== null) {
-      textos.push(decodificarTextoRaw(tj[1]))
-    }
-
-    // Operador TJ: [(texto)(texto)] TJ
-    const tjArrayRegex = /\[([^\]]*)\]\s*TJ/g
-    let tja: RegExpExecArray | null
-    while ((tja = tjArrayRegex.exec(bloco)) !== null) {
-      const conteudo = tja[1]
-      const partes = conteudo.match(/\(([^)]*)\)/g) ?? []
-      textos.push(partes.map((p) => decodificarTextoRaw(p.slice(1, -1))).join(''))
-    }
-
-    if (textos.length > 0) {
-      blocos.push(textos.join(' '))
-    }
+  let bloco: RegExpExecArray | null
+  while ((bloco = btEtRegex.exec(conteudo)) !== null) {
+    partes.push(extrairTextoDeBloco(bloco[1]))
   }
-
-  return blocos
+  return partes
+    .join(' ')
+    .replace(/[ \t]+/g, ' ')
+    .trim()
 }
 
 /**
- * Tenta associar blocos de texto a páginas usando Page objects do PDF.
- * Estratégia simplificada: divide os blocos igualmente pelas páginas encontradas.
+ * Extrai o texto de um bloco BT...ET. Suporta:
+ * - `(literal) Tj` e `<hex> Tj`
+ * - `[ (a) -250 (b) <00> ] TJ` (com kerning)
  */
-function associarBlocosPaginas(raw: string, blocos: string[]): string[] {
-  // Conta o número de páginas pelo padrão /Type /Page (sem s no final)
-  const pageMatches = raw.match(/\/Type\s*\/Page[^s]/g)
-  const totalPaginas = pageMatches?.length ?? 1
-
-  if (totalPaginas <= 1) {
-    return [blocos.join(' ')]
+function extrairTextoDeBloco(bloco: string): string {
+  const textos: string[] = []
+  // Casa, na ordem do stream, os operadores de exibição de texto.
+  const showRegex = /(\((?:[^()\\]|\\.)*\)|<[0-9A-Fa-f\s]*>)\s*Tj|\[([\s\S]*?)\]\s*TJ/g
+  let m: RegExpExecArray | null
+  while ((m = showRegex.exec(bloco)) !== null) {
+    if (m[1] !== undefined) {
+      textos.push(decodificarToken(m[1]))
+    } else if (m[2] !== undefined) {
+      textos.push(decodificarArrayTJ(m[2]))
+    }
   }
-
-  // Divide os blocos igualmente entre as páginas
-  const blocosPorPagina = Math.ceil(blocos.length / totalPaginas)
-  const paginas: string[] = []
-
-  for (let i = 0; i < totalPaginas; i++) {
-    const inicio = i * blocosPorPagina
-    const fim = Math.min(inicio + blocosPorPagina, blocos.length)
-    paginas.push(blocos.slice(inicio, fim).join(' '))
-  }
-
-  return paginas
+  return textos.join('')
 }
 
-/** Decodifica sequências de escape básicas do PDF */
-function decodificarTextoRaw(texto: string): string {
-  return texto
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\r')
-    .replace(/\\t/g, '\t')
-    .replace(/\\\(/g, '(')
-    .replace(/\\\)/g, ')')
-    .replace(/\\\\/g, '\\')
+/** Decodifica um array de TJ: concatena os literais/hex e ignora os números de kerning. */
+function decodificarArrayTJ(conteudo: string): string {
+  const tokenRegex = /\((?:[^()\\]|\\.)*\)|<[0-9A-Fa-f\s]*>/g
+  const partes: string[] = []
+  let t: RegExpExecArray | null
+  while ((t = tokenRegex.exec(conteudo)) !== null) {
+    partes.push(decodificarToken(t[0]))
+  }
+  return partes.join('')
+}
+
+/** Decodifica um token de string: literal `(...)` ou hexadecimal `<...>`. */
+function decodificarToken(token: string): string {
+  if (token.startsWith('<')) {
+    return decodificarHex(token.slice(1, -1))
+  }
+  return decodificarLiteral(token.slice(1, -1))
+}
+
+/** Decodifica uma string hexadecimal `<48656C6C6F>` → "Hello" (latin1). */
+function decodificarHex(hex: string): string {
+  const limpo = hex.replace(/\s+/g, '')
+  const par = limpo.length % 2 === 0 ? limpo : limpo + '0'
+  let out = ''
+  for (let i = 0; i < par.length; i += 2) {
+    out += String.fromCharCode(parseInt(par.slice(i, i + 2), 16))
+  }
+  return out
+}
+
+/** Decodifica uma string literal de PDF, tratando escapes e octais `\ddd`. */
+function decodificarLiteral(s: string): string {
+  let out = ''
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (c !== '\\') {
+      out += c
+      continue
+    }
+    const n = s[i + 1]
+    if (n === undefined) break
+    if (n === 'n') {
+      out += '\n'
+      i++
+    } else if (n === 'r') {
+      out += '\r'
+      i++
+    } else if (n === 't') {
+      out += '\t'
+      i++
+    } else if (n === 'b') {
+      out += '\b'
+      i++
+    } else if (n === 'f') {
+      out += '\f'
+      i++
+    } else if (n === '(' || n === ')' || n === '\\') {
+      out += n
+      i++
+    } else if (n >= '0' && n <= '7') {
+      let octal = n
+      i++
+      for (let k = 0; k < 2 && s[i + 1] >= '0' && s[i + 1] <= '7'; k++) {
+        octal += s[i + 1]
+        i++
+      }
+      out += String.fromCharCode(parseInt(octal, 8) & 0xff)
+    } else {
+      out += n
+      i++
+    }
+  }
+  return out
 }
 
 // ─── Split de PDF por páginas ─────────────────────────────────────────────────
 
 /**
- * Extrai as páginas indicadas de um PDF e retorna um novo PDF com apenas essas páginas.
- * Usa pdf-lib que funciona perfeitamente em Deno.
+ * Extrai as páginas indicadas de um PDF e retorna um novo PDF com apenas essas
+ * páginas. Usa pdf-lib, que funciona perfeitamente em Deno.
  */
 export async function extrairPaginas(
   pdfBytes: Uint8Array,
@@ -140,9 +251,7 @@ export async function extrairPaginas(
   return novoPdf.save()
 }
 
-/**
- * Retorna o número total de páginas de um PDF.
- */
+/** Retorna o número total de páginas de um PDF. */
 export async function contarPaginas(pdfBytes: Uint8Array): Promise<number> {
   const pdf = await PDFDocument.load(pdfBytes)
   return pdf.getPageCount()
