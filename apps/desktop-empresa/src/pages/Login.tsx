@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { Button, Input, Campo, AlertaErro } from '@contabhub/ui-desktop'
 
 export function LoginPage() {
   const { login, session } = useAuth()
@@ -29,38 +30,39 @@ export function LoginPage() {
     e.preventDefault()
     setErro(null)
     setCarregando(true)
-    const erro = await login(cnpj, senha)
+    const msg = await login(cnpj, senha)
     setCarregando(false)
-    if (erro) {
-      setErro(erro)
+    if (msg) {
+      setErro(msg)
     } else {
       navigate('/dashboard', { replace: true })
     }
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-50">
+    <div className="flex h-screen items-center justify-center bg-app-bg p-6">
       <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">ContaHub</h1>
-          <p className="mt-1 text-sm text-gray-500">Acesso para Empresas</p>
+        {/* Marca */}
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div
+            className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white"
+            style={{ background: '#7DC82E' }}
+          >
+            C
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">ContaHub</h1>
+          <p className="mt-1 text-sm text-ink-faint">Acesso para Empresas</p>
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-800">Entrar na sua conta</h2>
+        <div className="rounded-panel bg-surface p-8 shadow-card">
+          <h2 className="mb-6 text-lg font-semibold text-ink">Entrar na sua conta</h2>
 
-          {erro && (
-            <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
-              {erro}
-            </div>
-          )}
+          <AlertaErro mensagem={erro} />
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">CNPJ</label>
-              <input
+            <Campo label="CNPJ" obrigatorio>
+              <Input
                 type="text"
                 value={cnpj}
                 onChange={(e) => setCnpj(formatarCnpj(e.target.value))}
@@ -68,32 +70,31 @@ export function LoginPage() {
                 required
                 autoFocus
                 inputMode="numeric"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 font-mono"
+                className="font-mono"
               />
-            </div>
+            </Campo>
 
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Senha</label>
-              <input
+            <Campo label="Senha" obrigatorio>
+              <Input
                 type="password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
               />
-            </div>
+            </Campo>
 
-            <button
+            <Button
               type="submit"
-              disabled={carregando || cnpj.replace(/\D/g, '').length < 14}
-              className="mt-2 w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={carregando}
+              disabled={cnpj.replace(/\D/g, '').length < 14}
+              className="mt-2 w-full"
             >
-              {carregando ? 'Entrando...' : 'Entrar'}
-            </button>
+              Entrar
+            </Button>
           </form>
 
-          <p className="mt-5 text-center text-xs text-gray-400">
+          <p className="mt-5 text-center text-xs text-ink-faint">
             Credenciais fornecidas pela sua contabilidade.
           </p>
         </div>
