@@ -123,12 +123,15 @@ Deno.serve(async (req) => {
       metadata: { tenant_id: tenant.id },
     })
 
+    // Assinatura em trial sem cobrar agora. Se o trial terminar sem método de
+    // pagamento, a assinatura é pausada (o contador adiciona o cartão via
+    // Customer Portal durante o trial).
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: plano.stripe_price_id }],
       trial_period_days: TRIAL_DAYS,
       trial_settings: { end_behavior: { missing_payment_method: 'pause' } },
-      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
       metadata: { tenant_id: tenant.id },
     })
 

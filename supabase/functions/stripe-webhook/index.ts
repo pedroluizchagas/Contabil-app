@@ -53,21 +53,30 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-  // ── Idempotência: registra o evento; se já existe, ignora ─────────────────
-  const { error: insertError } = await supabase.from('webhook_eventos').insert({
-    gateway: 'stripe',
-    event_id: evento.id,
-    tipo: evento.type,
-    payload: evento as unknown as Record<string, unknown>,
-  })
+  // ── Idempotência ──────────────────────────────────────────────────────────
+  // Registra o evento (ignora se já existe) e só processa quando ainda NÃO foi
+  // concluído (processado_em nulo). Assim, um evento cujo processamento falhou
+  // pode ser reprocessado no retry do Stripe — sem reprocessar os que deram
+  // certo.
+  await supabase.from('webhook_eventos').upsert(
+    {
+      gateway: 'stripe',
+      event_id: evento.id,
+      tipo: evento.type,
+      payload: evento as unknown as Record<string, unknown>,
+    },
+    { onConflict: 'gateway,event_id', ignoreDuplicates: true }
+  )
 
-  if (insertError) {
-    // Violação de UNIQUE (gateway, event_id) → evento já processado.
-    if (insertError.code === '23505') {
-      return resposta(200, { received: true, duplicate: true })
-    }
-    console.error('Erro ao registrar webhook_evento:', insertError.message)
-    return resposta(500, { error: 'Erro ao registrar evento.' })
+  const { data: registro } = await supabase
+    .from('webhook_eventos')
+    .select('processado_em')
+    .eq('gateway', 'stripe')
+    .eq('event_id', evento.id)
+    .maybeSingle()
+
+  if ((registro as { processado_em: string | null } | null)?.processado_em) {
+    return resposta(200, { received: true, duplicate: true })
   }
 
   // ── Processa o evento ─────────────────────────────────────────────────────
