@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Card, CardHeader, Badge, PageSpinner } from '@/components/ui'
+import { Card, CardHeader, Badge, PageSpinner } from '@contabhub/ui-desktop'
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface LoteRecente {

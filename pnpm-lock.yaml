@@ -29,6 +29,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@contabhub/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       '@contabhub/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -78,6 +81,9 @@ importers:
 
   apps/desktop-contabilidade:
     dependencies:
+      '@contabhub/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       '@contabhub/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -87,6 +93,9 @@ importers:
       '@contabhub/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@contabhub/ui-desktop':
+        specifier: workspace:*
+        version: link:../../packages/ui-desktop
       '@supabase/supabase-js':
         specifier: ^2.45.0
         version: 2.99.3
@@ -148,6 +157,9 @@ importers:
 
   apps/desktop-empresa:
     dependencies:
+      '@contabhub/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       '@contabhub/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -209,6 +221,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@contabhub/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       '@contabhub/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -286,6 +301,8 @@ importers:
         specifier: ^5.5.0
         version: 5.9.3
 
+  packages/design-tokens: {}
+
   packages/shared:
     devDependencies:
       typescript:
@@ -326,6 +343,28 @@ importers:
       tailwindcss:
         specifier: ^3.4.0
         version: 3.4.19(yaml@2.8.2)
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+
+  packages/ui-desktop:
+    dependencies:
+      react:
+        specifier: ^18.3.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.0
+        version: 18.3.28
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.28)
+      react-router-dom:
+        specifier: ^6.26.0
+        version: 6.30.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       typescript:
         specifier: ^5.5.0
         version: 5.9.3

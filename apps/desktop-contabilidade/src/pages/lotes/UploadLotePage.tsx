@@ -8,7 +8,7 @@ import { useDropzone } from 'react-dropzone'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Database } from '@contabhub/supabase'
-import { Button, Card, CardContent, PageHeader, Select } from '@/components/ui'
+import { Button, Card, CardContent, PageHeader, Select } from '@contabhub/ui-desktop'
 
 type Empresa = Pick<Database['public']['Tables']['empresas']['Row'], 'id' | 'nome'>
 type StatusLote = Database['public']['Tables']['lotes']['Row']['status']

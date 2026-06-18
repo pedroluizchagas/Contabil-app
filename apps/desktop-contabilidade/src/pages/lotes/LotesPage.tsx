@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { Button, Badge, Card, PageHeader, EmptyState, PageSpinner, Select } from '@/components/ui'
+import {
+  Button,
+  Badge,
+  Card,
+  PageHeader,
+  EmptyState,
+  PageSpinner,
+  Select,
+} from '@contabhub/ui-desktop'
 
 const MESES_ABREV = [
   '',

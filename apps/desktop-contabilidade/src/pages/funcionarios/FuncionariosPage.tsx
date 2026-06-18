@@ -2,7 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@contabhub/supabase'
-import { Button, Badge, Card, PageHeader, EmptyState, PageSpinner, Input } from '@/components/ui'
+import {
+  Button,
+  Badge,
+  Card,
+  PageHeader,
+  EmptyState,
+  PageSpinner,
+  Input,
+} from '@contabhub/ui-desktop'
 import { ImportacaoExcel } from './ImportacaoExcel'
 
 type Funcionario = Database['public']['Tables']['funcionarios']['Row']

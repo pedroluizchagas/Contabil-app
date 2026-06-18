@@ -1,7 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button, Card, CardContent, Campo, AlertaErro, PageHeader, Input } from '@/components/ui'
+import {
+  Button,
+  Card,
+  CardContent,
+  Campo,
+  AlertaErro,
+  PageHeader,
+  Input,
+} from '@contabhub/ui-desktop'
 
 /* ── Section wrapper ─────────────────────────────────────────────── */
 function Section({

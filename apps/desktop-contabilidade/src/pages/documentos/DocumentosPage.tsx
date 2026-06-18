@@ -10,7 +10,7 @@ import {
   PageSpinner,
   Input,
   Select,
-} from '@/components/ui'
+} from '@contabhub/ui-desktop'
 
 type StatusDoc = Database['public']['Views']['v_status_documentos']['Row']
 
