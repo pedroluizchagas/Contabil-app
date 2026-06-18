@@ -146,52 +146,53 @@ Deno.serve(async (req) => {
 
       const cpfLimpo = cpf.replace(/\D/g, '')
 
-      // Busca o funcionário pelo CPF + empresa (sem verificar data de nascimento — já verificada na etapa 1)
-      const { data: funcionarioData } = await supabaseAdmin
-        .from('funcionarios')
-        .select('id, auth_user_id, ativo')
-        .eq('empresa_id', empresa_id)
-        .eq('ativo', true)
-        .limit(1)
-
-      // Nota: não podemos filtrar por cpf_hash diretamente no .eq() pois é bcrypt
-      // Buscamos todos e verificamos via função SQL
-      const { data: funcionarios } = await supabaseAdmin.rpc('verificar_credenciais_funcionario', {
+      // Resolve o funcionário por (empresa_id, CPF). Isso permite filtrar os
+      // códigos OTP por funcionario_id em vez de varrer os códigos ativos de
+      // todo o banco (B3): elimina vazamento por timing e a falha sob logins
+      // concorrentes. A verificação do CPF na etapa "confirm" também impede
+      // que um código de outra empresa seja aceito.
+      const { data: funcionarios } = await supabaseAdmin.rpc('buscar_funcionario_id_por_cpf', {
         p_empresa_id: empresa_id,
         p_cpf: cpfLimpo,
-        p_data_nascimento: '1900-01-01', // placeholder — não verificamos data aqui
       })
 
-      // Busca direta pelo auth_user ou por código ativo
-      // Abordagem mais segura: buscar o código ativo mais recente para o funcionário
-      const { data: codigoAtivo } = await supabaseAdmin
+      const funcionario = funcionarios?.[0] as
+        | { id: string; auth_user_id: string | null; ativo: boolean }
+        | undefined
+
+      if (!funcionario || !funcionario.ativo) {
+        return resposta(401, { error: 'Credenciais inválidas.' })
+      }
+
+      // Busca apenas os códigos ativos DESTE funcionário.
+      const { data: codigosAtivos } = await supabaseAdmin
         .from('auth_codes')
-        .select('id, code_hash, funcionario_id, expires_at')
+        .select('id, code_hash')
+        .eq('funcionario_id', funcionario.id)
         .is('used_at', null)
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
-        .limit(20)
 
-      if (!codigoAtivo?.length) {
+      if (!codigosAtivos?.length) {
         return resposta(401, { error: 'Nenhum código válido encontrado. Solicite um novo.' })
       }
 
-      // Verifica o código via pgcrypto para cada código ativo recente
-      let codigoValido: { id: string; funcionario_id: string } | null = null
+      // Verifica o código informado contra os hashes via pgcrypto.
+      let codigoValidoId: string | null = null
 
-      for (const c of codigoAtivo) {
+      for (const c of codigosAtivos) {
         const { data: valid } = (await supabaseAdmin.rpc('verificar_hash', {
           p_texto: codigo,
           p_hash: c.code_hash,
         })) as { data: boolean }
 
         if (valid) {
-          codigoValido = c
+          codigoValidoId = c.id
           break
         }
       }
 
-      if (!codigoValido) {
+      if (!codigoValidoId) {
         return resposta(401, { error: 'Código inválido ou expirado.' })
       }
 
@@ -199,23 +200,16 @@ Deno.serve(async (req) => {
       await supabaseAdmin
         .from('auth_codes')
         .update({ used_at: new Date().toISOString() })
-        .eq('id', codigoValido.id)
+        .eq('id', codigoValidoId)
 
-      // Busca o auth_user_id do funcionário
-      const { data: func } = await supabaseAdmin
-        .from('funcionarios')
-        .select('id, auth_user_id')
-        .eq('id', codigoValido.funcionario_id)
-        .single()
-
-      if (!func?.auth_user_id) {
+      if (!funcionario.auth_user_id) {
         return resposta(400, { error: 'Conta não configurada. Contate sua empresa.' })
       }
 
       // Cria sessão para o funcionário
       const { data: sessionData, error: sessionError } =
         await supabaseAdmin.auth.admin.createSession({
-          user_id: func.auth_user_id,
+          user_id: funcionario.auth_user_id,
         })
 
       if (sessionError) {

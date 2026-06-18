@@ -33,10 +33,63 @@ import type { LoteRow, FuncionarioRow, ResultadoDocumento, EstrategiaParser } fr
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+/** Decodifica o payload de um JWT (sem verificar assinatura). */
+function decodificarJwt(token: string): Record<string, unknown> | null {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(json) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Valida que o chamador pode processar o lote do tenant informado (B4).
+ *
+ * - O service_role (backend confiável) é sempre permitido.
+ * - Um usuário só pode disparar o processamento de lotes do PRÓPRIO tenant e
+ *   apenas com o perfil 'contabilidade'. A autenticidade do token de usuário é
+ *   confirmada via auth.getUser() (rejeita tokens forjados/expirados).
+ */
+async function validarAcessoTenant(
+  authHeader: string | null,
+  loteTenantId: string
+): Promise<{ ok: boolean; status: number; error?: string }> {
+  const token = (authHeader ?? '').replace(/^Bearer\s+/i, '').trim()
+  if (!token) {
+    return { ok: false, status: 401, error: 'Token de autenticação ausente.' }
+  }
+
+  const claims = decodificarJwt(token)
+
+  // service_role: chamada interna/backend confiável.
+  if (claims?.role === 'service_role') {
+    return { ok: true, status: 200 }
+  }
+
+  // Token de usuário: confirma autenticidade antes de confiar nas claims.
+  const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  })
+  const { data: userData, error: userError } = await authClient.auth.getUser()
+  if (userError || !userData?.user) {
+    return { ok: false, status: 401, error: 'Token inválido.' }
+  }
+
+  if (claims?.user_role !== 'contabilidade' || claims?.tenant_id !== loteTenantId) {
+    return { ok: false, status: 403, error: 'Acesso negado a este lote.' }
+  }
+
+  return { ok: true, status: 200 }
 }
 
 Deno.serve(async (req) => {
@@ -75,6 +128,12 @@ Deno.serve(async (req) => {
 
     if (loteError || !lote) {
       return resposta(404, { error: 'Lote não encontrado.' })
+    }
+
+    // ── Validação de acesso ao tenant (B4) ────────────────────────────────────
+    const acesso = await validarAcessoTenant(req.headers.get('Authorization'), lote.tenant_id)
+    if (!acesso.ok) {
+      return resposta(acesso.status, { error: acesso.error })
     }
 
     if (lote.status === 'processando') {
