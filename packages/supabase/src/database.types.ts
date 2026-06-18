@@ -18,6 +18,7 @@ export interface Database {
           limite_empresas: number
           limite_funcionarios: number
           ativo: boolean
+          stripe_price_id: string | null
           created_at: string
         }
         Insert: {
@@ -27,6 +28,7 @@ export interface Database {
           limite_empresas: number
           limite_funcionarios: number
           ativo?: boolean
+          stripe_price_id?: string | null
           created_at?: string
         }
         Update: {
@@ -36,6 +38,7 @@ export interface Database {
           limite_empresas?: number
           limite_funcionarios?: number
           ativo?: boolean
+          stripe_price_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -48,6 +51,7 @@ export interface Database {
           cnpj: string
           email: string
           status: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+          stripe_customer_id: string | null
           created_at: string
         }
         Insert: {
@@ -57,6 +61,7 @@ export interface Database {
           cnpj: string
           email: string
           status?: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+          stripe_customer_id?: string | null
           created_at?: string
         }
         Update: {
@@ -66,6 +71,7 @@ export interface Database {
           cnpj?: string
           email?: string
           status?: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+          stripe_customer_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -77,7 +83,7 @@ export interface Database {
           plano_id: string
           status: 'trial' | 'ativo' | 'inadimplente' | 'cancelado'
           proximo_vencimento: string | null
-          gateway_id: string | null
+          stripe_subscription_id: string | null
           created_at: string
         }
         Insert: {
@@ -86,7 +92,7 @@ export interface Database {
           plano_id: string
           status?: 'trial' | 'ativo' | 'inadimplente' | 'cancelado'
           proximo_vencimento?: string | null
-          gateway_id?: string | null
+          stripe_subscription_id?: string | null
           created_at?: string
         }
         Update: {
@@ -95,7 +101,7 @@ export interface Database {
           plano_id?: string
           status?: 'trial' | 'ativo' | 'inadimplente' | 'cancelado'
           proximo_vencimento?: string | null
-          gateway_id?: string | null
+          stripe_subscription_id?: string | null
           created_at?: string
         }
         Relationships: [
@@ -114,6 +120,114 @@ export interface Database {
             referencedColumns: ["id"]
           }
         ]
+      }
+      convites: {
+        Row: {
+          id: string
+          nome: string
+          cnpj: string | null
+          email: string
+          plano_id: string | null
+          status: 'lead' | 'contatado' | 'aprovado' | 'ativo' | 'recusado'
+          notas: string | null
+          tenant_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          cnpj?: string | null
+          email: string
+          plano_id?: string | null
+          status?: 'lead' | 'contatado' | 'aprovado' | 'ativo' | 'recusado'
+          notas?: string | null
+          tenant_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          cnpj?: string | null
+          email?: string
+          plano_id?: string | null
+          status?: 'lead' | 'contatado' | 'aprovado' | 'ativo' | 'recusado'
+          notas?: string | null
+          tenant_id?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      faturas: {
+        Row: {
+          id: string
+          tenant_id: string
+          subscription_id: string | null
+          stripe_invoice_id: string
+          valor: number
+          vencimento: string | null
+          status: string
+          hosted_invoice_url: string | null
+          paga_em: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          subscription_id?: string | null
+          stripe_invoice_id: string
+          valor: number
+          vencimento?: string | null
+          status: string
+          hosted_invoice_url?: string | null
+          paga_em?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          subscription_id?: string | null
+          stripe_invoice_id?: string
+          valor?: number
+          vencimento?: string | null
+          status?: string
+          hosted_invoice_url?: string | null
+          paga_em?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      webhook_eventos: {
+        Row: {
+          id: string
+          gateway: 'stripe' | 'autentique'
+          event_id: string
+          tipo: string
+          payload: Json
+          processado_em: string | null
+          erro: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          gateway: 'stripe' | 'autentique'
+          event_id: string
+          tipo: string
+          payload: Json
+          processado_em?: string | null
+          erro?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          gateway?: 'stripe' | 'autentique'
+          event_id?: string
+          tipo?: string
+          payload?: Json
+          processado_em?: string | null
+          erro?: string | null
+          created_at?: string
+        }
+        Relationships: []
       }
       empresas: {
         Row: {

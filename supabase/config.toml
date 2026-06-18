@@ -44,3 +44,8 @@ uri = "pg-functions://postgres/public/custom_access_token_hook"
 
 [analytics]
 enabled = false
+
+# O Stripe não envia JWT do Supabase — a autenticidade vem da assinatura do
+# webhook (Stripe-Signature). As demais funções usam verify_jwt padrão.
+[functions.stripe-webhook]
+verify_jwt = false

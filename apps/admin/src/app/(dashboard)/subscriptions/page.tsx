@@ -17,7 +17,7 @@ export default async function SubscriptionsPage({
     .from('subscriptions')
     .select(
       `
-      id, status, proximo_vencimento, gateway_id, created_at,
+      id, status, proximo_vencimento, stripe_subscription_id, created_at,
       tenants(id, nome, email),
       planos(nome, preco_mensal)
     `
@@ -89,7 +89,7 @@ export default async function SubscriptionsPage({
                 <th className="px-6 py-3">Valor</th>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">Vencimento</th>
-                <th className="px-6 py-3">Gateway ID</th>
+                <th className="px-6 py-3">Stripe Sub ID</th>
                 <th className="px-6 py-3">Criada em</th>
               </tr>
             </thead>
@@ -121,7 +121,7 @@ export default async function SubscriptionsPage({
                     </td>
                     <td className="px-6 py-3">
                       <span className="font-mono text-xs text-gray-400">
-                        {sub.gateway_id ?? '—'}
+                        {sub.stripe_subscription_id ?? '—'}
                       </span>
                     </td>
                     <td className="px-6 py-3 text-xs text-gray-400">
