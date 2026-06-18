@@ -27,7 +27,7 @@ infraestrutura, banco, auth e os 4 apps consumindo o Supabase**.
 | App Desktop Empresa                           | 🟡 Parcial  | Login, dashboard, documentos; faltam fluxos de auth |
 | App Mobile Funcionário                        | 🟡 Parcial  | Login OTP + push + listagem; **falta assinatura**   |
 | Admin SaaS (Next.js)                          | 🟡 Parcial  | Dashboard, tenants, planos, subscriptions           |
-| Billing (Pagar.me) + e-mails (Resend)         | ❌ Faltando | Integração inexistente                              |
+| Billing (Stripe) + e-mails (Resend)           | ❌ Faltando | Onboarding fechado; UI hosted (Checkout/Portal)     |
 | Assinatura digital (Autentique)               | ❌ Faltando | Integração inexistente                              |
 | Observabilidade (Sentry, logs, métricas)      | ❌ Faltando | Apenas `console.log`                                |
 | Testes (unit / e2e / regressão)               | ❌ Faltando | Nenhum suite configurado                            |
@@ -90,7 +90,7 @@ OTHERS` (migration 0012) — robusto contra falhas.
 - Sem `updated_at` automático em nenhuma tabela. Recomendo trigger
   `moddatetime` ao menos em `tenants`, `empresas`, `funcionarios`,
   `subscriptions`, `documentos`.
-- Não há tabela `webhook_eventos_pagarme` (idempotência de webhooks).
+- Não há tabela `webhook_eventos` (idempotência de webhooks Stripe/Autentique).
 - Não há tabela `assinaturas_autentique` (referência ao documento na Autentique).
 
 ### 2.3 Edge Functions (Deno)
@@ -384,76 +384,120 @@ issues.
   no admin do contador.
 - ✅ App publicado no Internal Testing da Play Store e no TestFlight.
 
-### Fase 6 — Billing e E-mails Transacionais
+### Fase 6 — Billing (Stripe) e E-mails Transacionais
 
-**Estimativa:** 1,5 semanas.
+**Estimativa:** 1 semana.
+
+> **Decisões (jun/2026):** gateway **Stripe** (no lugar do Pagar.me — melhores
+> taxas e ecossistema). **UI hosted** (Stripe Checkout + Customer Portal).
+> **Dunning delegado ao Stripe** (Smart Retries + e-mails do Stripe).
+> **Onboarding fechado** (sem self-service — provisionamento pelo Admin).
+> Fonte da verdade detalhada: `docs/BILLING_E_ONBOARDING.md`.
 
 #### 6.1 Schema novo
 
 ```sql
--- Webhooks recebidos (idempotência)
+-- Vínculo com o Stripe
+ALTER TABLE tenants  ADD COLUMN stripe_customer_id text UNIQUE;
+ALTER TABLE planos   ADD COLUMN stripe_price_id    text;  -- Price recorrente
+-- subscriptions: usar stripe_subscription_id (em vez de gateway_id) e status
+-- alinhado ao Stripe (trialing|active|past_due|canceled|unpaid).
+
+-- Webhooks recebidos (idempotência) — Stripe e Autentique
 CREATE TABLE webhook_eventos (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  gateway       text NOT NULL CHECK (gateway IN ('pagarme','autentique')),
-  external_id   text NOT NULL,        -- ID do evento no gateway
-  tipo          text NOT NULL,
+  gateway       text NOT NULL CHECK (gateway IN ('stripe','autentique')),
+  event_id      text NOT NULL,        -- ID do evento no gateway (Stripe event.id)
+  tipo          text NOT NULL,        -- ex.: invoice.paid
   payload       jsonb NOT NULL,
   processado_em timestamptz,
   erro          text,
   created_at    timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (gateway, external_id)
+  UNIQUE (gateway, event_id)
 );
 
--- Faturas geradas pelo Pagar.me
+-- Faturas (espelho das invoices do Stripe)
 CREATE TABLE faturas (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id       uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  subscription_id uuid NOT NULL REFERENCES subscriptions(id),
-  gateway_id      text NOT NULL UNIQUE,
-  valor           numeric(10,2) NOT NULL,
-  vencimento      date NOT NULL,
-  status          text NOT NULL CHECK (status IN
-                    ('aberta','paga','vencida','cancelada','reembolsada')),
-  url_boleto      text,
-  url_qrcode      text,
-  paga_em         timestamptz,
-  created_at      timestamptz NOT NULL DEFAULT now()
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id         uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  subscription_id   uuid NOT NULL REFERENCES subscriptions(id),
+  stripe_invoice_id text NOT NULL UNIQUE,
+  valor             numeric(10,2) NOT NULL,
+  vencimento        date,
+  status            text NOT NULL,    -- draft|open|paid|uncollectible|void
+  hosted_invoice_url text,            -- link da fatura hospedada no Stripe
+  paga_em           timestamptz,
+  created_at        timestamptz NOT NULL DEFAULT now()
+);
+
+-- Funil de onboarding fechado (CRM leve)
+CREATE TABLE convites (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome       text NOT NULL,
+  cnpj       text,
+  email      text NOT NULL,
+  plano_id   uuid REFERENCES planos(id),
+  status     text NOT NULL DEFAULT 'lead'
+             CHECK (status IN ('lead','contatado','aprovado','ativo','recusado')),
+  notas      text,
+  tenant_id  uuid REFERENCES tenants(id),  -- preenchido após provisionar
+  created_at timestamptz NOT NULL DEFAULT now()
 );
 ```
 
 #### 6.2 Edge Functions novas
 
-- `pagarme-webhook`: valida assinatura HMAC, registra em `webhook_eventos`,
-  atualiza `subscriptions` e `faturas`, dispara e-mails.
-- `criar-subscription`: chamada pelo desktop-contabilidade no primeiro
-  login do tenant em trial (cria customer + subscription no Pagar.me).
-- `enviar-email`: wrapper sobre a API Resend (templates: trial-iniciado,
-  fatura-gerada, pagamento-confirmado, inadimplencia, cancelado).
+- `provisionar-tenant` (**Admin, autenticado — não público**): a partir de um
+  `convite` aprovado, cria `tenants` + usuário Auth do contador + `Customer` e
+  `Subscription` (com `trial_period_days: 30`) no Stripe; grava
+  `stripe_customer_id`/`stripe_subscription_id`; dispara e-mail de boas-vindas
+  (Resend) com link para definir a senha + link de pagamento (Checkout/Portal).
+- `stripe-webhook` (**público, assinatura verificada**): valida `Stripe-Signature`
+  com o signing secret, registra em `webhook_eventos` (idempotência por
+  `event.id`), e sincroniza `subscriptions`/`faturas` + o status do tenant.
+- `stripe-portal` (**contador, autenticado**): cria uma sessão do Stripe
+  Customer Portal e devolve a URL.
+- `enviar-email`: wrapper sobre a API Resend (templates: boas-vindas/convite,
+  pagamento-confirmado, cancelado). _Cobrança/inadimplência fica por conta dos
+  e-mails do próprio Stripe._
 
-#### 6.3 Regras de negócio
+#### 6.3 Mapeamento de eventos (Stripe → estado do tenant)
 
-- Trial padrão: **30 dias** a partir de `tenants.created_at`. Job cron
-  diário (`supabase/functions/cron-billing`) que:
-  - cria subscription quando trial expira;
-  - marca tenant como `inadimplente` após 5 dias de fatura vencida;
-  - desativa tenant após 15 dias (status `inativo`, mantém dados);
-  - exclui (LGPD) tenant após 90 dias inativo se solicitado.
-- Limites do plano: enforced em **DB** (constraints triggered) e em **API**
-  (rejeitar inserts em `empresas`/`funcionarios` quando limite atingido).
+| Evento Stripe                   | Efeito                                            |
+| ------------------------------- | ------------------------------------------------- |
+| `checkout.session.completed`    | vincula `Customer`/`Subscription` ao tenant       |
+| `customer.subscription.created` | tenant `trial`/`ativo` conforme status            |
+| `invoice.paid`                  | tenant `ativo` + upsert em `faturas` (paid)       |
+| `invoice.payment_failed`        | tenant `inadimplente` (grace; Stripe faz o retry) |
+| `customer.subscription.updated` | sincroniza status (`past_due`, `canceled`…)       |
+| `customer.subscription.deleted` | tenant `inativo`                                  |
 
-#### 6.4 Frontend
+#### 6.4 Regras de negócio
 
-- Admin: aba "Inadimplentes" com botão de "Cobrar agora" / "Estender trial".
-- Desktop-contabilidade: barra topo amarela quando `trial_resta < 5 dias`,
-  vermelha quando `inadimplente`; modal de upgrade.
+- **Trial:** 30 dias nativos do Stripe (`trial_period_days`), definidos no
+  provisionamento.
+- **Dunning:** delegado ao Stripe (Smart Retries + e-mails). Nosso webhook só
+  reflete `past_due`/`canceled` no acesso do tenant (bloqueio após grace).
+- **Limites do plano:** enforced em **DB** (constraints/trigger) e em **API**
+  (rejeitar inserts em `empresas`/`funcionarios` quando o limite for atingido).
+- **Bloqueio de acesso:** quando o tenant não está `ativo`/`trialing`, o app da
+  contabilidade entra em modo restrito (sem upload de lotes).
+
+#### 6.5 Frontend
+
+- **Admin:** módulo "Convites" (funil + ação "Provisionar"); em Tenants, botão
+  "Abrir no Stripe" e "Estender trial"; aba "Inadimplentes" (status via webhook).
+- **Desktop-contabilidade:** barra de aviso quando `trial` está acabando ou o
+  tenant está `inadimplente`, com botão "Gerenciar assinatura" → `stripe-portal`.
 
 **DoD**
 
-- ✅ Fluxo completo trial → primeira cobrança → pagamento confirmado em
-  sandbox da Pagar.me.
-- ✅ Inadimplência simulada bloqueia uploads em até 60s da chegada do
-  webhook.
-- ✅ E-mails chegam com o template correto em cada estado.
+- ✅ Owner aprova um `convite` → `provisionar-tenant` cria tenant + assinatura
+  trial no Stripe (test mode) → contador define senha e paga via Checkout.
+- ✅ `invoice.paid` mantém o tenant ativo; `invoice.payment_failed` +
+  `customer.subscription.updated(past_due)` bloqueia uploads em até 60s.
+- ✅ Webhook idempotente (reenvio do mesmo `event.id` não duplica efeito).
+- ✅ E-mails de boas-vindas/confirmação chegam pelo Resend.
 
 ### Fase 7.1 — Admin SaaS Operacional
 
@@ -461,6 +505,7 @@ CREATE TABLE faturas (
 
 - [ ] Tabela `admin_users` com `role` própria (não confiar em
       `user_metadata`).
+- [ ] Módulo "Convites": funil de leads + ação "Provisionar".
 - [ ] Página "Logs": tail das Edge Functions via API Supabase + filtros.
 - [ ] Página "Lotes com erro": agrega erros de processamento e permite
       reprocessar (chamada manual a `process-lote`).
@@ -469,15 +514,18 @@ CREATE TABLE faturas (
 - [ ] Métricas: gráfico de MRR por mês, churn mensal, tempo médio entre
       upload e leitura.
 
-### Fase 7.2 — Onboarding/Self-service do Tenant
+### Fase 7.2 — Provisionamento de Tenants (onboarding fechado)
 
-Hoje o tenant é criado manualmente via seed. Para escalar, é mandatório:
+> **Mudança de modelo:** o onboarding é **invite-only**. Não há self-service
+> nem signup público — a landing page é só marketing, sem conexão com o backend.
 
-- [ ] Landing page (Framer ou Next.js na própria `apps/admin`) com botão
-      "Começar grátis".
-- [ ] Edge Function `criar-tenant`: cria `auth.users` + `tenants` +
-      `subscriptions(trial)` numa transação.
-- [ ] E-mail de boas-vindas com link para baixar o app desktop.
+- [ ] Landing page **desacoplada** (Framer/estático): CTA "fale conosco"
+      (WhatsApp/form externo). Zero chamadas ao Supabase.
+- [ ] Fluxo no Admin: lead → qualificação → aprovação → `provisionar-tenant`.
+- [ ] `provisionar-tenant` (transacional): cria `auth.users` (contador) +
+      `tenants` + `Customer`/`Subscription(trial)` no Stripe.
+- [ ] Convite por e-mail (Resend) com link para definir senha + baixar o app.
+- [ ] `enable_signup = false` no Supabase Auth (sem cadastro público).
 - [ ] Fluxo de instalação documentado (Windows): MSI assinado +
       auto-updater + telemetria opt-in.
 
@@ -513,8 +561,8 @@ Setup recomendado:
   `packages/shared/src/log.ts` com nível + correlation id (lote_id, etc.).
 - **Métricas**: Supabase já expõe pgwatch/pg_stat. Adicionar dashboard
   Grafana Cloud (free tier) lendo o endpoint Prometheus do Supabase.
-- **Alertas**: Sentry → Slack para erros em produção; Pagar.me webhook
-  failure → e-mail.
+- **Alertas**: Sentry → Slack para erros em produção; falha no
+  `stripe-webhook` → e-mail.
 
 ### 5.3 Segurança e LGPD
 
@@ -596,7 +644,7 @@ em produção via `supabase db push --linked` no CI (após approval manual).
 | Android       | ❌     | Conta Google Play (US$ 25 vitalício), EAS build, internal testing → closed → production                                                                                                        |
 | iOS           | ❌     | Apple Developer ID, EAS submit, TestFlight                                                                                                                                                     |
 | Admin (web)   | 🟡     | `vercel.json` existe; falta `vercel link` + secrets                                                                                                                                            |
-| Landing       | ❌     | Framer (rápido) ou rota `/marketing` no admin                                                                                                                                                  |
+| Landing       | ❌     | Framer/estático — **apenas marketing, desacoplado** (sem signup público)                                                                                                                       |
 
 ---
 
@@ -605,7 +653,7 @@ em produção via `supabase db push --linked` no CI (após approval manual).
 | Risco                                       | Probabilidade | Impacto | Mitigação                                                             |
 | ------------------------------------------- | ------------- | ------- | --------------------------------------------------------------------- |
 | PDF de algum software não parseia           | Alta          | Alto    | Coletar amostras na Fase 8 do ROADMAP; modo `--dry-run`               |
-| Webhook Pagar.me chega duas vezes           | Média         | Médio   | Tabela `webhook_eventos` com `UNIQUE (gateway, external_id)`          |
+| Webhook do Stripe chega duas vezes          | Média         | Médio   | Tabela `webhook_eventos` com `UNIQUE (gateway, event_id)`             |
 | Service role key vazada                     | Baixa         | Crítico | Rotação trimestral; service key só em Edge Function (nunca no client) |
 | RLS configurado errado em migration nova    | Média         | Crítico | pgTAP rodando em CI antes de merge                                    |
 | Edge Function process-lote timeout          | Média         | Alto    | Migrar para fila (Fase 2.1)                                           |
@@ -624,9 +672,9 @@ Considerando dedicação principal de 1 desenvolvedor sênior:
 | 1      | Corrigir B1–B4; ligar Sentry; iniciar coleta de PDFs reais | Bugfix release v0.1.1 + observabilidade |
 | 2      | Fase 2.1 (PDF engine + fila)                               | Lotes reais processando em staging      |
 | 3      | Fase 5.1 (mobile + Autentique)                             | App mobile assinando documentos         |
-| 4      | Fase 6 parte 1 (schema + Pagar.me sandbox + Resend)        | Trial → assinatura ativa em sandbox     |
-| 5      | Fase 6 parte 2 (cron + UI billing) + Fase 4.1              | App empresa completo + billing E2E      |
-| 6      | Fase 7.1 + 7.2 (admin + onboarding self-service)           | SaaS pronto para receber tenants reais  |
+| 4      | Fase 6 (schema + Stripe test mode + Checkout/Portal)       | Trial → assinatura ativa em test mode   |
+| 5      | Fase 6 (webhook + bloqueio por status) + Fase 4.1          | App empresa completo + billing E2E      |
+| 6      | Fase 7.1 + 7.2 (admin + provisionamento fechado)           | SaaS pronto para receber tenants reais  |
 | 7      | LGPD + segurança + testes (E2E + pgTAP) + landing          | Pen test interno + termos publicados    |
 | 8      | Beta fechado com 2-3 contabilidades (FASE 8 do ROADMAP)    | Feedback consolidado + ajustes finais   |
 | 9      | Hardening + go-live (FASE 9)                               | **MVP em produção**                     |
@@ -648,9 +696,10 @@ O MVP é considerado pronto quando, num ambiente de produção isolado:
    Autentique.
 3. A contabilidade vê em tempo real (Realtime) a chegada das leituras e
    assinaturas no app desktop e na exportação CSV.
-4. O trial de 30 dias termina; o Pagar.me cobra automaticamente; o
+4. O trial de 30 dias termina; o Stripe cobra automaticamente; o
    tenant continua usando sem interrupção; em caso de não pagamento, o
-   acesso é bloqueado em até 15 dias.
+   Stripe reprocessa (Smart Retries) e, persistindo, o webhook bloqueia o
+   acesso após o grace period.
 5. O admin SaaS mostra MRR atualizado e logs de Edge Function
    permitindo diagnóstico em < 5 min.
 6. Pen test interno sem findings críticos (sem cross-tenant leak; sem
