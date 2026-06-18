@@ -10,7 +10,7 @@ import {
   PageHeader,
   EmptyState,
   PageSpinner,
-} from '@/components/ui'
+} from '@contabhub/ui-desktop'
 
 type LoteRow = Database['public']['Tables']['lotes']['Row']
 

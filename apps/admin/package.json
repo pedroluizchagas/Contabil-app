@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@contabhub/design-tokens": "workspace:*",
     "@contabhub/shared": "workspace:*",
     "@contabhub/supabase": "workspace:*",
     "@contabhub/ui": "workspace:*",

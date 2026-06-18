@@ -1,0 +1,13 @@
+{
+  "name": "@contabhub/design-tokens",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tokens da marca ContaHub como preset Tailwind (cores, fonte, sombras, raios).",
+  "main": "./preset.cjs",
+  "exports": {
+    "./preset": "./preset.cjs"
+  },
+  "files": [
+    "preset.cjs"
+  ]
+}

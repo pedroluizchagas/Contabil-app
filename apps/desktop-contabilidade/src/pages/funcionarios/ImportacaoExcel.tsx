@@ -15,7 +15,7 @@ import { useDropzone } from 'react-dropzone'
 import * as XLSX from 'xlsx'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button, Badge, AlertaErro } from '@/components/ui'
+import { Button, Badge, AlertaErro } from '@contabhub/ui-desktop'
 
 interface LinhaPreview {
   nome: string

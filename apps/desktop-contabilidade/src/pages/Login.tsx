@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button, AlertaErro } from '@/components/ui'
+import { Button, AlertaErro } from '@contabhub/ui-desktop'
 
 export function LoginPage() {
   const { login, session } = useAuth()
