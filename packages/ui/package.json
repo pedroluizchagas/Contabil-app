@@ -8,6 +8,9 @@
     "lint": "eslint src --ext .ts,.tsx",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "@contabhub/shared": "workspace:*"
+  },
   "peerDependencies": {
     "react": "^18.3.0",
     "react-dom": "^18.3.0"

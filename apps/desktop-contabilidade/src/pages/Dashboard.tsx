@@ -2,15 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { Card, CardHeader, Badge, PageSpinner } from '@/components/ui'
 
-interface Stats {
-  totalEmpresas: number
-  totalFuncionarios: number
-  documentosEnviados: number
-  documentosPendentes: number
-  lotesRecentes: LoteRecente[]
-}
-
+/* ── Types ───────────────────────────────────────────────────────── */
 interface LoteRecente {
   id: string
   empresa_nome: string
@@ -20,115 +14,379 @@ interface LoteRecente {
   created_at: string
 }
 
+interface Stats {
+  totalEmpresas: number
+  totalFuncionarios: number
+  documentosEnviados: number
+  documentosPendentes: number
+  lotesRecentes: LoteRecente[]
+}
+
 interface MesData {
-  mesAbrev: string
-  enviadosPct: number
-  pendentesPct: number
-  enviadosAbs: number
-  pendentesAbs: number
+  label: string
+  valor: number
+  mes: number
+  ano: number
 }
 
-const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
-const MESES_NOMES = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
-const DIAS_ABREV = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab']
+/* ── Helpers ─────────────────────────────────────────────────────── */
+const MESES_ABREV = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
+const MESES_EXT = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+]
+const DIAS_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 
-// --- Icones ---
+function statusBadge(status: string) {
+  const map: Record<string, { variant: 'success' | 'info' | 'neutral' | 'error'; label: string }> =
+    {
+      concluido: { variant: 'success', label: 'Concluído' },
+      processando: { variant: 'info', label: 'Processando' },
+      aguardando: { variant: 'neutral', label: 'Aguardando' },
+      erro: { variant: 'error', label: 'Erro' },
+    }
+  const s = map[status] ?? { variant: 'neutral', label: status }
+  return <Badge variant={s.variant}>{s.label}</Badge>
+}
 
-function IconEmpresas() {
+/* ── SVG icons ───────────────────────────────────────────────────── */
+const IcoBusiness = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <rect x="2" y="6" width="16" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M6 6V5a4 4 0 0 1 8 0v1"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <path d="M8 12h4M10 10v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+)
+const IcoUsers = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <circle cx="8" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M2 18a6 6 0 0 1 12 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M14 4a3 3 0 0 1 0 6M18 18a6 6 0 0 0-4-5.6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+)
+const IcoSend = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path
+      d="M17 3L2 9l5 3 2 5 8-14z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <path d="M7 12l3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+)
+const IcoClock = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M10 6v4l3 2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+const IcoUpload = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <path
+      d="M10 13V4M6 8l4-4 4 4"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M3 14v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+    />
+  </svg>
+)
+const IcoPlus = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+)
+const IcoFile = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <path
+      d="M11 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7l-5-5z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <path d="M11 2v5h5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M7 11h6M7 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+)
+
+/* ── Sub-components ─────────────────────────────────────────────── */
+interface StatCardProps {
+  label: string
+  value: number
+  accent: string
+  bg: string
+  icon: React.ReactNode
+}
+
+function StatCard({ label, value, accent, bg, icon }: StatCardProps) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    <div className="flex items-start justify-between gap-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
+      <div>
+        <p className="text-[11px] font-medium uppercase tracking-wide text-ink-faint">{label}</p>
+        <p className={`mt-2 text-[2rem] font-bold leading-none ${accent}`}>
+          {value.toLocaleString('pt-BR')}
+        </p>
+      </div>
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
+        {icon}
+      </div>
+    </div>
+  )
+}
+
+/* ── Bar Chart ───────────────────────────────────────────────────── */
+function BarChart({ dados }: { dados: MesData[] }) {
+  const [hover, setHover] = useState<number | null>(null)
+  const maxVal = Math.max(...dados.map((d) => d.valor), 1)
+  const chartH = 120
+  const barW = 28
+  const gap = 14
+  const paddingX = 8
+  const svgW = dados.length * (barW + gap) - gap + paddingX * 2
+
+  return (
+    <svg viewBox={`0 0 ${svgW} ${chartH + 32}`} className="w-full" style={{ overflow: 'visible' }}>
+      {/* Grid lines */}
+      {[0.25, 0.5, 0.75, 1].map((frac) => (
+        <line
+          key={frac}
+          x1={0}
+          y1={Math.round(chartH * (1 - frac))}
+          x2={svgW}
+          y2={Math.round(chartH * (1 - frac))}
+          stroke="#f3f4f6"
+          strokeWidth="1"
+        />
+      ))}
+
+      {/* Bars */}
+      {dados.map((d, i) => {
+        const barH = Math.max((d.valor / maxVal) * chartH, d.valor > 0 ? 4 : 0)
+        const x = paddingX + i * (barW + gap)
+        const y = chartH - barH
+        const isHover = hover === i
+        return (
+          <g
+            key={i}
+            onMouseEnter={() => setHover(i)}
+            onMouseLeave={() => setHover(null)}
+            style={{ cursor: 'default' }}
+          >
+            {/* Background bar (hover) */}
+            <rect
+              x={x - 4}
+              y={0}
+              width={barW + 8}
+              height={chartH}
+              rx={6}
+              fill={isHover ? '#f9fafb' : 'transparent'}
+            />
+            {/* Actual bar */}
+            <rect
+              x={x}
+              y={y}
+              width={barW}
+              height={barH}
+              rx={5}
+              fill="#7DC82E"
+              opacity={isHover ? 1 : 0.82}
+            />
+            {/* Tooltip */}
+            {isHover && d.valor > 0 && (
+              <g>
+                <rect
+                  x={x + barW / 2 - 18}
+                  y={y - 26}
+                  width={36}
+                  height={20}
+                  rx={5}
+                  fill="#111214"
+                />
+                <text
+                  x={x + barW / 2}
+                  y={y - 12}
+                  textAnchor="middle"
+                  fontSize="10"
+                  fontWeight="600"
+                  fill="white"
+                >
+                  {d.valor}
+                </text>
+              </g>
+            )}
+            {/* X label */}
+            <text
+              x={x + barW / 2}
+              y={chartH + 18}
+              textAnchor="middle"
+              fontSize="10"
+              fontWeight="500"
+              fill={isHover ? '#6B7280' : '#C4C9D4'}
+            >
+              {d.label}
+            </text>
+          </g>
+        )
+      })}
     </svg>
   )
 }
 
-function IconFuncionarios() {
+/* ── Mini Calendar ───────────────────────────────────────────────── */
+interface CalendarProps {
+  mes: number
+  ano: number
+  diaAtual: number
+  mesHoje: number
+  anoHoje: number
+  onPrev: () => void
+  onNext: () => void
+}
+
+function MiniCalendar({ mes, ano, diaAtual, mesHoje, anoHoje, onPrev, onNext }: CalendarProps) {
+  const primeiroDia = new Date(ano, mes, 1).getDay()
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate()
+  const calDias: (number | null)[] = [
+    ...Array<null>(primeiroDia).fill(null),
+    ...Array.from({ length: diasNoMes }, (_, i) => i + 1),
+  ]
+  const eHoje = mes === mesHoje && ano === anoHoje
+
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
+    <div>
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm font-semibold text-ink">
+          {MESES_EXT[mes]} {ano}
+        </p>
+        <div className="flex gap-1">
+          <button
+            onClick={onPrev}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-gray-100 hover:text-ink"
+          >
+            ‹
+          </button>
+          <button
+            onClick={onNext}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-gray-100 hover:text-ink"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+      {/* Day headers */}
+      <div className="mb-1.5 grid grid-cols-7 text-center">
+        {DIAS_SEMANA.map((d, i) => (
+          <span key={i} className="text-[10px] font-semibold text-ink-xfaint">
+            {d}
+          </span>
+        ))}
+      </div>
+
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-y-1 text-center">
+        {calDias.map((dia, i) => {
+          if (dia === null) return <span key={i} />
+          const ehHoje = eHoje && dia === diaAtual
+          return (
+            <span
+              key={i}
+              className={[
+                'mx-auto flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-medium transition-colors',
+                ehHoje ? 'bg-brand text-white' : 'text-ink hover:bg-gray-100',
+              ].join(' ')}
+            >
+              {dia}
+            </span>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
-function IconDocEnviados() {
+/* ── Action shortcut ─────────────────────────────────────────────── */
+function Atalho({
+  href,
+  label,
+  descricao,
+  icon,
+  accentClass,
+  bgClass,
+}: {
+  href: string
+  label: string
+  descricao: string
+  icon: React.ReactNode
+  accentClass: string
+  bgClass: string
+}) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
-    </svg>
+    <Link
+      to={href}
+      className="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <div
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${bgClass} transition-transform group-hover:scale-105`}
+      >
+        <span className={accentClass}>{icon}</span>
+      </div>
+      <div>
+        <p className="text-[13px] font-semibold text-ink">{label}</p>
+        <p className="text-[11px] text-ink-faint">{descricao}</p>
+      </div>
+    </Link>
   )
 }
 
-function IconPendentes() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-    </svg>
-  )
-}
-
-function IconUpload() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
-      <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
-    </svg>
-  )
-}
-
-function IconPlus() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  )
-}
-
-function IconDoc() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-    </svg>
-  )
-}
-
-function IconBell() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-    </svg>
-  )
-}
-
-function IconChevronDown() {
-  return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="6 9 12 15 18 9"/>
-    </svg>
-  )
-}
-
-function IconChevronLeft() {
-  return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="15 18 9 12 15 6"/>
-    </svg>
-  )
-}
-
-function IconChevronRight() {
-  return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6"/>
-    </svg>
-  )
-}
-
-// --- Componente Principal ---
-
+/* ── Page ────────────────────────────────────────────────────────── */
 export function DashboardPage() {
   const { user } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
@@ -143,6 +401,7 @@ export function DashboardPage() {
   const [calMes, setCalMes] = useState(mesHoje)
   const [calAno, setCalAno] = useState(anoHoje)
 
+  /* Nome de exibição */
   const nomeCompleto =
     (user?.user_metadata?.full_name as string | undefined) ??
     user?.email
@@ -151,7 +410,6 @@ export function DashboardPage() {
       .replace(/\b\w/g, (c) => c.toUpperCase()) ??
     'Contador'
   const primeiroNome = nomeCompleto.split(' ')[0]
-  const emailUsuario = user?.email ?? ''
   const iniciais = nomeCompleto
     .split(' ')
     .slice(0, 2)
@@ -161,7 +419,6 @@ export function DashboardPage() {
 
   useEffect(() => {
     carregarDados()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function carregarDados() {
@@ -169,7 +426,10 @@ export function DashboardPage() {
     try {
       const [empresasRes, funcionariosRes, documentosRes, lotesRes] = await Promise.all([
         supabase.from('empresas').select('id', { count: 'exact', head: true }).eq('ativo', true),
-        supabase.from('funcionarios').select('id', { count: 'exact', head: true }).eq('ativo', true),
+        supabase
+          .from('funcionarios')
+          .select('id', { count: 'exact', head: true })
+          .eq('ativo', true),
         supabase.from('documentos').select('created_at, status_envio'),
         supabase
           .from('lotes')
@@ -182,25 +442,24 @@ export function DashboardPage() {
       const documentosEnviados = docs.filter((d) => d.status_envio === 'enviado').length
       const documentosPendentes = docs.filter((d) => d.status_envio === 'pendente').length
 
-      const meses = Array.from({ length: 12 }, () => ({ enviados: 0, pendentes: 0 }))
-      docs.forEach((d) => {
-        const dt = new Date(d.created_at)
-        if (dt.getFullYear() === anoHoje) {
-          const m = dt.getMonth()
-          if (d.status_envio === 'enviado') meses[m].enviados++
-          else meses[m].pendentes++
+      /* Montar série histórica: últimos 7 meses */
+      const ultimos7: MesData[] = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(hoje)
+        d.setDate(1)
+        d.setMonth(d.getMonth() - (6 - i))
+        return {
+          label: MESES_ABREV[d.getMonth()],
+          mes: d.getMonth(),
+          ano: d.getFullYear(),
+          valor: 0,
         }
       })
-      const maxVal = Math.max(...meses.map((m) => m.enviados + m.pendentes), 1)
-      setMesData(
-        meses.map((m, i) => ({
-          mesAbrev: MESES_ABREV[i],
-          enviadosPct: Math.round((m.enviados / maxVal) * 90),
-          pendentesPct: Math.round((m.pendentes / maxVal) * 90),
-          enviadosAbs: m.enviados,
-          pendentesAbs: m.pendentes,
-        }))
-      )
+      docs.forEach((doc) => {
+        const d = new Date(doc.created_at)
+        const entry = ultimos7.find((m) => m.mes === d.getMonth() && m.ano === d.getFullYear())
+        if (entry) entry.valor++
+      })
+      setMesData(ultimos7)
 
       setStats({
         totalEmpresas: empresasRes.count ?? 0,
@@ -217,7 +476,7 @@ export function DashboardPage() {
         })),
       })
     } catch (err) {
-      console.error('Erro ao carregar dados do dashboard:', err)
+      console.error('Erro ao carregar dashboard:', err)
     } finally {
       setCarregando(false)
     }
@@ -225,385 +484,237 @@ export function DashboardPage() {
 
   function prevMes() {
     setCalMes((m) => {
-      if (m === 0) { setCalAno((y) => y - 1); return 11 }
+      if (m === 0) {
+        setCalAno((y) => y - 1)
+        return 11
+      }
       return m - 1
     })
   }
-
   function nextMes() {
     setCalMes((m) => {
-      if (m === 11) { setCalAno((y) => y + 1); return 0 }
+      if (m === 11) {
+        setCalAno((y) => y + 1)
+        return 0
+      }
       return m + 1
     })
   }
 
-  const primeiroDiaMes = new Date(calAno, calMes, 1).getDay()
-  const diasNoMes = new Date(calAno, calMes + 1, 0).getDate()
-  const calDias: (number | null)[] = [
-    ...Array<null>(primeiroDiaMes).fill(null),
-    ...Array.from({ length: diasNoMes }, (_, i) => i + 1),
-  ]
+  const dataFormatada = hoje.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-
-      {/* Top Bar */}
-      <div className="flex items-start justify-between">
+    <div className="p-8">
+      {/* ── Saudação ─────────────────────────────────────────────── */}
+      <div className="mb-7 flex items-center justify-between">
         <div>
-          <h1 className="text-[24px] font-bold leading-tight text-ink">Ola, {primeiroNome}!</h1>
-          <p className="mt-0.5 text-[12.5px] text-ink-muted">Aqui esta o resumo da sua contabilidade</p>
+          <h1 className="text-2xl font-bold text-ink">Olá, {primeiroNome}!</h1>
+          <p className="mt-0.5 capitalize text-sm text-ink-muted">{dataFormatada}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-[#eaeaea] bg-card text-[#999] transition-colors hover:text-[#666]">
-            <IconBell />
-          </button>
-          <Link
-            to="/lotes/upload"
-            className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-[12px] font-semibold text-[#111] transition-opacity hover:opacity-90"
+        {/* Avatar */}
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <p className="text-sm font-medium text-ink">{nomeCompleto}</p>
+            <p className="text-[11px] text-ink-faint">{user?.email}</p>
+          </div>
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white"
+            style={{ background: '#7DC82E' }}
           >
-            <IconUpload />
-            Enviar Lote
-          </Link>
-          <div className="flex items-center gap-2.5 rounded-full bg-card py-[5px] pl-[5px] pr-3.5 shadow-topbar">
-            <div
-              className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #9de84a 0%, #5CA618 100%)' }}
-            >
-              {iniciais}
-            </div>
-            <div>
-              <div className="text-[11.5px] font-semibold leading-tight text-ink">{nomeCompleto}</div>
-              <div className="text-[10px] text-ink-xfaint">{emailUsuario}</div>
-            </div>
+            {iniciais}
           </div>
         </div>
       </div>
 
       {carregando ? (
-        <div className="flex justify-center py-20">
-          <div className="h-7 w-7 animate-spin rounded-full border-[3px] border-brand border-t-transparent" />
-        </div>
+        <PageSpinner />
       ) : (
         <>
-          {/* KPI Row */}
-          <div className="grid grid-cols-4 gap-3">
-            <KpiCard label="Empresas Ativas" value={stats?.totalEmpresas ?? 0} delta="+0" deltaDir="up" deltaSub="do mes passado" icon={<IconEmpresas />} />
-            <KpiCard label="Funcionarios Ativos" value={stats?.totalFuncionarios ?? 0} delta="+0" deltaDir="up" deltaSub="do mes passado" icon={<IconFuncionarios />} />
-            <KpiCard label="Documentos Enviados" value={stats?.documentosEnviados ?? 0} delta="+0" deltaDir="up" deltaSub="do mes passado" icon={<IconDocEnviados />} />
-            <KpiCard label="Aguardando Envio" value={stats?.documentosPendentes ?? 0} delta="0" deltaDir={stats?.documentosPendentes ? 'down' : 'up'} deltaSub="pendentes agora" icon={<IconPendentes />} />
+          {/* ── Stat cards ───────────────────────────────────────── */}
+          <div className="mb-6 grid grid-cols-4 gap-4">
+            <StatCard
+              label="Empresas ativas"
+              value={stats?.totalEmpresas ?? 0}
+              accent="text-brand"
+              bg="bg-brand-muted"
+              icon={
+                <span className="text-brand">
+                  <IcoBusiness />
+                </span>
+              }
+            />
+            <StatCard
+              label="Funcionários ativos"
+              value={stats?.totalFuncionarios ?? 0}
+              accent="text-blue-600"
+              bg="bg-blue-50"
+              icon={
+                <span className="text-blue-500">
+                  <IcoUsers />
+                </span>
+              }
+            />
+            <StatCard
+              label="Documentos enviados"
+              value={stats?.documentosEnviados ?? 0}
+              accent="text-emerald-600"
+              bg="bg-emerald-50"
+              icon={
+                <span className="text-emerald-500">
+                  <IcoSend />
+                </span>
+              }
+            />
+            <StatCard
+              label="Aguardando envio"
+              value={stats?.documentosPendentes ?? 0}
+              accent="text-amber-600"
+              bg="bg-amber-50"
+              icon={
+                <span className="text-amber-500">
+                  <IcoClock />
+                </span>
+              }
+            />
           </div>
 
-          {/* Content Grid */}
-          <div className="grid grid-cols-[1fr_268px] gap-3">
-
-            {/* Coluna esquerda */}
-            <div className="flex flex-col gap-3">
-
-              {/* Grafico de barras */}
-              <div className="rounded-card bg-card shadow-card px-5 pb-3.5 pt-[18px]">
-                <div className="mb-3.5 flex items-center justify-between">
-                  <span className="text-[14px] font-semibold text-ink">Documentos por Mes</span>
-                  <button className="flex cursor-pointer items-center gap-1.5 rounded-[7px] border-none bg-[#f5f5f5] px-3 py-[5px] font-[inherit] text-[11.5px] text-[#666]">
-                    {MESES_NOMES[mesHoje]}
-                    <IconChevronDown />
-                  </button>
+          {/* ── Gráfico + Calendário ─────────────────────────────── */}
+          <div className="mb-6 grid grid-cols-3 gap-4">
+            {/* Gráfico de barras */}
+            <Card className="col-span-2 p-5">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-ink">Documentos por mês</p>
+                  <p className="text-[11px] text-ink-faint">Histórico dos últimos 7 meses</p>
                 </div>
-                <div className="relative ml-7">
-                  {/* Labels eixo Y */}
-                  <div className="absolute -left-7 bottom-[22px] top-0 flex flex-col-reverse justify-between">
-                    <span className="text-[9px] leading-none text-[#ccc]">0</span>
-                    <span className="text-[9px] leading-none text-[#ccc]">25%</span>
-                    <span className="text-[9px] leading-none text-[#ccc]">50%</span>
-                    <span className="text-[9px] leading-none text-[#ccc]">75%</span>
-                    <span className="text-[9px] leading-none text-[#ccc]">Max</span>
-                  </div>
-                  {/* Barras */}
-                  <div className="flex h-[120px] items-end gap-[5px]">
-                    {mesData.map((m, i) => (
-                      <div key={i} className="relative flex flex-1 items-end gap-0.5">
-                        {i === mesHoje && (
-                          <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 flex -translate-x-1/2 gap-3.5 whitespace-nowrap rounded-[10px] bg-[#1e1e1e] px-3 py-2 text-[10px] text-white">
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-[8.5px] uppercase tracking-[0.05em] text-[#666]">Enviados</span>
-                              <span className="text-[13px] font-bold text-brand">{m.enviadosAbs}</span>
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-[8.5px] uppercase tracking-[0.05em] text-[#666]">Pendentes</span>
-                              <span className="text-[13px] font-bold">{m.pendentesAbs}</span>
-                            </div>
+              </div>
+              {mesData.every((m) => m.valor === 0) ? (
+                <div className="flex h-32 items-center justify-center">
+                  <p className="text-sm text-ink-xfaint">Nenhum documento enviado ainda</p>
+                </div>
+              ) : (
+                <div className="px-1 pt-2">
+                  <BarChart dados={mesData} />
+                </div>
+              )}
+            </Card>
+
+            {/* Calendário */}
+            <Card className="p-5">
+              <MiniCalendar
+                mes={calMes}
+                ano={calAno}
+                diaAtual={diaAtual}
+                mesHoje={mesHoje}
+                anoHoje={anoHoje}
+                onPrev={prevMes}
+                onNext={nextMes}
+              />
+            </Card>
+          </div>
+
+          {/* ── Atalhos rápidos ──────────────────────────────────── */}
+          <div className="mb-6 grid grid-cols-3 gap-3">
+            <Atalho
+              href="/lotes/upload"
+              label="Enviar Lote"
+              descricao="Upload do PDF de holerites ou férias"
+              icon={<IcoUpload />}
+              accentClass="text-brand"
+              bgClass="bg-brand-muted"
+            />
+            <Atalho
+              href="/empresas/nova"
+              label="Cadastrar Empresa"
+              descricao="Adicione uma nova empresa cliente"
+              icon={<IcoPlus />}
+              accentClass="text-blue-600"
+              bgClass="bg-blue-50"
+            />
+            <Atalho
+              href="/documentos"
+              label="Ver Documentos"
+              descricao="Acompanhe leitura e assinatura"
+              icon={<IcoFile />}
+              accentClass="text-purple-600"
+              bgClass="bg-purple-50"
+            />
+          </div>
+
+          {/* ── Lotes recentes ────────────────────────────────────── */}
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-ink">Lotes recentes</p>
+              <Link
+                to="/lotes/upload"
+                className="text-xs font-medium text-brand hover:text-brand-dark"
+              >
+                + Enviar lote
+              </Link>
+            </CardHeader>
+
+            {!stats?.lotesRecentes.length ? (
+              <div className="px-6 py-8 text-center text-sm text-ink-faint">
+                Nenhum lote enviado ainda.{' '}
+                <Link to="/lotes/upload" className="font-medium text-brand hover:underline">
+                  Enviar primeiro lote
+                </Link>
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    {['Empresa', 'Status', 'Progresso', 'Data'].map((col) => (
+                      <th
+                        key={col}
+                        className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-ink-xfaint"
+                      >
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.lotesRecentes.map((lote) => (
+                    <tr
+                      key={lote.id}
+                      className="border-b border-gray-50 transition-colors hover:bg-gray-50/60"
+                    >
+                      <td className="px-6 py-3.5 font-medium text-ink">{lote.empresa_nome}</td>
+                      <td className="px-6 py-3.5">{statusBadge(lote.status)}</td>
+                      <td className="px-6 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-gray-100">
                             <div
-                              className="absolute bottom-0 left-1/2 h-0 w-0 -translate-x-1/2 translate-y-full"
+                              className="h-full rounded-full bg-brand transition-all"
                               style={{
-                                borderLeft: '6px solid transparent',
-                                borderRight: '6px solid transparent',
-                                borderTop: '6px solid #1e1e1e',
+                                width: lote.total_documentos
+                                  ? `${Math.round((lote.processados / lote.total_documentos) * 100)}%`
+                                  : '0%',
                               }}
                             />
                           </div>
-                        )}
-                        <div
-                          className="min-w-[7px] flex-1 rounded-t-[4px] bg-brand"
-                          style={{ height: `${Math.max(m.enviadosPct, 4)}%` }}
-                        />
-                        <div
-                          className="min-w-[7px] flex-1 rounded-t-[4px] bg-[#EBEBEB]"
-                          style={{ height: `${Math.max(m.pendentesPct, 4)}%` }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  {/* Labels eixo X */}
-                  <div className="mt-0.5 flex gap-[5px] border-t border-[#f2f2f2] pt-1.5">
-                    {mesData.map((m, i) => (
-                      <div key={i} className="flex-1 text-center text-[9px] text-[#c0c0c0]">
-                        {m.mesAbrev}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Lotes Recentes */}
-              <div className="rounded-card bg-card shadow-card">
-                <div className="flex items-center justify-between border-b border-[#f5f5f5] px-5 py-4">
-                  <span className="text-[13.5px] font-semibold text-ink">Lotes Recentes</span>
-                  <span className="cursor-pointer text-[18px] leading-none tracking-widest text-[#ccc]">···</span>
-                </div>
-                {!stats || stats.lotesRecentes.length === 0 ? (
-                  <p className="px-5 py-8 text-center text-[12px] text-ink-faint">
-                    Nenhum lote enviado ainda.{' '}
-                    <Link to="/lotes/upload" className="text-brand hover:underline">
-                      Enviar primeiro lote
-                    </Link>
-                  </p>
-                ) : (
-                  <table className="w-full text-[12px]">
-                    <thead>
-                      <tr className="border-b border-[#f5f5f5] text-left">
-                        <th className="px-5 py-3 text-[10px] font-medium uppercase tracking-wide text-ink-xfaint">Empresa</th>
-                        <th className="px-5 py-3 text-[10px] font-medium uppercase tracking-wide text-ink-xfaint">Status</th>
-                        <th className="px-5 py-3 text-[10px] font-medium uppercase tracking-wide text-ink-xfaint">Progresso</th>
-                        <th className="px-5 py-3 text-[10px] font-medium uppercase tracking-wide text-ink-xfaint">Data</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stats?.lotesRecentes.map((lote) => (
-                        <tr key={lote.id} className="border-b border-[#f9f9f9] transition-colors hover:bg-[#fafafa]">
-                          <td className="px-5 py-3 font-medium text-ink">{lote.empresa_nome}</td>
-                          <td className="px-5 py-3">
-                            <StatusBadge status={lote.status} />
-                          </td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="h-1.5 w-20 overflow-hidden rounded-full bg-[#f0f0f0]">
-                                <div
-                                  className="h-full rounded-full bg-brand"
-                                  style={{
-                                    width:
-                                      lote.total_documentos > 0
-                                        ? `${Math.round((lote.processados / lote.total_documentos) * 100)}%`
-                                        : '0%',
-                                  }}
-                                />
-                              </div>
-                              <span className="text-[11px] text-ink-faint">
-                                {lote.processados}/{lote.total_documentos}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3 text-ink-xfaint">
-                            {new Date(lote.created_at).toLocaleDateString('pt-BR')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </div>
-
-            {/* Coluna direita */}
-            <div className="flex flex-col gap-3">
-
-              {/* Calendario */}
-              <div className="rounded-card bg-card px-[18px] py-4 shadow-card">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-[13.5px] font-semibold text-ink">
-                    {MESES_NOMES[calMes]} {calAno}
-                  </span>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={prevMes}
-                      className="flex h-[22px] w-[22px] cursor-pointer items-center justify-center rounded-[6px] border-none bg-[#f5f5f5] text-[#888]"
-                    >
-                      <IconChevronLeft />
-                    </button>
-                    <button
-                      onClick={nextMes}
-                      className="flex h-[22px] w-[22px] cursor-pointer items-center justify-center rounded-[6px] border-none bg-[#f5f5f5] text-[#888]"
-                    >
-                      <IconChevronRight />
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-7">
-                  {DIAS_ABREV.map((d) => (
-                    <div key={d} className="pb-1.5 pt-0.5 text-center text-[9.5px] font-medium text-[#ccc]">
-                      {d}
-                    </div>
+                          <span className="text-xs text-ink-faint">
+                            {lote.processados}/{lote.total_documentos}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3.5 text-ink-faint">
+                        {new Date(lote.created_at).toLocaleDateString('pt-BR')}
+                      </td>
+                    </tr>
                   ))}
-                  {calDias.map((dia, i) => {
-                    const isToday = dia === diaAtual && calMes === mesHoje && calAno === anoHoje
-                    return (
-                      <div
-                        key={i}
-                        className={`mx-auto my-0.5 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[11.5px] transition-colors ${
-                          dia === null
-                            ? ''
-                            : isToday
-                            ? 'bg-brand font-bold text-[#111]'
-                            : 'text-[#555] hover:bg-[#f5f5f5]'
-                        }`}
-                      >
-                        {dia}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Acoes Rapidas */}
-              <div className="flex flex-col rounded-card bg-card shadow-card">
-                <div className="flex items-center justify-between border-b border-[#f5f5f5] px-[18px] py-4">
-                  <span className="text-[13.5px] font-semibold text-ink">Acoes Rapidas</span>
-                  <span className="cursor-pointer text-[18px] leading-none tracking-widest text-[#ccc]">···</span>
-                </div>
-                <AcaoItem
-                  titulo="Enviar Lote de Holerites"
-                  descricao="Upload do PDF consolidado"
-                  href="/lotes/upload"
-                  icon={<IconUpload />}
-                />
-                <AcaoItem
-                  titulo="Cadastrar Empresa"
-                  descricao="Adicione nova empresa cliente"
-                  href="/empresas/nova"
-                  icon={<IconPlus />}
-                />
-                <AcaoItem
-                  titulo="Ver Documentos"
-                  descricao="Acompanhe leitura e assinatura"
-                  href="/documentos"
-                  icon={<IconDoc />}
-                  last
-                />
-              </div>
-
-            </div>
-          </div>
+                </tbody>
+              </table>
+            )}
+          </Card>
         </>
       )}
     </div>
-  )
-}
-
-// --- Sub-componentes ---
-
-interface KpiCardProps {
-  label: string
-  value: number
-  delta: string
-  deltaDir: 'up' | 'down'
-  deltaSub: string
-  icon: JSX.Element
-}
-
-function KpiCard({ label, value, delta, deltaDir, deltaSub, icon }: KpiCardProps) {
-  return (
-    <div className="rounded-card bg-card px-4 py-[15px] shadow-card">
-      <div className="mb-[5px] flex items-center justify-between">
-        <span className="text-[11px] font-medium text-ink-muted">{label}</span>
-        <div className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#f7f7f7]">
-          {icon}
-        </div>
-      </div>
-      <div className="mb-[5px] text-[22px] font-bold leading-tight text-ink">
-        {value.toLocaleString('pt-BR')}
-      </div>
-      <div
-        className={`flex items-center gap-1 text-[10.5px] ${
-          deltaDir === 'up' ? 'text-brand-dark' : 'text-danger'
-        }`}
-      >
-        {deltaDir === 'up' ? (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="17 11 12 6 7 11"/><line x1="12" y1="6" x2="12" y2="18"/>
-          </svg>
-        ) : (
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="17 13 12 18 7 13"/><line x1="12" y1="18" x2="12" y2="6"/>
-          </svg>
-        )}
-        {delta}{' '}
-        <span className="text-[10px] text-ink-xfaint">{deltaSub}</span>
-      </div>
-    </div>
-  )
-}
-
-interface AcaoItemProps {
-  titulo: string
-  descricao: string
-  href: string
-  icon: JSX.Element
-  last?: boolean
-}
-
-function AcaoItem({ titulo, descricao, href, icon, last = false }: AcaoItemProps) {
-  return (
-    <Link
-      to={href}
-      className={`flex items-center gap-2.5 px-[18px] py-3 transition-colors hover:bg-[#fafafa] ${
-        !last ? 'border-b border-[#f5f5f5]' : ''
-      }`}
-    >
-      <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-lg bg-brand-muted text-brand">
-        {icon}
-      </div>
-      <div className="flex-1">
-        <div className="text-[11.5px] font-semibold text-ink">{titulo}</div>
-        <div className="text-[10px] text-ink-muted">{descricao}</div>
-      </div>
-      <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-brand text-[#111]">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
-        </svg>
-      </div>
-    </Link>
-  )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const estilos: Record<string, string> = {
-    concluido:   'bg-brand-muted text-brand-dark',
-    processando: 'bg-blue-50 text-blue-600',
-    aguardando:  'bg-[#f5f5f5] text-[#888]',
-    erro:        'bg-red-50 text-danger',
-  }
-  const labels: Record<string, string> = {
-    concluido:   'Concluido',
-    processando: 'Processando',
-    aguardando:  'Aguardando',
-    erro:        'Erro',
-  }
-  return (
-    <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-[10.5px] font-medium ${
-        estilos[status] ?? 'bg-[#f5f5f5] text-[#888]'
-      }`}
-    >
-      {labels[status] ?? status}
-    </span>
   )
 }

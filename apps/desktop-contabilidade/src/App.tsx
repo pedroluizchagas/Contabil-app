@@ -8,8 +8,11 @@ import { EmpresasPage } from '@/pages/empresas/EmpresasPage'
 import { EmpresaFormPage } from '@/pages/empresas/EmpresaFormPage'
 import { FuncionariosPage } from '@/pages/funcionarios/FuncionariosPage'
 import { FuncionarioFormPage } from '@/pages/funcionarios/FuncionarioFormPage'
+import { LotesPage } from '@/pages/lotes/LotesPage'
+import { LoteDetalhesPage } from '@/pages/lotes/LoteDetalhesPage'
 import { UploadLotePage } from '@/pages/lotes/UploadLotePage'
 import { DocumentosPage } from '@/pages/documentos/DocumentosPage'
+import { ConfiguracoesPage } from '@/pages/configuracoes/ConfiguracoesPage'
 
 export default function App() {
   return (
@@ -32,9 +35,15 @@ export default function App() {
             <Route path="empresas/:empresaId" element={<EmpresaFormPage />} />
             <Route path="empresas/:empresaId/funcionarios" element={<FuncionariosPage />} />
             <Route path="empresas/:empresaId/funcionarios/novo" element={<FuncionarioFormPage />} />
-            <Route path="empresas/:empresaId/funcionarios/:funcId" element={<FuncionarioFormPage />} />
+            <Route
+              path="empresas/:empresaId/funcionarios/:funcId"
+              element={<FuncionarioFormPage />}
+            />
+            <Route path="lotes" element={<LotesPage />} />
             <Route path="lotes/upload" element={<UploadLotePage />} />
+            <Route path="lotes/:loteId" element={<LoteDetalhesPage />} />
             <Route path="documentos" element={<DocumentosPage />} />
+            <Route path="configuracoes" element={<ConfiguracoesPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

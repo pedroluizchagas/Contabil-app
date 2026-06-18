@@ -32,10 +32,10 @@ Deno.serve(async (req) => {
     const { cnpj, senha } = await req.json()
 
     if (!cnpj || !senha) {
-      return new Response(
-        JSON.stringify({ error: 'CNPJ e senha são obrigatórios.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ error: 'CNPJ e senha são obrigatórios.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     // Remove máscara do CNPJ (aceita "12.345.678/0001-95" ou "12345678000195")
@@ -45,25 +45,27 @@ Deno.serve(async (req) => {
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
     // Verifica CNPJ + senha via função SECURITY DEFINER (pgcrypto)
-    const { data: empresas, error: rpcError } = await supabaseAdmin
-      .rpc('verificar_senha_empresa', { p_cnpj: cnpjLimpo, p_senha: senha })
+    const { data: empresas, error: rpcError } = await supabaseAdmin.rpc('verificar_senha_empresa', {
+      p_cnpj: cnpjLimpo,
+      p_senha: senha,
+    })
 
     if (rpcError) {
       console.error('Erro RPC verificar_senha_empresa:', rpcError)
-      return new Response(
-        JSON.stringify({ error: 'Erro interno.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ error: 'Erro interno.' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     const empresa = empresas?.[0]
 
     if (!empresa) {
       // Mensagem genérica para não revelar se o CNPJ existe
-      return new Response(
-        JSON.stringify({ error: 'CNPJ ou senha inválidos.' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ error: 'CNPJ ou senha inválidos.' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     if (!empresa.ativo) {
@@ -81,28 +83,29 @@ Deno.serve(async (req) => {
     }
 
     // Cria sessão para o auth_user_id da empresa
-    const { data: sessionData, error: sessionError } =
-      await supabaseAdmin.auth.admin.createSession({
+    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession(
+      {
         user_id: empresa.auth_user_id,
-      })
+      }
+    )
 
     if (sessionError) {
       console.error('Erro ao criar sessão:', sessionError)
-      return new Response(
-        JSON.stringify({ error: 'Erro ao criar sessão.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ error: 'Erro ao criar sessão.' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    return new Response(
-      JSON.stringify({ session: sessionData.session }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ session: sessionData.session }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   } catch (err) {
     console.error('Erro inesperado:', err)
-    return new Response(
-      JSON.stringify({ error: 'Erro interno.' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ error: 'Erro interno.' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 })

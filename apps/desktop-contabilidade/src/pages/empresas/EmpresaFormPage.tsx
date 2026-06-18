@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { Button, Card, CardContent, Campo, AlertaErro, PageHeader, Input } from '@/components/ui'
 
 interface FormData {
   nome: string
@@ -12,17 +13,9 @@ interface FormData {
 
 const VAZIO: FormData = { nome: '', cnpj: '', email: '', senha: '' }
 
-function IconArrowLeft() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-    </svg>
-  )
-}
-
 export function EmpresaFormPage() {
   const { empresaId } = useParams<{ empresaId: string }>()
-  const { tenantId } = useAuth()
+  const { tenantId, refreshTenantId } = useAuth()
   const navigate = useNavigate()
   const ehEdicao = Boolean(empresaId)
 
@@ -62,25 +55,42 @@ export function EmpresaFormPage() {
     }
 
     if (ehEdicao) {
-      const update: Record<string, string> = { nome: form.nome, email: form.email }
-      const { error } = await supabase.from('empresas').update(update).eq('id', empresaId!)
-      if (error) { setErro(error.message); setSalvando(false); return }
+      const { error } = await supabase
+        .from('empresas')
+        .update({ nome: form.nome, email: form.email })
+        .eq('id', empresaId!)
+      if (error) {
+        setErro(error.message)
+        setSalvando(false)
+        return
+      }
     } else {
+      const tid = tenantId ?? (await refreshTenantId())
+      if (!tid) {
+        setErro('Sessão inválida. Faça login novamente.')
+        setSalvando(false)
+        return
+      }
       if (!form.senha || form.senha.length < 8) {
         setErro('A senha deve ter pelo menos 8 caracteres.')
         setSalvando(false)
         return
       }
-      const { error } = await supabase.functions.invoke('criar-empresa', {
+      const { data, error } = await supabase.functions.invoke('criar-empresa', {
         body: {
-          tenant_id: tenantId,
+          tenant_id: tid,
           nome: form.nome,
           cnpj: cnpjLimpo,
           email: form.email,
           senha: form.senha,
         },
       })
-      if (error) { setErro(error.message); setSalvando(false); return }
+      if (error) {
+        const mensagem = (data as { error?: string } | null)?.error ?? error.message
+        setErro(mensagem)
+        setSalvando(false)
+        return
+      }
     }
 
     navigate('/empresas')
@@ -89,143 +99,84 @@ export function EmpresaFormPage() {
   if (carregando) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-7 w-7 animate-spin rounded-full border-[3px] border-brand border-t-transparent" />
+        <span className="h-7 w-7 animate-spin rounded-full border-2 border-brand border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="p-8">
+      <PageHeader
+        titulo={ehEdicao ? 'Editar Empresa' : 'Nova Empresa'}
+        voltar="/empresas"
+        voltarLabel="Empresas"
+      />
 
-      {/* Top Bar */}
-      <div>
-        <button
-          onClick={() => navigate('/empresas')}
-          className="mb-3 flex items-center gap-1.5 text-[12px] text-ink-muted transition-colors hover:text-ink"
-        >
-          <IconArrowLeft />
-          Voltar para Empresas
-        </button>
-        <h1 className="text-[24px] font-bold leading-tight text-ink">
-          {ehEdicao ? 'Editar Empresa' : 'Nova Empresa'}
-        </h1>
-        <p className="mt-0.5 text-[12.5px] text-ink-muted">
-          {ehEdicao
-            ? 'Atualize os dados cadastrais da empresa'
-            : 'Preencha os dados para cadastrar uma nova empresa cliente'}
-        </p>
-      </div>
+      <Card className="max-w-lg">
+        <CardContent>
+          <AlertaErro mensagem={erro} />
 
-      {/* Card do formulario */}
-      <div className="max-w-lg rounded-card bg-card p-8 shadow-card">
-
-        {erro && (
-          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-danger">
-            {erro}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-
-          <Campo label="Razao Social / Nome" obrigatorio>
-            <input
-              type="text"
-              value={form.nome}
-              onChange={atualizar('nome')}
-              placeholder="Empresa Alpha Ltda"
-              required
-              className={inputClass}
-            />
-          </Campo>
-
-          <Campo label="CNPJ" obrigatorio={!ehEdicao}>
-            <input
-              type="text"
-              value={form.cnpj}
-              onChange={atualizar('cnpj')}
-              placeholder="00.000.000/0000-00"
-              required={!ehEdicao}
-              disabled={ehEdicao}
-              maxLength={18}
-              className={`${inputClass} ${ehEdicao ? 'cursor-not-allowed bg-[#f9f9f9] text-ink-xfaint' : ''}`}
-            />
-            {ehEdicao && (
-              <p className="mt-1 text-[11px] text-ink-xfaint">
-                O CNPJ nao pode ser alterado apos o cadastro.
-              </p>
-            )}
-          </Campo>
-
-          <Campo label="E-mail de acesso" obrigatorio>
-            <input
-              type="email"
-              value={form.email}
-              onChange={atualizar('email')}
-              placeholder="empresa@exemplo.com.br"
-              required
-              className={inputClass}
-            />
-          </Campo>
-
-          {!ehEdicao && (
-            <Campo label="Senha de acesso" obrigatorio>
-              <input
-                type="password"
-                value={form.senha}
-                onChange={atualizar('senha')}
-                placeholder="Minimo 8 caracteres"
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <Campo label="Razão Social / Nome" obrigatorio>
+              <Input
+                type="text"
+                value={form.nome}
+                onChange={atualizar('nome')}
+                placeholder="Empresa Alpha Ltda"
                 required
-                minLength={8}
-                className={inputClass}
               />
-              <p className="mt-1 text-[11px] text-ink-xfaint">
-                A empresa usara esta senha junto com o CNPJ para acessar o app.
-              </p>
             </Campo>
-          )}
 
-          <div className="flex gap-3 pt-1">
-            <button
-              type="submit"
-              disabled={salvando}
-              className="rounded-lg bg-brand px-5 py-2.5 text-[12.5px] font-semibold text-[#111] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {salvando ? 'Salvando...' : ehEdicao ? 'Salvar alteracoes' : 'Cadastrar empresa'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/empresas')}
-              className="rounded-lg border border-[#e0e0e0] px-5 py-2.5 text-[12.5px] font-medium text-ink-muted transition-colors hover:bg-[#f9f9f9] hover:text-ink"
-            >
-              Cancelar
-            </button>
-          </div>
+            <Campo label="CNPJ" obrigatorio={!ehEdicao}>
+              <Input
+                type="text"
+                value={form.cnpj}
+                onChange={atualizar('cnpj')}
+                placeholder="00.000.000/0000-00"
+                required={!ehEdicao}
+                disabled={ehEdicao}
+                maxLength={18}
+              />
+            </Campo>
 
-        </form>
-      </div>
-    </div>
-  )
-}
+            <Campo label="E-mail de acesso" obrigatorio>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={atualizar('email')}
+                placeholder="empresa@exemplo.com.br"
+                required
+              />
+            </Campo>
 
-const inputClass =
-  'w-full rounded-lg border border-[#e0e0e0] px-3 py-2.5 text-[12.5px] text-ink placeholder-ink-xfaint outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand-muted'
+            {!ehEdicao && (
+              <Campo
+                label="Senha de acesso"
+                obrigatorio
+                hint="A empresa usa esta senha + CNPJ para acessar o app."
+              >
+                <Input
+                  type="password"
+                  value={form.senha}
+                  onChange={atualizar('senha')}
+                  placeholder="Mínimo 8 caracteres"
+                  required
+                  minLength={8}
+                />
+              </Campo>
+            )}
 
-function Campo({
-  label,
-  obrigatorio,
-  children,
-}: {
-  label: string
-  obrigatorio?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-[12px] font-medium text-ink">
-        {label}
-        {obrigatorio && <span className="ml-0.5 text-danger">*</span>}
-      </label>
-      {children}
+            <div className="flex gap-3 pt-1">
+              <Button type="submit" loading={salvando}>
+                {salvando ? 'Salvando...' : ehEdicao ? 'Salvar alterações' : 'Cadastrar empresa'}
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => navigate('/empresas')}>
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

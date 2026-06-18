@@ -5,41 +5,38 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"DM Sans"', 'sans-serif'],
+        sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
       },
       colors: {
+        /* ── Marca ──────────────────────────────────── */
         brand: {
-          DEFAULT: '#7ED321',
-          dark: '#5CA618',
-          muted: 'rgba(126,211,33,0.12)',
+          DEFAULT: '#7DC82E',
+          light: '#EBF7D4',
+          muted: '#F4FAE9',
+          dark: '#5FA01E',
+          darker: '#4A7D16',
         },
-        sidebar: {
-          bg: '#151515',
-          item: '#555555',
-          'item-hover': '#888888',
-          'item-active': '#7ED321',
-          section: '#383838',
-          border: '#1e1e1e',
-          search: '#1f1f1f',
-          next: '#1c1c1c',
-        },
+        /* ── Sidebar ────────────────────────────────── */
+        sidebar: '#101214',
+        'sidebar-item': '#1C1F26',
+        'sidebar-border': '#1E2129',
+        'sidebar-next': '#191B22',
+        /* ── App ────────────────────────────────────── */
+        'app-bg': '#151515',
         surface: '#EFEFEF',
-        card: '#FFFFFF',
-        ink: {
-          DEFAULT: '#1A1A1A',
-          muted: '#999999',
-          faint: '#bbbbbb',
-          xfaint: '#cccccc',
-        },
-        danger: '#E84444',
-      },
-      borderRadius: {
-        card: '14px',
-        panel: '20px',
+        /* ── Texto (ink) ─────────────────────────────── */
+        ink: '#111214',
+        'ink-muted': '#6B7280',
+        'ink-faint': '#9CA3AF',
+        'ink-xfaint': '#C4C9D4',
       },
       boxShadow: {
-        card: '0 1px 3px rgba(0,0,0,0.04)',
-        topbar: '0 1px 4px rgba(0,0,0,0.06)',
+        card: '0 1px 4px 0 rgba(0,0,0,0.07), 0 1px 2px -1px rgba(0,0,0,0.04)',
+      },
+      borderRadius: {
+        panel: '1.25rem',
+        '2xl': '1rem',
+        '3xl': '1.25rem',
       },
     },
   },

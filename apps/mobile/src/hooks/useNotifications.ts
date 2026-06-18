@@ -1,7 +1,7 @@
 /**
  * Hook: useNotifications
  *
- * Registra o token de push do Expo no Supabase (tabela expo_tokens)
+ * Registra o token de push do Expo no Supabase (tabela expo_push_tokens)
  * na primeira vez que o funcionário abre o app após autenticar.
  *
  * Executado na HomeScreen para garantir que o token esteja atualizado.
@@ -17,7 +17,8 @@ import { useAuth } from '@/contexts/AuthContext'
 // Configuração global: mostra notificações mesmo com app em foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -54,14 +55,16 @@ export function useNotifications() {
 
     if (!token) return
 
-    // Salva/atualiza no banco
-    await supabase.from('expo_tokens').upsert(
+    // Salva/atualiza no banco. A migration 0009 permite múltiplos
+    // dispositivos por funcionário (UNIQUE funcionario_id,token), então o
+    // conflito é resolvido pela combinação dos dois campos.
+    await supabase.from('expo_push_tokens').upsert(
       {
         funcionario_id: funcionario!.id,
         token,
-        platform: Platform.OS,
+        ativo: true,
       },
-      { onConflict: 'funcionario_id' }
+      { onConflict: 'funcionario_id,token' }
     )
 
     // Canal de notificação para Android

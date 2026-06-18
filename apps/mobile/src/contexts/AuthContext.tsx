@@ -27,11 +27,7 @@ interface AuthContextValue {
   pendingAuth: PendingAuth | null
   carregando: boolean
   /** Etapa 1: CNPJ empresa + CPF + data de nascimento → envia OTP */
-  loginStep1: (
-    cnpj_empresa: string,
-    cpf: string,
-    data_nascimento: string
-  ) => Promise<string | null>
+  loginStep1: (cnpj_empresa: string, cpf: string, data_nascimento: string) => Promise<string | null>
   /** Etapa 2: código OTP → cria sessão */
   loginStep2: (codigo: string) => Promise<string | null>
   /** Cancela o processo de login (volta da tela OTP) */
@@ -57,7 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess)
       if (sess) carregarFuncionario(sess.user.id)
-      else { setFuncionario(null); setCarregando(false) }
+      else {
+        setFuncionario(null)
+        setCarregando(false)
+      }
     })
 
     return () => listener.subscription.unsubscribe()
@@ -176,7 +175,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, funcionario, pendingAuth, carregando, loginStep1, loginStep2, cancelarLogin, logout }}
+      value={{
+        session,
+        funcionario,
+        pendingAuth,
+        carregando,
+        loginStep1,
+        loginStep2,
+        cancelarLogin,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -197,5 +205,5 @@ function traduzirErro(msg: string): string {
     'Nenhum código válido encontrado. Solicite um novo.': 'Código expirado. Solicite um novo.',
     'Empresa não encontrada ou inativa.': 'CNPJ da empresa não encontrado.',
   }
-  return map[msg] ?? msg || 'Erro ao fazer login. Tente novamente.'
+  return map[msg] ?? (msg || 'Erro ao fazer login. Tente novamente.')
 }

@@ -10,9 +10,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClass: Record<Variant, string> = {
-  default:     'bg-[#7ED321] text-[#111] hover:opacity-90 border-transparent',
-  outline:     'border border-[#e0e0e0] text-[#1A1A1A] hover:bg-[#f5f5f5] bg-white',
-  ghost:       'text-[#555] hover:text-[#1A1A1A] hover:bg-[#f0f0f0] border-transparent bg-transparent',
+  default: 'bg-[#7ED321] text-[#111] hover:opacity-90 border-transparent',
+  outline: 'border border-[#e0e0e0] text-[#1A1A1A] hover:bg-[#f5f5f5] bg-white',
+  ghost: 'text-[#555] hover:text-[#1A1A1A] hover:bg-[#f0f0f0] border-transparent bg-transparent',
   destructive: 'bg-[#E84444] text-white hover:opacity-90 border-transparent',
 }
 
@@ -22,7 +22,10 @@ const sizeClass: Record<Size, string> = {
   lg: 'px-5 py-2.5 text-[14px]',
 }
 
-export function buttonVariants({ variant = 'default', size = 'md' }: Pick<ButtonProps, 'variant' | 'size'> = {}) {
+export function buttonVariants({
+  variant = 'default',
+  size = 'md',
+}: Pick<ButtonProps, 'variant' | 'size'> = {}) {
   return `inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all border
     focus:outline-none focus:ring-2 focus:ring-[#7ED321] focus:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed
@@ -30,7 +33,10 @@ export function buttonVariants({ variant = 'default', size = 'md' }: Pick<Button
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'default', size = 'md', loading, className = '', children, disabled, ...props }, ref) => (
+  (
+    { variant = 'default', size = 'md', loading, className = '', children, disabled, ...props },
+    ref
+  ) => (
     <button
       ref={ref}
       disabled={disabled || loading}

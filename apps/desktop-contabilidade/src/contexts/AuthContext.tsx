@@ -9,6 +9,7 @@ interface AuthContextValue {
   carregando: boolean
   login: (email: string, senha: string) => Promise<string | null>
   logout: () => Promise<void>
+  refreshTenantId: () => Promise<string | null>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -42,10 +43,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut()
   }
 
+  // Força refresh do token e retorna o tenant_id atualizado.
+  // Útil quando o usuário logou antes do JWT hook estar ativo.
+  async function refreshTenantId(): Promise<string | null> {
+    const { data } = await supabase.auth.refreshSession()
+    if (data.session) setSession(data.session)
+    const tid = extrairClaim(data.session, 'tenant_id')
+    if (tid) return tid
+
+    // Fallback: o JWT hook pode não estar ativo no dashboard ou o registro do
+    // tenant pode ter sido criado sem auth_user_id. Consulta diretamente via
+    // função SECURITY DEFINER que usa auth.uid() sem depender dos claims.
+    const { data: result } = await supabase.rpc('get_my_tenant_id')
+    return (result as string | null) ?? null
+  }
+
   const tenantId = extrairClaim(session, 'tenant_id')
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, tenantId, carregando, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user: session?.user ?? null,
+        tenantId,
+        carregando,
+        login,
+        logout,
+        refreshTenantId,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
@@ -61,7 +87,12 @@ function extrairClaim(session: Session | null, claim: string): string | null {
   if (!session) return null
   try {
     const payload = session.access_token.split('.')[1]
-    const decoded = JSON.parse(atob(payload))
+    // JWT usa base64url (RFC 4648): substitui - por + e _ por /, e recoloca padding
+    const base64 = payload
+      .replace(/-/g, '+')
+      .replace(/_/g, '/')
+      .padEnd(payload.length + ((4 - (payload.length % 4)) % 4), '=')
+    const decoded = JSON.parse(atob(base64))
     return decoded[claim] ?? null
   } catch {
     return null

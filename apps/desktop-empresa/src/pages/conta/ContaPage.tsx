@@ -46,13 +46,16 @@ export function ContaPage() {
     setSalvandoSenha(true)
 
     // Altera via Edge Function para validar a senha atual antes
-    const { data, error } = await supabase.functions.invoke<{ error?: string }>('alterar-senha-empresa', {
-      body: {
-        empresa_id: empresa?.id,
-        senha_atual: senhaAtual,
-        nova_senha: novaSenha,
-      },
-    })
+    const { data, error } = await supabase.functions.invoke<{ error?: string }>(
+      'alterar-senha-empresa',
+      {
+        body: {
+          empresa_id: empresa?.id,
+          senha_atual: senhaAtual,
+          nova_senha: novaSenha,
+        },
+      }
+    )
 
     setSalvandoSenha(false)
 
@@ -90,11 +93,13 @@ export function ContaPage() {
         <h2 className="mb-4 font-semibold text-gray-800">Alterar E-mail de Notificações</h2>
 
         {msgEmail && (
-          <div className={`mb-4 rounded-lg px-4 py-3 text-sm border ${
-            msgEmail.tipo === 'ok'
-              ? 'bg-green-50 text-green-700 border-green-200'
-              : 'bg-red-50 text-red-700 border-red-200'
-          }`}>
+          <div
+            className={`mb-4 rounded-lg px-4 py-3 text-sm border ${
+              msgEmail.tipo === 'ok'
+                ? 'bg-green-50 text-green-700 border-green-200'
+                : 'bg-red-50 text-red-700 border-red-200'
+            }`}
+          >
             {msgEmail.texto}
           </div>
         )}
@@ -123,11 +128,13 @@ export function ContaPage() {
         <h2 className="mb-4 font-semibold text-gray-800">Alterar Senha de Acesso</h2>
 
         {msgSenha && (
-          <div className={`mb-4 rounded-lg px-4 py-3 text-sm border ${
-            msgSenha.tipo === 'ok'
-              ? 'bg-green-50 text-green-700 border-green-200'
-              : 'bg-red-50 text-red-700 border-red-200'
-          }`}>
+          <div
+            className={`mb-4 rounded-lg px-4 py-3 text-sm border ${
+              msgSenha.tipo === 'ok'
+                ? 'bg-green-50 text-green-700 border-green-200'
+                : 'bg-red-50 text-red-700 border-red-200'
+            }`}
+          >
             {msgSenha.texto}
           </div>
         )}
@@ -187,7 +194,15 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function InfoItem({ label, valor, monoFont }: { label: string; valor: string; monoFont?: boolean }) {
+function InfoItem({
+  label,
+  valor,
+  monoFont,
+}: {
+  label: string
+  valor: string
+  monoFont?: boolean
+}) {
   return (
     <div>
       <dt className="text-xs font-medium uppercase text-gray-400">{label}</dt>

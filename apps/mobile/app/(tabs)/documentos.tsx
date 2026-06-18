@@ -1,13 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  RefreshControl,
-  ActivityIndicator,
-  SectionList,
-} from 'react-native'
+import { View, Text, Pressable, RefreshControl, ActivityIndicator, SectionList } from 'react-native'
 import { SafeAreaView } from 'react-native'
 import * as Linking from 'expo-linking'
 import { supabase } from '@/lib/supabase'
@@ -18,8 +10,19 @@ type StatusDoc = Database['public']['Views']['v_status_documentos']['Row']
 type TipoFiltro = 'todos' | 'holerite' | 'ferias'
 
 const MESES_FULL = [
-  '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+  '',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ]
 
 export default function DocumentosScreen() {
@@ -104,7 +107,9 @@ export default function DocumentosScreen() {
                 filtro === t ? 'bg-teal-600' : 'bg-gray-100'
               }`}
             >
-              <Text className={`text-xs font-medium ${filtro === t ? 'text-white' : 'text-gray-600'}`}>
+              <Text
+                className={`text-xs font-medium ${filtro === t ? 'text-white' : 'text-gray-600'}`}
+              >
                 {t === 'todos' ? 'Todos' : t === 'holerite' ? 'Holerites' : 'Férias'}
               </Text>
             </Pressable>
@@ -132,7 +137,9 @@ export default function DocumentosScreen() {
           renderSectionHeader={({ section }) => (
             <View className="mb-2 mt-4 flex-row items-center justify-between">
               <Text className="font-semibold text-gray-700">{section.title}</Text>
-              <Text className="text-xs text-gray-400">{section.data.length} doc{section.data.length > 1 ? 's' : ''}</Text>
+              <Text className="text-xs text-gray-400">
+                {section.data.length} doc{section.data.length > 1 ? 's' : ''}
+              </Text>
             </View>
           )}
           renderItem={({ item: doc, index, section }) => (
@@ -145,9 +152,11 @@ export default function DocumentosScreen() {
               }`}
             >
               {/* Ícone */}
-              <View className={`mr-3 h-11 w-11 items-center justify-center rounded-xl ${
-                doc.tipo === 'holerite' ? 'bg-blue-50' : 'bg-purple-50'
-              }`}>
+              <View
+                className={`mr-3 h-11 w-11 items-center justify-center rounded-xl ${
+                  doc.tipo === 'holerite' ? 'bg-blue-50' : 'bg-purple-50'
+                }`}
+              >
                 <Text className="text-xl">{doc.tipo === 'holerite' ? '💵' : '🏖'}</Text>
               </View>
 

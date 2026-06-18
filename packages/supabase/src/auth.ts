@@ -19,10 +19,7 @@ export interface AuthResult {
 
 // ─── Contabilidade (e-mail + senha) ──────────────────────────────────────────
 
-export async function loginContabilidade(
-  email: string,
-  senha: string
-): Promise<AuthResult> {
+export async function loginContabilidade(email: string, senha: string): Promise<AuthResult> {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha })
   return {
     session: data.session,

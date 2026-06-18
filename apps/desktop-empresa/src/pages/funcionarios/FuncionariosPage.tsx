@@ -23,11 +23,7 @@ export function FuncionariosPage() {
     setCarregando(true)
 
     const [funcsRes, docsRes] = await Promise.all([
-      supabase
-        .from('funcionarios')
-        .select('*')
-        .eq('empresa_id', empresa!.id)
-        .order('nome'),
+      supabase.from('funcionarios').select('*').eq('empresa_id', empresa!.id).order('nome'),
       supabase
         .from('v_status_documentos')
         .select('funcionario_id, visualizado_em')
@@ -121,9 +117,11 @@ export function FuncionariosPage() {
                     )}
                   </td>
                   <td className="px-6 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      func.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                    }`}>
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                        func.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
                       {func.ativo ? 'Ativo' : 'Inativo'}
                     </span>
                   </td>

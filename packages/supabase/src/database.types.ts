@@ -38,6 +38,7 @@ export interface Database {
           ativo?: boolean
           created_at?: string
         }
+        Relationships: []
       }
       tenants: {
         Row: {
@@ -67,6 +68,7 @@ export interface Database {
           status?: 'ativo' | 'inativo' | 'trial' | 'inadimplente'
           created_at?: string
         }
+        Relationships: []
       }
       subscriptions: {
         Row: {
@@ -96,6 +98,22 @@ export interface Database {
           gateway_id?: string | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       empresas: {
         Row: {
@@ -131,6 +149,15 @@ export interface Database {
           ativo?: boolean
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "empresas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       funcionarios: {
         Row: {
@@ -172,6 +199,22 @@ export interface Database {
           ativo?: boolean
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "funcionarios_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funcionarios_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       documentos: {
         Row: {
@@ -210,6 +253,29 @@ export interface Database {
           status_envio?: 'pendente' | 'enviado' | 'erro'
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       eventos_documento: {
         Row: {
@@ -239,6 +305,22 @@ export interface Database {
           user_agent?: string | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_documento_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_documento_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       lotes: {
         Row: {
@@ -246,6 +328,9 @@ export interface Database {
           tenant_id: string
           empresa_id: string
           storage_path_original: string
+          tipo: 'holerite' | 'ferias'
+          mes_referencia: number
+          ano_referencia: number
           total_documentos: number
           processados: number
           erros: number
@@ -257,6 +342,9 @@ export interface Database {
           tenant_id: string
           empresa_id: string
           storage_path_original: string
+          tipo?: 'holerite' | 'ferias'
+          mes_referencia?: number
+          ano_referencia?: number
           total_documentos?: number
           processados?: number
           erros?: number
@@ -268,12 +356,31 @@ export interface Database {
           tenant_id?: string
           empresa_id?: string
           storage_path_original?: string
+          tipo?: 'holerite' | 'ferias'
+          mes_referencia?: number
+          ano_referencia?: number
           total_documentos?: number
           processados?: number
           erros?: number
           status?: 'aguardando' | 'processando' | 'concluido' | 'erro'
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "lotes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lotes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       auth_codes: {
         Row: {
@@ -300,6 +407,15 @@ export interface Database {
           used_at?: string | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "auth_codes_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       expo_push_tokens: {
         Row: {
@@ -326,6 +442,15 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "expo_push_tokens_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
@@ -348,6 +473,7 @@ export interface Database {
           assinado_em: string | null
           total_visualizacoes: number
         }
+        Relationships: []
       }
     }
     Functions: {
@@ -389,6 +515,10 @@ export interface Database {
       incrementar_erros_lote: {
         Args: { p_lote_id: string }
         Returns: void
+      }
+      get_my_tenant_id: {
+        Args: Record<string, never>
+        Returns: string | null
       }
     }
     Enums: Record<string, never>
