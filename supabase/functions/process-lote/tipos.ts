@@ -27,7 +27,7 @@ export interface FuncionarioRow {
 /** Uma página do PDF associada a um funcionário */
 export interface PaginaAssociada {
   funcionario: FuncionarioRow
-  indices_pagina: number[]  // 0-based
+  indices_pagina: number[] // 0-based
 }
 
 /** Resultado do processamento de um documento individual */

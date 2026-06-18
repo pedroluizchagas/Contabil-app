@@ -86,7 +86,8 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
           email: linha.email,
         },
       })
-      if (error) erro++; else ok++
+      if (error) erro++
+      else ok++
     }
 
     setImportando(false)
@@ -120,12 +121,16 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
               <p className="text-5xl">🎉</p>
               <p className="text-lg font-semibold text-gray-900">Importação concluída</p>
               <div className="flex justify-center gap-6 text-sm">
-                <span className="font-medium text-emerald-600">{resultado.ok} importados com sucesso</span>
+                <span className="font-medium text-emerald-600">
+                  {resultado.ok} importados com sucesso
+                </span>
                 {resultado.erro > 0 && (
                   <span className="font-medium text-red-500">{resultado.erro} com erro</span>
                 )}
               </div>
-              <Button onClick={onConcluir} className="mt-2">Fechar</Button>
+              <Button onClick={onConcluir} className="mt-2">
+                Fechar
+              </Button>
             </div>
           ) : linhas.length === 0 ? (
             /* ── Upload ───────────────────────────────────────────── */
@@ -140,9 +145,13 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
                 ].join(' ')}
               >
                 <input {...getInputProps()} />
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-2xl">📊</div>
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-2xl">
+                  📊
+                </div>
                 <p className="text-sm font-medium text-gray-700">
-                  {isDragActive ? 'Solte o arquivo aqui' : 'Arraste a planilha ou clique para selecionar'}
+                  {isDragActive
+                    ? 'Solte o arquivo aqui'
+                    : 'Arraste a planilha ou clique para selecionar'}
                 </p>
                 <p className="mt-1 text-xs text-gray-400">Apenas arquivos .xlsx</p>
               </div>
@@ -178,7 +187,10 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
                   <thead className="sticky top-0 border-b border-gray-100 bg-gray-50">
                     <tr>
                       {['Nome', 'CPF', 'Código', 'E-mail', 'Status'].map((col) => (
-                        <th key={col} className="px-3 py-2.5 text-left font-medium text-gray-400 uppercase tracking-wide text-[10px]">
+                        <th
+                          key={col}
+                          className="px-3 py-2.5 text-left font-medium text-gray-400 uppercase tracking-wide text-[10px]"
+                        >
                           {col}
                         </th>
                       ))}
@@ -198,7 +210,10 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
                           {linha.valida ? (
                             <span className="font-medium text-emerald-600">✓ OK</span>
                           ) : (
-                            <span className="font-medium text-red-500" title={linha.erros.join(', ')}>
+                            <span
+                              className="font-medium text-red-500"
+                              title={linha.erros.join(', ')}
+                            >
                               ✕ {linha.erros[0]}
                             </span>
                           )}
@@ -210,12 +225,10 @@ export function ImportacaoExcel({ empresaId, onFechar, onConcluir }: Props) {
               </div>
 
               <div className="flex gap-3">
-                <Button
-                  onClick={importar}
-                  disabled={validas === 0}
-                  loading={importando}
-                >
-                  {importando ? 'Importando...' : `Importar ${validas} funcionário${validas !== 1 ? 's' : ''}`}
+                <Button onClick={importar} disabled={validas === 0} loading={importando}>
+                  {importando
+                    ? 'Importando...'
+                    : `Importar ${validas} funcionário${validas !== 1 ? 's' : ''}`}
                 </Button>
                 <Button variant="secondary" onClick={onFechar}>
                   Cancelar
@@ -240,15 +253,15 @@ function parsearLinha(row: Record<string, unknown>): LinhaPreview {
     return ''
   }
 
-  const nome            = get(['Nome', 'NOME', 'name'])
-  const cpf             = get(['CPF', 'cpf'])
-  const rawData         = get(['Data Nascimento', 'DataNascimento', 'data_nascimento', 'Nascimento'])
-  const codigo          = get(['Código', 'Codigo', 'CODIGO', 'codigo', 'Matricula', 'Matrícula'])
-  const email           = get(['E-mail', 'Email', 'EMAIL', 'email'])
+  const nome = get(['Nome', 'NOME', 'name'])
+  const cpf = get(['CPF', 'cpf'])
+  const rawData = get(['Data Nascimento', 'DataNascimento', 'data_nascimento', 'Nascimento'])
+  const codigo = get(['Código', 'Codigo', 'CODIGO', 'codigo', 'Matricula', 'Matrícula'])
+  const email = get(['E-mail', 'Email', 'EMAIL', 'email'])
   const data_nascimento = normalizarData(rawData)
   const erros: string[] = []
 
-  if (!nome)  erros.push('Nome obrigatório')
+  if (!nome) erros.push('Nome obrigatório')
   if (!cpf || cpf.replace(/\D/g, '').length !== 11) erros.push('CPF inválido')
   if (!data_nascimento) erros.push('Data de nascimento inválida')
   if (!codigo) erros.push('Código obrigatório')

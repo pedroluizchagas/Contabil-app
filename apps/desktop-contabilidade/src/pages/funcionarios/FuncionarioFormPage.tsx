@@ -32,7 +32,9 @@ export function FuncionarioFormPage() {
       .select('nome')
       .eq('id', empresaId!)
       .single()
-      .then(({ data }) => { if (data) setEmpresaNome(data.nome) })
+      .then(({ data }) => {
+        if (data) setEmpresaNome(data.nome)
+      })
 
     if (funcId) {
       supabase
@@ -64,7 +66,11 @@ export function FuncionarioFormPage() {
         .from('funcionarios')
         .update({ nome: form.nome, email: form.email })
         .eq('id', funcId!)
-      if (error) { setErro(error.message); setSalvando(false); return }
+      if (error) {
+        setErro(error.message)
+        setSalvando(false)
+        return
+      }
     } else {
       const cpfLimpo = form.cpf.replace(/\D/g, '')
       if (cpfLimpo.length !== 11) {
@@ -83,7 +89,11 @@ export function FuncionarioFormPage() {
           email: form.email,
         },
       })
-      if (error) { setErro(error.message); setSalvando(false); return }
+      if (error) {
+        setErro(error.message)
+        setSalvando(false)
+        return
+      }
     }
 
     navigate(`/empresas/${empresaId}/funcionarios`)
@@ -172,7 +182,11 @@ export function FuncionarioFormPage() {
 
             <div className="flex gap-3 pt-1">
               <Button type="submit" loading={salvando}>
-                {salvando ? 'Salvando...' : ehEdicao ? 'Salvar alterações' : 'Cadastrar funcionário'}
+                {salvando
+                  ? 'Salvando...'
+                  : ehEdicao
+                    ? 'Salvar alterações'
+                    : 'Cadastrar funcionário'}
               </Button>
               <Button
                 type="button"

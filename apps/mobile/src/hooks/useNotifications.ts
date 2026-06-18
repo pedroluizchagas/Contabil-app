@@ -17,7 +17,8 @@ import { useAuth } from '@/contexts/AuthContext'
 // Configuração global: mostra notificações mesmo com app em foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),

@@ -22,8 +22,18 @@ interface LoteProgresso {
 }
 
 const MESES = [
-  'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ]
 
 /* ── Barra de progresso ─────────────────────────────────────────── */
@@ -50,14 +60,20 @@ export function UploadLotePage() {
   const [ano, setAno] = useState(anoAtual)
   const [arquivo, setArquivo] = useState<File | null>(null)
 
-  const [etapa, setEtapa] = useState<'form' | 'enviando' | 'processando' | 'concluido' | 'erro'>('form')
+  const [etapa, setEtapa] = useState<'form' | 'enviando' | 'processando' | 'concluido' | 'erro'>(
+    'form'
+  )
   const [progresso, setProgresso] = useState<LoteProgresso | null>(null)
   const [erroMsg, setErroMsg] = useState<string | null>(null)
   const [uploadPct, setUploadPct] = useState(0)
 
   useEffect(() => {
     if (!tenantId) return
-    supabase.from('empresas').select('id, nome').eq('ativo', true).order('nome')
+    supabase
+      .from('empresas')
+      .select('id, nome')
+      .eq('ativo', true)
+      .order('nome')
       .then(({ data }) => setEmpresas(data ?? []))
   }, [tenantId])
 
@@ -65,16 +81,20 @@ export function UploadLotePage() {
     if (!progresso?.id || etapa !== 'processando') return
     const canal = supabase
       .channel(`lote-${progresso.id}`)
-      .on('postgres_changes',
+      .on(
+        'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'lotes', filter: `id=eq.${progresso.id}` },
         (payload) => {
           const novo = payload.new as LoteProgresso
           setProgresso(novo)
           if (novo.status === 'concluido' || novo.status === 'erro')
             setEtapa(novo.status === 'concluido' ? 'concluido' : 'erro')
-        })
+        }
+      )
       .subscribe()
-    return () => { supabase.removeChannel(canal) }
+    return () => {
+      supabase.removeChannel(canal)
+    }
   }, [progresso?.id, etapa])
 
   const onDrop = useCallback((arquivos: File[]) => {
@@ -166,20 +186,21 @@ export function UploadLotePage() {
             {/* Empresa */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-ink-muted">Empresa *</label>
-              <Select
-                value={empresaId}
-                onChange={(e) => setEmpresaId(e.target.value)}
-              >
+              <Select value={empresaId} onChange={(e) => setEmpresaId(e.target.value)}>
                 <option value="">Selecione a empresa...</option>
                 {empresas.map((e) => (
-                  <option key={e.id} value={e.id}>{e.nome}</option>
+                  <option key={e.id} value={e.id}>
+                    {e.nome}
+                  </option>
                 ))}
               </Select>
             </div>
 
             {/* Tipo */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink-muted">Tipo de documento *</label>
+              <label className="mb-1.5 block text-sm font-medium text-ink-muted">
+                Tipo de documento *
+              </label>
               <div className="grid grid-cols-2 gap-3">
                 {(['holerite', 'ferias'] as const).map((t) => (
                   <button
@@ -205,7 +226,9 @@ export function UploadLotePage() {
                 <label className="mb-1.5 block text-sm font-medium text-ink-muted">Mês *</label>
                 <Select value={mes} onChange={(e) => setMes(Number(e.target.value))}>
                   {MESES.map((m, i) => (
-                    <option key={i + 1} value={i + 1}>{m}</option>
+                    <option key={i + 1} value={i + 1}>
+                      {m}
+                    </option>
                   ))}
                 </Select>
               </div>
@@ -213,7 +236,9 @@ export function UploadLotePage() {
                 <label className="mb-1.5 block text-sm font-medium text-ink-muted">Ano *</label>
                 <Select value={ano} onChange={(e) => setAno(Number(e.target.value))}>
                   {[anoAtual - 1, anoAtual, anoAtual + 1].map((a) => (
-                    <option key={a} value={a}>{a}</option>
+                    <option key={a} value={a}>
+                      {a}
+                    </option>
                   ))}
                 </Select>
               </div>
@@ -221,12 +246,16 @@ export function UploadLotePage() {
 
             {/* Dropzone */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink-muted">Arquivo PDF *</label>
+              <label className="mb-1.5 block text-sm font-medium text-ink-muted">
+                Arquivo PDF *
+              </label>
               {arquivo ? (
                 <div className="flex items-center justify-between rounded-xl border border-brand/40 bg-brand-muted px-4 py-3">
                   <div>
                     <p className="text-sm font-medium text-brand-darker">{arquivo.name}</p>
-                    <p className="text-xs text-brand">{(arquivo.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-xs text-brand">
+                      {(arquivo.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
                   </div>
                   <button
                     onClick={() => setArquivo(null)}
@@ -270,7 +299,10 @@ export function UploadLotePage() {
       )}
 
       {/* ── Estados de progresso ─────────────────────────────────── */}
-      {(etapa === 'enviando' || etapa === 'processando' || etapa === 'concluido' || etapa === 'erro') && (
+      {(etapa === 'enviando' ||
+        etapa === 'processando' ||
+        etapa === 'concluido' ||
+        etapa === 'erro') && (
         <Card className="max-w-md">
           <CardContent className="space-y-5">
             {etapa === 'enviando' && (
@@ -287,7 +319,9 @@ export function UploadLotePage() {
               <>
                 <div>
                   <p className="font-semibold text-ink">Processando documentos...</p>
-                  <p className="text-sm text-ink-muted">Identificando funcionários e gerando PDFs individuais</p>
+                  <p className="text-sm text-ink-muted">
+                    Identificando funcionários e gerando PDFs individuais
+                  </p>
                 </div>
                 <BarraProgresso valor={pctProcessado} />
                 {progresso && (
@@ -307,7 +341,8 @@ export function UploadLotePage() {
                   <div className="mb-3 text-5xl">✅</div>
                   <p className="font-semibold text-ink">Lote processado com sucesso!</p>
                   <p className="mt-1 text-sm text-ink-muted">
-                    <strong>{progresso.processados}</strong> documentos enviados para os funcionários
+                    <strong>{progresso.processados}</strong> documentos enviados para os
+                    funcionários
                     {progresso.erros > 0 && (
                       <span className="text-red-500"> · {progresso.erros} com erro</span>
                     )}

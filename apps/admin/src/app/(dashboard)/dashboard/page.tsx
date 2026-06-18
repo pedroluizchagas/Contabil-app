@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { formatarMoeda, formatarData } from '@contabhub/shared'
-import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,30 +8,29 @@ export default async function DashboardPage() {
 
   const agora = new Date()
   const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString()
-  const inicioMesPassado = new Date(agora.getFullYear(), agora.getMonth() - 1, 1).toISOString()
 
-  // Paralelo: todas as queries ao mesmo tempo
-  const [
-    tenantsRes,
-    subAtivasRes,
-    subTrialRes,
-    subInadRes,
-    novosTenantsRes,
-    documentosRes,
-    lotesRes,
-    planosRes,
-  ] = await Promise.all([
-    supabase.from('tenants').select('id, status', { count: 'exact' }),
-    supabase.from('subscriptions').select('plano_id, planos(preco_mensal)').eq('status', 'ativo'),
-    supabase.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'trial'),
-    supabase.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'inadimplente'),
-    supabase.from('tenants').select('id', { count: 'exact', head: true }).gte('created_at', inicioMes),
-    supabase.from('documentos').select('id', { count: 'exact', head: true }).gte('created_at', inicioMes),
-    supabase.from('lotes').select('id, status, created_at, empresas(nome), tenants(nome)')
-      .order('created_at', { ascending: false })
-      .limit(8),
-    supabase.from('planos').select('id, nome, preco_mensal').eq('ativo', true),
-  ])
+  // Paralelo: todas as queries ao mesmo tempo. Os contadores de trial e
+  // inadimplência derivam de `tenantsRes` abaixo, então não consultamos
+  // `subscriptions` separadamente aqui.
+  const [tenantsRes, subAtivasRes, novosTenantsRes, documentosRes, lotesRes, planosRes] =
+    await Promise.all([
+      supabase.from('tenants').select('id, status', { count: 'exact' }),
+      supabase.from('subscriptions').select('plano_id, planos(preco_mensal)').eq('status', 'ativo'),
+      supabase
+        .from('tenants')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', inicioMes),
+      supabase
+        .from('documentos')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', inicioMes),
+      supabase
+        .from('lotes')
+        .select('id, status, created_at, empresas(nome), tenants(nome)')
+        .order('created_at', { ascending: false })
+        .limit(8),
+      supabase.from('planos').select('id, nome, preco_mensal').eq('ativo', true),
+    ])
 
   // Calcula MRR
   const mrr = (subAtivasRes.data ?? []).reduce((acc, s) => {
@@ -49,14 +47,18 @@ export default async function DashboardPage() {
     <div className="p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">Visão geral do SaaS — {formatarData(agora.toISOString())}</p>
+        <p className="text-sm text-gray-500">
+          Visão geral do SaaS — {formatarData(agora.toISOString())}
+        </p>
       </div>
 
       {/* MRR destaque */}
       <div className="mb-6 rounded-xl border border-violet-200 bg-violet-50 p-6">
         <p className="text-sm font-medium text-violet-600">MRR (Receita Recorrente Mensal)</p>
         <p className="mt-1 text-4xl font-bold text-violet-700">{formatarMoeda(mrr)}</p>
-        <p className="mt-1 text-xs text-violet-500">{subAtivasRes.data?.length ?? 0} subscriptions ativas</p>
+        <p className="mt-1 text-xs text-violet-500">
+          {subAtivasRes.data?.length ?? 0} subscriptions ativas
+        </p>
       </div>
 
       {/* Métricas */}
@@ -103,9 +105,7 @@ export default async function DashboardPage() {
                 <td className="px-6 py-3">
                   <StatusLote status={lote.status} />
                 </td>
-                <td className="px-6 py-3 text-gray-400 text-xs">
-                  {formatarData(lote.created_at)}
-                </td>
+                <td className="px-6 py-3 text-gray-400 text-xs">{formatarData(lote.created_at)}</td>
               </tr>
             ))}
           </tbody>
@@ -116,12 +116,21 @@ export default async function DashboardPage() {
 }
 
 function MetricCard({
-  label, valor, sub, cor = 'gray',
+  label,
+  valor,
+  sub,
+  cor = 'gray',
 }: {
-  label: string; valor: number; sub?: string; cor?: 'gray' | 'green' | 'blue' | 'red'
+  label: string
+  valor: number
+  sub?: string
+  cor?: 'gray' | 'green' | 'blue' | 'red'
 }) {
   const cores: Record<string, string> = {
-    gray: 'text-gray-900', green: 'text-green-600', blue: 'text-blue-600', red: 'text-red-600',
+    gray: 'text-gray-900',
+    green: 'text-green-600',
+    blue: 'text-blue-600',
+    red: 'text-red-600',
   }
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -140,7 +149,9 @@ function StatusLote({ status }: { status: string }) {
     erro: 'bg-red-100 text-red-700',
   }
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${estilos[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${estilos[status] ?? 'bg-gray-100 text-gray-600'}`}
+    >
       {status}
     </span>
   )

@@ -2,10 +2,10 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 
 const navItems = [
-  { to: '/dashboard',     label: 'Dashboard',       icon: '⊞' },
-  { to: '/documentos',    label: 'Documentos',       icon: '📄' },
-  { to: '/funcionarios',  label: 'Funcionários',     icon: '👥' },
-  { to: '/conta',         label: 'Minha Conta',      icon: '⚙' },
+  { to: '/dashboard', label: 'Dashboard', icon: '⊞' },
+  { to: '/documentos', label: 'Documentos', icon: '📄' },
+  { to: '/funcionarios', label: 'Funcionários', icon: '👥' },
+  { to: '/conta', label: 'Minha Conta', icon: '⚙' },
 ]
 
 export function Sidebar() {
@@ -22,9 +22,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-16 flex-col justify-center border-b border-gray-700 px-5">
         <span className="text-base font-bold text-white">ContaHub</span>
-        {empresa && (
-          <span className="truncate text-xs text-gray-400">{empresa.nome}</span>
-        )}
+        {empresa && <span className="truncate text-xs text-gray-400">{empresa.nome}</span>}
       </div>
 
       {/* Navegação */}

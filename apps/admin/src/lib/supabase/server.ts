@@ -1,4 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { Database } from '@contabhub/supabase'
 
@@ -13,20 +14,31 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY são obrigatórios')
 }
 
-/** Cliente para Server Components e Route Handlers (respeita RLS da sessão) */
-export function createClient() {
+/**
+ * Cliente para Server Components e Route Handlers (respeita RLS da sessão).
+ *
+ * O retorno é anotado como `SupabaseClient<Database>` porque o
+ * `@supabase/ssr@0.5.x` passa os generics na ordem posicional antiga para o
+ * `SupabaseClient` do supabase-js 2.99 (cuja assinatura mudou), o que faria
+ * `.from()` inferir `never`. O cast restaura a tipagem correta do schema sem
+ * alterar o comportamento em runtime.
+ */
+export function createClient(): SupabaseClient<Database> {
   const cookieStore = cookies()
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get: (name) => cookieStore.get(name)?.value,
-      set: (name, value, options) => { cookieStore.set({ name, value, ...options }) },
-      remove: (name, options) => { cookieStore.set({ name, value: '', ...options }) },
+      get: (name: string) => cookieStore.get(name)?.value,
+      set: (name: string, value: string, options: CookieOptions) => {
+        cookieStore.set({ name, value, ...options })
+      },
+      remove: (name: string, options: CookieOptions) => {
+        cookieStore.set({ name, value: '', ...options })
+      },
     },
-  })
+  }) as unknown as SupabaseClient<Database>
 }
 
 /** Cliente admin com service role — usa apenas em Server Actions protegidas */
 export function createAdminClient() {
-  const { createClient: createSupabase } = require('@supabase/supabase-js')
-  return createSupabase<Database>(supabaseUrl, supabaseServiceRoleKey)
+  return createSupabaseClient<Database>(supabaseUrl, supabaseServiceRoleKey)
 }

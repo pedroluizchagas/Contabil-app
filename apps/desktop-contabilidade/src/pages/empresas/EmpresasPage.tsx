@@ -9,9 +9,20 @@ type Empresa = Database['public']['Tables']['empresas']['Row']
 
 function IconUsers() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   )
 }
@@ -21,7 +32,9 @@ export function EmpresasPage() {
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
 
-  useEffect(() => { carregarEmpresas() }, [])
+  useEffect(() => {
+    carregarEmpresas()
+  }, [])
 
   async function carregarEmpresas() {
     setCarregando(true)
@@ -38,7 +51,7 @@ export function EmpresasPage() {
   const empresasFiltradas = empresas.filter(
     (e) =>
       e.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      e.cnpj.includes(busca.replace(/\D/g, '')),
+      e.cnpj.includes(busca.replace(/\D/g, ''))
   )
 
   const ativas = empresas.filter((e) => e.ativo).length
@@ -54,7 +67,12 @@ export function EmpresasPage() {
             className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path
+                d="M7 1v12M1 7h12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
             Nova Empresa
           </Link>
@@ -71,7 +89,12 @@ export function EmpresasPage() {
           leftIcon={
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4" />
-              <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <path
+                d="M9.5 9.5L13 13"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
             </svg>
           }
         />
@@ -106,7 +129,10 @@ export function EmpresasPage() {
             <thead>
               <tr className="border-b border-gray-100">
                 {['Nome', 'CNPJ', 'E-mail', 'Status', 'Ações'].map((col) => (
-                  <th key={col} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint">
+                  <th
+                    key={col}
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint"
+                  >
                     {col}
                   </th>
                 ))}
@@ -114,9 +140,14 @@ export function EmpresasPage() {
             </thead>
             <tbody>
               {empresasFiltradas.map((empresa) => (
-                <tr key={empresa.id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60">
+                <tr
+                  key={empresa.id}
+                  className="border-b border-gray-50 transition-colors hover:bg-gray-50/60"
+                >
                   <td className="px-6 py-3.5 font-medium text-ink">{empresa.nome}</td>
-                  <td className="px-6 py-3.5 font-mono text-sm text-ink-muted">{formatarCnpj(empresa.cnpj)}</td>
+                  <td className="px-6 py-3.5 font-mono text-sm text-ink-muted">
+                    {formatarCnpj(empresa.cnpj)}
+                  </td>
                   <td className="px-6 py-3.5 text-ink-muted">{empresa.email}</td>
                   <td className="px-6 py-3.5">
                     <Badge variant={empresa.ativo ? 'success' : 'neutral'}>

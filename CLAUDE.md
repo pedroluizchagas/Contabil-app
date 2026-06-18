@@ -37,12 +37,12 @@ Contabilidade (tenant)
 
 ### Módulos do Sistema
 
-| Módulo              | Stack                      | Usuário        | Diretório                       |
-|---------------------|----------------------------|----------------|---------------------------------|
-| App Contabilidade   | Tauri v2 + React + TS      | Contador       | `apps/desktop-contabilidade/`   |
-| App Empresa         | Tauri v2 + React + TS      | Empresa cliente| `apps/desktop-empresa/`         |
-| App Funcionário     | Expo SDK + React Native    | Funcionário    | `apps/mobile/`                  |
-| Admin SaaS          | Next.js 14                 | Owner          | `apps/admin/`                   |
+| Módulo            | Stack                   | Usuário         | Diretório                     |
+| ----------------- | ----------------------- | --------------- | ----------------------------- |
+| App Contabilidade | Tauri v2 + React + TS   | Contador        | `apps/desktop-contabilidade/` |
+| App Empresa       | Tauri v2 + React + TS   | Empresa cliente | `apps/desktop-empresa/`       |
+| App Funcionário   | Expo SDK + React Native | Funcionário     | `apps/mobile/`                |
+| Admin SaaS        | Next.js 14              | Owner           | `apps/admin/`                 |
 
 ---
 
@@ -51,7 +51,7 @@ Contabilidade (tenant)
 ### Backend & Dados
 
 | Camada         | Tecnologia              | Função                               |
-|----------------|-------------------------|--------------------------------------|
+| -------------- | ----------------------- | ------------------------------------ |
 | Banco de dados | Supabase (PostgreSQL)   | Dados relacionais com RLS            |
 | Autenticação   | Supabase Auth           | 3 perfis de usuário                  |
 | Storage        | Supabase Storage        | PDFs por tenant/empresa/funcionário  |
@@ -60,12 +60,12 @@ Contabilidade (tenant)
 
 ### Frontend
 
-| App                  | Stack                                    | Alvo                       |
-|----------------------|------------------------------------------|----------------------------|
-| Desktop Contabilidade| Tauri v2 + React + TypeScript + Tailwind | Windows (prioritário), macOS |
-| Desktop Empresa      | Tauri v2 + React + TypeScript + Tailwind | Windows (prioritário), macOS |
-| Mobile Funcionário   | Expo SDK + React Native + NativeWind     | Android (prioritário), iOS |
-| Admin Web            | Next.js 14 + Vercel                      | Web                        |
+| App                   | Stack                                    | Alvo                         |
+| --------------------- | ---------------------------------------- | ---------------------------- |
+| Desktop Contabilidade | Tauri v2 + React + TypeScript + Tailwind | Windows (prioritário), macOS |
+| Desktop Empresa       | Tauri v2 + React + TypeScript + Tailwind | Windows (prioritário), macOS |
+| Mobile Funcionário    | Expo SDK + React Native + NativeWind     | Android (prioritário), iOS   |
+| Admin Web             | Next.js 14 + Vercel                      | Web                          |
 
 ### Design System
 
@@ -76,13 +76,13 @@ Contabilidade (tenant)
 
 ### Serviços Externos
 
-| Serviço                 | Função                                    |
-|-------------------------|-------------------------------------------|
-| Autentique              | Assinatura digital com validade jurídica  |
-| Pagar.me                | Billing recorrente (PIX + boleto + cartão)|
-| Resend                  | E-mails transacionais                     |
-| Expo Push Notifications | Notificações push mobile                  |
-| Sentry                  | Monitoramento de erros                    |
+| Serviço                 | Função                                     |
+| ----------------------- | ------------------------------------------ |
+| Autentique              | Assinatura digital com validade jurídica   |
+| Pagar.me                | Billing recorrente (PIX + boleto + cartão) |
+| Resend                  | E-mails transacionais                      |
+| Expo Push Notifications | Notificações push mobile                   |
+| Sentry                  | Monitoramento de erros                     |
 
 ---
 
@@ -162,10 +162,10 @@ CREATE POLICY "tenant_isolation" ON <tabela>
 
 ## Fluxos de Autenticação
 
-| Perfil        | Credenciais                               | Mecanismo                              |
-|---------------|-------------------------------------------|----------------------------------------|
-| Contabilidade | E-mail + senha                            | Supabase Auth padrão                   |
-| Empresa       | CNPJ + senha                              | Supabase Auth com campo customizado    |
+| Perfil        | Credenciais                                  | Mecanismo                                 |
+| ------------- | -------------------------------------------- | ----------------------------------------- |
+| Contabilidade | E-mail + senha                               | Supabase Auth padrão                      |
+| Empresa       | CNPJ + senha                                 | Supabase Auth com campo customizado       |
 | Funcionário   | CPF + data de nascimento + código por e-mail | Supabase Auth com verificação em 2 etapas |
 
 O JWT deve conter `tenant_id` e `role` no payload para que o RLS funcione corretamente.
@@ -188,6 +188,7 @@ Função principal responsável pelo split de PDF:
 8. Atualiza o `lote` com totais e status
 
 **Estratégia de parsing de PDF:**
+
 - Preferir parsing por texto (PDFs gerados digitalmente)
 - Evitar OCR no MVP (complexidade alta)
 - Testar com PDFs reais de: Domínio, Alterdata, Questor (coletar amostras antes de implementar)
@@ -319,18 +320,18 @@ pnpm --filter mobile expo build
 
 ## Fases do Projeto (Status)
 
-| Fase | Descrição                    | Status      |
-|------|------------------------------|-------------|
-| 0    | Fundação do Monorepo         | Pendente    |
-| 1    | Banco de Dados e Auth        | Pendente    |
-| 2    | Engine de Split de PDF       | Pendente    |
-| 3    | App Desktop: Contabilidade   | Pendente    |
-| 4    | App Desktop: Empresa         | Pendente    |
-| 5    | App Mobile: Funcionário      | Pendente    |
-| 6    | Billing e Planos             | Pendente    |
-| 7    | Admin SaaS                   | Pendente    |
-| 8    | Beta com Contabilidades Reais| Pendente    |
-| 9    | Lançamento MVP               | Pendente    |
+| Fase | Descrição                     | Status   |
+| ---- | ----------------------------- | -------- |
+| 0    | Fundação do Monorepo          | Pendente |
+| 1    | Banco de Dados e Auth         | Pendente |
+| 2    | Engine de Split de PDF        | Pendente |
+| 3    | App Desktop: Contabilidade    | Pendente |
+| 4    | App Desktop: Empresa          | Pendente |
+| 5    | App Mobile: Funcionário       | Pendente |
+| 6    | Billing e Planos              | Pendente |
+| 7    | Admin SaaS                    | Pendente |
+| 8    | Beta com Contabilidades Reais | Pendente |
+| 9    | Lançamento MVP                | Pendente |
 
 Consultar `ROADMAP.md` para detalhamento completo de cada fase.
 
@@ -345,4 +346,4 @@ Consultar `ROADMAP.md` para detalhamento completo de cada fase.
 
 ---
 
-*Última atualização: Março 2026*
+_Última atualização: Março 2026_

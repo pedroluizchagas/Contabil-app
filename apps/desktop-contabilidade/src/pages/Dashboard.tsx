@@ -30,17 +30,44 @@ interface MesData {
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
-const MESES_ABREV = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-const MESES_EXT   = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
-const DIAS_SEMANA = ['D','S','T','Q','Q','S','S']
+const MESES_ABREV = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
+const MESES_EXT = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+]
+const DIAS_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 
 function statusBadge(status: string) {
-  const map: Record<string, { variant: 'success' | 'info' | 'neutral' | 'error'; label: string }> = {
-    concluido:   { variant: 'success', label: 'Concluído' },
-    processando: { variant: 'info',    label: 'Processando' },
-    aguardando:  { variant: 'neutral', label: 'Aguardando' },
-    erro:        { variant: 'error',   label: 'Erro' },
-  }
+  const map: Record<string, { variant: 'success' | 'info' | 'neutral' | 'error'; label: string }> =
+    {
+      concluido: { variant: 'success', label: 'Concluído' },
+      processando: { variant: 'info', label: 'Processando' },
+      aguardando: { variant: 'neutral', label: 'Aguardando' },
+      erro: { variant: 'error', label: 'Erro' },
+    }
   const s = map[status] ?? { variant: 'neutral', label: status }
   return <Badge variant={s.variant}>{s.label}</Badge>
 }
@@ -49,7 +76,12 @@ function statusBadge(status: string) {
 const IcoBusiness = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
     <rect x="2" y="6" width="16" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M6 6V5a4 4 0 0 1 8 0v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M6 6V5a4 4 0 0 1 8 0v1"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
     <path d="M8 12h4M10 10v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 )
@@ -57,25 +89,52 @@ const IcoUsers = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
     <circle cx="8" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
     <path d="M2 18a6 6 0 0 1 12 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    <path d="M14 4a3 3 0 0 1 0 6M18 18a6 6 0 0 0-4-5.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M14 4a3 3 0 0 1 0 6M18 18a6 6 0 0 0-4-5.6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
   </svg>
 )
 const IcoSend = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <path d="M17 3L2 9l5 3 2 5 8-14z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <path
+      d="M17 3L2 9l5 3 2 5 8-14z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
     <path d="M7 12l3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 )
 const IcoClock = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
     <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M10 6v4l3 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M10 6v4l3 2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 )
 const IcoUpload = () => (
   <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-    <path d="M10 13V4M6 8l4-4 4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M3 14v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    <path
+      d="M10 13V4M6 8l4-4 4 4"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M3 14v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+    />
   </svg>
 )
 const IcoPlus = () => (
@@ -85,7 +144,12 @@ const IcoPlus = () => (
 )
 const IcoFile = () => (
   <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-    <path d="M11 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7l-5-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <path
+      d="M11 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7l-5-5z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
     <path d="M11 2v5h5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
     <path d="M7 11h6M7 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
@@ -105,7 +169,9 @@ function StatCard({ label, value, accent, bg, icon }: StatCardProps) {
     <div className="flex items-start justify-between gap-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
       <div>
         <p className="text-[11px] font-medium uppercase tracking-wide text-ink-faint">{label}</p>
-        <p className={`mt-2 text-[2rem] font-bold leading-none ${accent}`}>{value.toLocaleString('pt-BR')}</p>
+        <p className={`mt-2 text-[2rem] font-bold leading-none ${accent}`}>
+          {value.toLocaleString('pt-BR')}
+        </p>
       </div>
       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
         {icon}
@@ -119,24 +185,23 @@ function BarChart({ dados }: { dados: MesData[] }) {
   const [hover, setHover] = useState<number | null>(null)
   const maxVal = Math.max(...dados.map((d) => d.valor), 1)
   const chartH = 120
-  const barW   = 28
-  const gap    = 14
+  const barW = 28
+  const gap = 14
   const paddingX = 8
   const svgW = dados.length * (barW + gap) - gap + paddingX * 2
 
   return (
-    <svg
-      viewBox={`0 0 ${svgW} ${chartH + 32}`}
-      className="w-full"
-      style={{ overflow: 'visible' }}
-    >
+    <svg viewBox={`0 0 ${svgW} ${chartH + 32}`} className="w-full" style={{ overflow: 'visible' }}>
       {/* Grid lines */}
       {[0.25, 0.5, 0.75, 1].map((frac) => (
         <line
           key={frac}
-          x1={0} y1={Math.round(chartH * (1 - frac))}
-          x2={svgW} y2={Math.round(chartH * (1 - frac))}
-          stroke="#f3f4f6" strokeWidth="1"
+          x1={0}
+          y1={Math.round(chartH * (1 - frac))}
+          x2={svgW}
+          y2={Math.round(chartH * (1 - frac))}
+          stroke="#f3f4f6"
+          strokeWidth="1"
         />
       ))}
 
@@ -155,14 +220,19 @@ function BarChart({ dados }: { dados: MesData[] }) {
           >
             {/* Background bar (hover) */}
             <rect
-              x={x - 4} y={0}
-              width={barW + 8} height={chartH}
-              rx={6} fill={isHover ? '#f9fafb' : 'transparent'}
+              x={x - 4}
+              y={0}
+              width={barW + 8}
+              height={chartH}
+              rx={6}
+              fill={isHover ? '#f9fafb' : 'transparent'}
             />
             {/* Actual bar */}
             <rect
-              x={x} y={y}
-              width={barW} height={barH}
+              x={x}
+              y={y}
+              width={barW}
+              height={barH}
               rx={5}
               fill="#7DC82E"
               opacity={isHover ? 1 : 0.82}
@@ -171,13 +241,19 @@ function BarChart({ dados }: { dados: MesData[] }) {
             {isHover && d.valor > 0 && (
               <g>
                 <rect
-                  x={x + barW / 2 - 18} y={y - 26}
-                  width={36} height={20}
-                  rx={5} fill="#111214"
+                  x={x + barW / 2 - 18}
+                  y={y - 26}
+                  width={36}
+                  height={20}
+                  rx={5}
+                  fill="#111214"
                 />
                 <text
-                  x={x + barW / 2} y={y - 12}
-                  textAnchor="middle" fontSize="10" fontWeight="600"
+                  x={x + barW / 2}
+                  y={y - 12}
+                  textAnchor="middle"
+                  fontSize="10"
+                  fontWeight="600"
                   fill="white"
                 >
                   {d.valor}
@@ -186,8 +262,11 @@ function BarChart({ dados }: { dados: MesData[] }) {
             )}
             {/* X label */}
             <text
-              x={x + barW / 2} y={chartH + 18}
-              textAnchor="middle" fontSize="10" fontWeight="500"
+              x={x + barW / 2}
+              y={chartH + 18}
+              textAnchor="middle"
+              fontSize="10"
+              fontWeight="500"
               fill={isHover ? '#6B7280' : '#C4C9D4'}
             >
               {d.label}
@@ -212,7 +291,7 @@ interface CalendarProps {
 
 function MiniCalendar({ mes, ano, diaAtual, mesHoje, anoHoje, onPrev, onNext }: CalendarProps) {
   const primeiroDia = new Date(ano, mes, 1).getDay()
-  const diasNoMes   = new Date(ano, mes + 1, 0).getDate()
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate()
   const calDias: (number | null)[] = [
     ...Array<null>(primeiroDia).fill(null),
     ...Array.from({ length: diasNoMes }, (_, i) => i + 1),
@@ -245,7 +324,9 @@ function MiniCalendar({ mes, ano, diaAtual, mesHoje, anoHoje, onPrev, onNext }: 
       {/* Day headers */}
       <div className="mb-1.5 grid grid-cols-7 text-center">
         {DIAS_SEMANA.map((d, i) => (
-          <span key={i} className="text-[10px] font-semibold text-ink-xfaint">{d}</span>
+          <span key={i} className="text-[10px] font-semibold text-ink-xfaint">
+            {d}
+          </span>
         ))}
       </div>
 
@@ -259,9 +340,7 @@ function MiniCalendar({ mes, ano, diaAtual, mesHoje, anoHoje, onPrev, onNext }: 
               key={i}
               className={[
                 'mx-auto flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-medium transition-colors',
-                ehHoje
-                  ? 'bg-brand text-white'
-                  : 'text-ink hover:bg-gray-100',
+                ehHoje ? 'bg-brand text-white' : 'text-ink hover:bg-gray-100',
               ].join(' ')}
             >
               {dia}
@@ -275,17 +354,28 @@ function MiniCalendar({ mes, ano, diaAtual, mesHoje, anoHoje, onPrev, onNext }: 
 
 /* ── Action shortcut ─────────────────────────────────────────────── */
 function Atalho({
-  href, label, descricao, icon, accentClass, bgClass,
+  href,
+  label,
+  descricao,
+  icon,
+  accentClass,
+  bgClass,
 }: {
-  href: string; label: string; descricao: string
-  icon: React.ReactNode; accentClass: string; bgClass: string
+  href: string
+  label: string
+  descricao: string
+  icon: React.ReactNode
+  accentClass: string
+  bgClass: string
 }) {
   return (
     <Link
       to={href}
       className="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${bgClass} transition-transform group-hover:scale-105`}>
+      <div
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${bgClass} transition-transform group-hover:scale-105`}
+      >
         <span className={accentClass}>{icon}</span>
       </div>
       <div>
@@ -305,8 +395,8 @@ export function DashboardPage() {
 
   const [hoje] = useState(() => new Date())
   const diaAtual = hoje.getDate()
-  const mesHoje  = hoje.getMonth()
-  const anoHoje  = hoje.getFullYear()
+  const mesHoje = hoje.getMonth()
+  const anoHoje = hoje.getFullYear()
 
   const [calMes, setCalMes] = useState(mesHoje)
   const [calAno, setCalAno] = useState(anoHoje)
@@ -321,16 +411,25 @@ export function DashboardPage() {
     'Contador'
   const primeiroNome = nomeCompleto.split(' ')[0]
   const iniciais = nomeCompleto
-    .split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()
+    .split(' ')
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase()
 
-  useEffect(() => { carregarDados() }, [])
+  useEffect(() => {
+    carregarDados()
+  }, [])
 
   async function carregarDados() {
     setCarregando(true)
     try {
       const [empresasRes, funcionariosRes, documentosRes, lotesRes] = await Promise.all([
         supabase.from('empresas').select('id', { count: 'exact', head: true }).eq('ativo', true),
-        supabase.from('funcionarios').select('id', { count: 'exact', head: true }).eq('ativo', true),
+        supabase
+          .from('funcionarios')
+          .select('id', { count: 'exact', head: true })
+          .eq('ativo', true),
         supabase.from('documentos').select('created_at, status_envio'),
         supabase
           .from('lotes')
@@ -340,7 +439,7 @@ export function DashboardPage() {
       ])
 
       const docs = documentosRes.data ?? []
-      const documentosEnviados  = docs.filter((d) => d.status_envio === 'enviado').length
+      const documentosEnviados = docs.filter((d) => d.status_envio === 'enviado').length
       const documentosPendentes = docs.filter((d) => d.status_envio === 'pendente').length
 
       /* Montar série histórica: últimos 7 meses */
@@ -348,7 +447,12 @@ export function DashboardPage() {
         const d = new Date(hoje)
         d.setDate(1)
         d.setMonth(d.getMonth() - (6 - i))
-        return { label: MESES_ABREV[d.getMonth()], mes: d.getMonth(), ano: d.getFullYear(), valor: 0 }
+        return {
+          label: MESES_ABREV[d.getMonth()],
+          mes: d.getMonth(),
+          ano: d.getFullYear(),
+          valor: 0,
+        }
       })
       docs.forEach((doc) => {
         const d = new Date(doc.created_at)
@@ -379,17 +483,33 @@ export function DashboardPage() {
   }
 
   function prevMes() {
-    setCalMes((m) => { if (m === 0) { setCalAno((y) => y - 1); return 11 } return m - 1 })
+    setCalMes((m) => {
+      if (m === 0) {
+        setCalAno((y) => y - 1)
+        return 11
+      }
+      return m - 1
+    })
   }
   function nextMes() {
-    setCalMes((m) => { if (m === 11) { setCalAno((y) => y + 1); return 0 } return m + 1 })
+    setCalMes((m) => {
+      if (m === 11) {
+        setCalAno((y) => y + 1)
+        return 0
+      }
+      return m + 1
+    })
   }
 
-  const dataFormatada = hoje.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const dataFormatada = hoje.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
   return (
     <div className="p-8">
-
       {/* ── Saudação ─────────────────────────────────────────────── */}
       <div className="mb-7 flex items-center justify-between">
         <div>
@@ -422,34 +542,49 @@ export function DashboardPage() {
               value={stats?.totalEmpresas ?? 0}
               accent="text-brand"
               bg="bg-brand-muted"
-              icon={<span className="text-brand"><IcoBusiness /></span>}
+              icon={
+                <span className="text-brand">
+                  <IcoBusiness />
+                </span>
+              }
             />
             <StatCard
               label="Funcionários ativos"
               value={stats?.totalFuncionarios ?? 0}
               accent="text-blue-600"
               bg="bg-blue-50"
-              icon={<span className="text-blue-500"><IcoUsers /></span>}
+              icon={
+                <span className="text-blue-500">
+                  <IcoUsers />
+                </span>
+              }
             />
             <StatCard
               label="Documentos enviados"
               value={stats?.documentosEnviados ?? 0}
               accent="text-emerald-600"
               bg="bg-emerald-50"
-              icon={<span className="text-emerald-500"><IcoSend /></span>}
+              icon={
+                <span className="text-emerald-500">
+                  <IcoSend />
+                </span>
+              }
             />
             <StatCard
               label="Aguardando envio"
               value={stats?.documentosPendentes ?? 0}
               accent="text-amber-600"
               bg="bg-amber-50"
-              icon={<span className="text-amber-500"><IcoClock /></span>}
+              icon={
+                <span className="text-amber-500">
+                  <IcoClock />
+                </span>
+              }
             />
           </div>
 
           {/* ── Gráfico + Calendário ─────────────────────────────── */}
           <div className="mb-6 grid grid-cols-3 gap-4">
-
             {/* Gráfico de barras */}
             <Card className="col-span-2 p-5">
               <div className="mb-5 flex items-center justify-between">
@@ -515,7 +650,10 @@ export function DashboardPage() {
           <Card>
             <CardHeader className="flex items-center justify-between">
               <p className="text-sm font-semibold text-ink">Lotes recentes</p>
-              <Link to="/lotes/upload" className="text-xs font-medium text-brand hover:text-brand-dark">
+              <Link
+                to="/lotes/upload"
+                className="text-xs font-medium text-brand hover:text-brand-dark"
+              >
                 + Enviar lote
               </Link>
             </CardHeader>
@@ -532,7 +670,10 @@ export function DashboardPage() {
                 <thead>
                   <tr className="border-b border-gray-100">
                     {['Empresa', 'Status', 'Progresso', 'Data'].map((col) => (
-                      <th key={col} className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-ink-xfaint">
+                      <th
+                        key={col}
+                        className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-ink-xfaint"
+                      >
                         {col}
                       </th>
                     ))}
@@ -540,7 +681,10 @@ export function DashboardPage() {
                 </thead>
                 <tbody>
                   {stats.lotesRecentes.map((lote) => (
-                    <tr key={lote.id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60">
+                    <tr
+                      key={lote.id}
+                      className="border-b border-gray-50 transition-colors hover:bg-gray-50/60"
+                    >
                       <td className="px-6 py-3.5 font-medium text-ink">{lote.empresa_nome}</td>
                       <td className="px-6 py-3.5">{statusBadge(lote.status)}</td>
                       <td className="px-6 py-3.5">

@@ -59,9 +59,13 @@ export function EmpresaFormPage() {
         .from('empresas')
         .update({ nome: form.nome, email: form.email })
         .eq('id', empresaId!)
-      if (error) { setErro(error.message); setSalvando(false); return }
+      if (error) {
+        setErro(error.message)
+        setSalvando(false)
+        return
+      }
     } else {
-      const tid = tenantId ?? await refreshTenantId()
+      const tid = tenantId ?? (await refreshTenantId())
       if (!tid) {
         setErro('Sessão inválida. Faça login novamente.')
         setSalvando(false)
@@ -73,7 +77,13 @@ export function EmpresaFormPage() {
         return
       }
       const { data, error } = await supabase.functions.invoke('criar-empresa', {
-        body: { tenant_id: tid, nome: form.nome, cnpj: cnpjLimpo, email: form.email, senha: form.senha },
+        body: {
+          tenant_id: tid,
+          nome: form.nome,
+          cnpj: cnpjLimpo,
+          email: form.email,
+          senha: form.senha,
+        },
       })
       if (error) {
         const mensagem = (data as { error?: string } | null)?.error ?? error.message
@@ -160,11 +170,7 @@ export function EmpresaFormPage() {
               <Button type="submit" loading={salvando}>
                 {salvando ? 'Salvando...' : ehEdicao ? 'Salvar alterações' : 'Cadastrar empresa'}
               </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => navigate('/empresas')}
-              >
+              <Button type="button" variant="secondary" onClick={() => navigate('/empresas')}>
                 Cancelar
               </Button>
             </div>

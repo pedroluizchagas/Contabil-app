@@ -76,7 +76,12 @@ export function LoginPage() {
               />
             </div>
 
-            <Button type="submit" loading={carregando} className="mt-2 w-full justify-center" size="lg">
+            <Button
+              type="submit"
+              loading={carregando}
+              className="mt-2 w-full justify-center"
+              size="lg"
+            >
               {carregando ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>

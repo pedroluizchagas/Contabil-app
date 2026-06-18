@@ -41,8 +41,7 @@ export function validarCnpj(cnpj: string): boolean {
     digits.reduce((acc, d, i) => acc + d * (base - i), 0)
   const d1 = (peso(s.slice(0, 12).split('').map(Number), 5 + 7) * 10) % 11
   const d2 = (peso(s.slice(0, 13).split('').map(Number), 6 + 7) * 10) % 11
-  return (d1 < 2 ? 0 : 11 - d1) === Number(s[12]) &&
-    (d2 < 2 ? 0 : 11 - d2) === Number(s[13])
+  return (d1 < 2 ? 0 : 11 - d1) === Number(s[12]) && (d2 < 2 ? 0 : 11 - d2) === Number(s[13])
 }
 
 export function validarCpf(cpf: string): boolean {
@@ -50,8 +49,8 @@ export function validarCpf(cpf: string): boolean {
   if (s.length !== 11 || /^(\d)\1+$/.test(s)) return false
   const soma = (digits: number[], peso: number) =>
     digits.reduce((acc, d, i) => acc + d * (peso - i), 0)
-  const d1 = (soma(s.slice(0, 9).split('').map(Number), 10) * 10) % 11 % 10
-  const d2 = (soma(s.slice(0, 10).split('').map(Number), 11) * 10) % 11 % 10
+  const d1 = ((soma(s.slice(0, 9).split('').map(Number), 10) * 10) % 11) % 10
+  const d2 = ((soma(s.slice(0, 10).split('').map(Number), 11) * 10) % 11) % 10
   return d1 === Number(s[9]) && d2 === Number(s[10])
 }
 
@@ -65,13 +64,47 @@ export type TipoEvento = 'visualizado' | 'assinado'
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-export const MESES_ABREV = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'] as const
-export const MESES_FULL = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] as const
+export const MESES_ABREV = [
+  '',
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+] as const
+export const MESES_FULL = [
+  '',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+] as const
 
 export const STATUS_TENANT_LABEL: Record<StatusTenant, string> = {
-  ativo: 'Ativo', inativo: 'Inativo', trial: 'Trial', inadimplente: 'Inadimplente',
+  ativo: 'Ativo',
+  inativo: 'Inativo',
+  trial: 'Trial',
+  inadimplente: 'Inadimplente',
 }
 
 export const STATUS_SUBSCRIPTION_LABEL: Record<StatusSubscription, string> = {
-  trial: 'Trial', ativo: 'Ativo', inadimplente: 'Inadimplente', cancelado: 'Cancelado',
+  trial: 'Trial',
+  ativo: 'Ativo',
+  inadimplente: 'Inadimplente',
+  cancelado: 'Cancelado',
 }

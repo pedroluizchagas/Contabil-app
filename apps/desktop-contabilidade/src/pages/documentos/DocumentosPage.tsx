@@ -1,23 +1,52 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@contabhub/supabase'
-import { Badge, Card, CardHeader, PageHeader, EmptyState, PageSpinner, Input, Select } from '@/components/ui'
+import {
+  Badge,
+  Card,
+  CardHeader,
+  PageHeader,
+  EmptyState,
+  PageSpinner,
+  Input,
+  Select,
+} from '@/components/ui'
 
 type StatusDoc = Database['public']['Views']['v_status_documentos']['Row']
 
-const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const MESES = [
+  '',
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
 
 export function DocumentosPage() {
   const [documentos, setDocumentos] = useState<StatusDoc[]>([])
   const [carregando, setCarregando] = useState(true)
   const [filtroEmpresa, setFiltroEmpresa] = useState('')
-  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'nao_visualizado' | 'visualizado' | 'assinado'>('todos')
+  const [filtroStatus, setFiltroStatus] = useState<
+    'todos' | 'nao_visualizado' | 'visualizado' | 'assinado'
+  >('todos')
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'holerite' | 'ferias'>('todos')
   const [busca, setBusca] = useState('')
   const [empresas, setEmpresas] = useState<Array<{ id: string; nome: string }>>([])
 
   useEffect(() => {
-    supabase.from('empresas').select('id, nome').eq('ativo', true).order('nome')
+    supabase
+      .from('empresas')
+      .select('id, nome')
+      .eq('ativo', true)
+      .order('nome')
       .then(({ data }) => setEmpresas(data ?? []))
     carregarDocumentos()
   }, [])
@@ -41,38 +70,41 @@ export function DocumentosPage() {
   const filtrados = documentos.filter((d) => {
     if (filtroEmpresa && d.empresa_id !== filtroEmpresa) return false
     if (filtroTipo !== 'todos' && d.tipo !== filtroTipo) return false
-    if (busca &&
+    if (
+      busca &&
       !d.funcionario_nome.toLowerCase().includes(busca.toLowerCase()) &&
-      !d.funcionario_codigo.toLowerCase().includes(busca.toLowerCase())) return false
+      !d.funcionario_codigo.toLowerCase().includes(busca.toLowerCase())
+    )
+      return false
     if (filtroStatus === 'nao_visualizado') return !d.visualizado_em
-    if (filtroStatus === 'visualizado')    return Boolean(d.visualizado_em) && !d.assinado_em
-    if (filtroStatus === 'assinado')       return Boolean(d.assinado_em)
+    if (filtroStatus === 'visualizado') return Boolean(d.visualizado_em) && !d.assinado_em
+    if (filtroStatus === 'assinado') return Boolean(d.assinado_em)
     return true
   })
 
   const totais = {
-    total:         documentos.length,
-    naoVis:        documentos.filter((d) => !d.visualizado_em).length,
-    visualizado:   documentos.filter((d) => d.visualizado_em && !d.assinado_em).length,
-    assinado:      documentos.filter((d) => d.assinado_em).length,
+    total: documentos.length,
+    naoVis: documentos.filter((d) => !d.visualizado_em).length,
+    visualizado: documentos.filter((d) => d.visualizado_em && !d.assinado_em).length,
+    assinado: documentos.filter((d) => d.assinado_em).length,
   }
 
   return (
     <div className="p-8">
-      <PageHeader
-        titulo="Documentos"
-        subtitulo="Acompanhe leitura e assinatura por funcionário"
-      />
+      <PageHeader titulo="Documentos" subtitulo="Acompanhe leitura e assinatura por funcionário" />
 
       {/* ── Resumo ────────────────────────────────────────────────── */}
       <div className="mb-6 grid grid-cols-4 gap-3">
         {[
-          { label: 'Total',           valor: totais.total,      accent: 'text-ink' },
-          { label: 'Não visualizados', valor: totais.naoVis,    accent: 'text-amber-600' },
-          { label: 'Visualizados',    valor: totais.visualizado, accent: 'text-blue-600' },
-          { label: 'Assinados',       valor: totais.assinado,   accent: 'text-brand' },
+          { label: 'Total', valor: totais.total, accent: 'text-ink' },
+          { label: 'Não visualizados', valor: totais.naoVis, accent: 'text-amber-600' },
+          { label: 'Visualizados', valor: totais.visualizado, accent: 'text-blue-600' },
+          { label: 'Assinados', valor: totais.assinado, accent: 'text-brand' },
         ].map((item) => (
-          <div key={item.label} className="rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-card">
+          <div
+            key={item.label}
+            className="rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-card"
+          >
             <p className="text-xs text-ink-faint">{item.label}</p>
             <p className={`mt-1 text-2xl font-bold ${item.accent}`}>{item.valor}</p>
           </div>
@@ -89,7 +121,12 @@ export function DocumentosPage() {
           leftIcon={
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
               <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4" />
-              <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <path
+                d="M9.5 9.5L13 13"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
             </svg>
           }
         />
@@ -100,7 +137,11 @@ export function DocumentosPage() {
           className="w-48"
         >
           <option value="">Todas as empresas</option>
-          {empresas.map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}
+          {empresas.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.nome}
+            </option>
+          ))}
         </Select>
 
         <Select
@@ -141,16 +182,24 @@ export function DocumentosPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {['Funcionário', 'Empresa', 'Tipo', 'Período', 'Leitura', 'Assinatura', ''].map((col) => (
-                  <th key={col} className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-faint">
-                    {col}
-                  </th>
-                ))}
+                {['Funcionário', 'Empresa', 'Tipo', 'Período', 'Leitura', 'Assinatura', ''].map(
+                  (col) => (
+                    <th
+                      key={col}
+                      className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-faint"
+                    >
+                      {col}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
             <tbody>
               {filtrados.map((doc) => (
-                <tr key={doc.documento_id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60">
+                <tr
+                  key={doc.documento_id}
+                  className="border-b border-gray-50 transition-colors hover:bg-gray-50/60"
+                >
                   <td className="px-5 py-3.5">
                     <p className="font-medium text-ink">{doc.funcionario_nome}</p>
                     <p className="font-mono text-xs text-ink-faint">{doc.funcionario_codigo}</p>

@@ -2,7 +2,15 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@contabhub/supabase'
-import { Badge, Card, CardHeader, CardContent, PageHeader, EmptyState, PageSpinner } from '@/components/ui'
+import {
+  Badge,
+  Card,
+  CardHeader,
+  CardContent,
+  PageHeader,
+  EmptyState,
+  PageSpinner,
+} from '@/components/ui'
 
 type LoteRow = Database['public']['Tables']['lotes']['Row']
 
@@ -20,16 +28,30 @@ interface DocStatus {
   assinado_em: string | null
 }
 
-const MESES = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+const MESES = [
+  '',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+]
 
 function statusBadgeLote(status: string) {
-  const map: Record<string, { variant: 'success' | 'info' | 'neutral' | 'error'; label: string }> = {
-    concluido:   { variant: 'success', label: 'Concluído' },
-    processando: { variant: 'info',    label: 'Processando' },
-    aguardando:  { variant: 'neutral', label: 'Aguardando' },
-    erro:        { variant: 'error',   label: 'Erro' },
-  }
+  const map: Record<string, { variant: 'success' | 'info' | 'neutral' | 'error'; label: string }> =
+    {
+      concluido: { variant: 'success', label: 'Concluído' },
+      processando: { variant: 'info', label: 'Processando' },
+      aguardando: { variant: 'neutral', label: 'Aguardando' },
+      erro: { variant: 'error', label: 'Erro' },
+    }
   const s = map[status] ?? { variant: 'neutral', label: status }
   return <Badge variant={s.variant}>{s.label}</Badge>
 }
@@ -59,7 +81,10 @@ export function LoteDetalhesPage() {
       .eq('id', loteId!)
       .single()
 
-    if (!loteData) { setCarregando(false); return }
+    if (!loteData) {
+      setCarregando(false)
+      return
+    }
 
     const loteComEmpresa: LoteComEmpresa = {
       ...loteData,
@@ -102,7 +127,7 @@ export function LoteDetalhesPage() {
   }
 
   const visualizados = docs.filter((d) => d.visualizado_em).length
-  const assinados    = docs.filter((d) => d.assinado_em).length
+  const assinados = docs.filter((d) => d.assinado_em).length
 
   return (
     <div className="p-8">
@@ -124,7 +149,9 @@ export function LoteDetalhesPage() {
           <p className="mt-1 text-2xl font-bold text-ink">
             {lote.processados}
             {lote.total_documentos > 0 && (
-              <span className="ml-1 text-sm font-normal text-ink-faint">/ {lote.total_documentos}</span>
+              <span className="ml-1 text-sm font-normal text-ink-faint">
+                / {lote.total_documentos}
+              </span>
             )}
           </p>
         </div>
@@ -153,7 +180,9 @@ export function LoteDetalhesPage() {
               />
             </div>
             {lote.erros > 0 && (
-              <p className="mt-2 text-xs text-red-500">{lote.erros} documento(s) com erro no processamento</p>
+              <p className="mt-2 text-xs text-red-500">
+                {lote.erros} documento(s) com erro no processamento
+              </p>
             )}
           </CardContent>
         </Card>
@@ -195,7 +224,9 @@ export function LoteDetalhesPage() {
                   className="border-b border-gray-50 transition-colors hover:bg-gray-50/60"
                 >
                   <td className="px-6 py-3.5 font-medium text-ink">{doc.funcionario_nome}</td>
-                  <td className="px-6 py-3.5 font-mono text-xs text-ink-muted">{doc.funcionario_codigo}</td>
+                  <td className="px-6 py-3.5 font-mono text-xs text-ink-muted">
+                    {doc.funcionario_codigo}
+                  </td>
                   <td className="px-6 py-3.5">
                     {doc.visualizado_em ? (
                       <span className="flex items-center gap-1 text-xs text-emerald-600">

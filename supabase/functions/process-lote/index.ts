@@ -57,7 +57,9 @@ Deno.serve(async (req) => {
 
     // ── Validação básica ──────────────────────────────────────────────────────
     if (!lote_id || !tipo || !mes_referencia || !ano_referencia) {
-      return resposta(400, { error: 'lote_id, tipo, mes_referencia e ano_referencia são obrigatórios.' })
+      return resposta(400, {
+        error: 'lote_id, tipo, mes_referencia e ano_referencia são obrigatórios.',
+      })
     }
 
     if (!['holerite', 'ferias'].includes(tipo)) {
@@ -94,7 +96,11 @@ Deno.serve(async (req) => {
       .eq('ativo', true)
 
     if (funcError || !funcionarios?.length) {
-      await finalizarLoteComErro(supabase, lote_id, 'Nenhum funcionário ativo encontrado para esta empresa.')
+      await finalizarLoteComErro(
+        supabase,
+        lote_id,
+        'Nenhum funcionário ativo encontrado para esta empresa.'
+      )
       return resposta(422, { error: 'Nenhum funcionário ativo encontrado.' })
     }
 
@@ -139,7 +145,9 @@ Deno.serve(async (req) => {
       estrategia.paginas_por_funcionario = Math.floor(totalPaginas / funcionarios.length) || 1
     }
 
-    console.log(`PDF carregado: ${totalPaginas} páginas, ${funcionarios.length} funcionários, estratégia: ${estrategia.tipo}`)
+    console.log(
+      `PDF carregado: ${totalPaginas} páginas, ${funcionarios.length} funcionários, estratégia: ${estrategia.tipo}`
+    )
 
     // ── Associa páginas a funcionários ────────────────────────────────────────
     const associacoes = associarPaginasFuncionarios(
@@ -162,10 +170,7 @@ Deno.serve(async (req) => {
     const tokensParaNotificacao: string[] = []
     const idsParaNotificacao: string[] = []
 
-    await supabase
-      .from('lotes')
-      .update({ total_documentos: associacoes.length })
-      .eq('id', lote_id)
+    await supabase.from('lotes').update({ total_documentos: associacoes.length }).eq('id', lote_id)
 
     for (const associacao of associacoes) {
       const resultado = await processarDocumentoFuncionario({
@@ -200,7 +205,14 @@ Deno.serve(async (req) => {
 
       if (tokens?.length) {
         const mensagens = tokens.map((t: { token: string; funcionario_id: string }) =>
-          montarMensagem(tipo, mes_referencia, ano_referencia, empresa?.nome ?? '', t.token, t.funcionario_id)
+          montarMensagem(
+            tipo,
+            mes_referencia,
+            ano_referencia,
+            empresa?.nome ?? '',
+            t.token,
+            t.funcionario_id
+          )
         )
 
         const resultadosPush = await enviarNotificacoes(mensagens)
@@ -222,10 +234,7 @@ Deno.serve(async (req) => {
     const totalErros = resultados.filter((r) => !r.sucesso).length
     const statusFinal = totalErros === resultados.length ? 'erro' : 'concluido'
 
-    await supabase
-      .from('lotes')
-      .update({ status: statusFinal })
-      .eq('id', lote_id)
+    await supabase.from('lotes').update({ status: statusFinal }).eq('id', lote_id)
 
     const resumo = {
       lote_id,
@@ -316,7 +325,10 @@ async function processarDocumentoFuncionario({
     return { funcionario_id: funcionario.id, sucesso: true, storage_path: storagePath }
   } catch (err) {
     const mensagemErro = err instanceof Error ? err.message : String(err)
-    console.error(`Erro ao processar funcionário ${funcionario.id} (${funcionario.nome}):`, mensagemErro)
+    console.error(
+      `Erro ao processar funcionário ${funcionario.id} (${funcionario.nome}):`,
+      mensagemErro
+    )
     return { funcionario_id: funcionario.id, sucesso: false, erro: mensagemErro }
   }
 }

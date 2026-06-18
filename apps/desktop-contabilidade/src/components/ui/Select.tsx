@@ -14,6 +14,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
     >
       {children}
     </select>
-  ),
+  )
 )
 Select.displayName = 'Select'

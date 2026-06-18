@@ -15,15 +15,17 @@ export default async function SubscriptionsPage({
 
   let query = supabase
     .from('subscriptions')
-    .select(`
+    .select(
+      `
       id, status, proximo_vencimento, gateway_id, created_at,
       tenants(id, nome, email),
       planos(nome, preco_mensal)
-    `)
+    `
+    )
     .order('created_at', { ascending: false })
 
   if (searchParams.status) {
-    query = query.eq('status', searchParams.status)
+    query = query.eq('status', searchParams.status as StatusSubscription)
   }
 
   const { data: subs } = await query
@@ -32,7 +34,10 @@ export default async function SubscriptionsPage({
   // Calcula MRR do filtro atual
   const mrr = lista
     .filter((s) => s.status === 'ativo')
-    .reduce((acc, s) => acc + ((s.planos as unknown as { preco_mensal: number })?.preco_mensal ?? 0), 0)
+    .reduce(
+      (acc, s) => acc + ((s.planos as unknown as { preco_mensal: number })?.preco_mensal ?? 0),
+      0
+    )
 
   const statusOpcoes: Array<{ valor: string; label: string }> = [
     { valor: '', label: 'Todas' },
@@ -47,8 +52,8 @@ export default async function SubscriptionsPage({
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Subscriptions</h1>
         <p className="text-sm text-gray-500">
-          {lista.length} assinatura{lista.length !== 1 ? 's' : ''} ·{' '}
-          MRR filtrado: <strong>{formatarMoeda(mrr)}</strong>
+          {lista.length} assinatura{lista.length !== 1 ? 's' : ''} · MRR filtrado:{' '}
+          <strong>{formatarMoeda(mrr)}</strong>
         </p>
       </div>
 
@@ -72,7 +77,9 @@ export default async function SubscriptionsPage({
       {/* Tabela */}
       <div className="rounded-xl border border-gray-200 bg-white">
         {lista.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-400">Nenhuma subscription encontrada.</p>
+          <p className="py-12 text-center text-sm text-gray-400">
+            Nenhuma subscription encontrada.
+          </p>
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -94,7 +101,10 @@ export default async function SubscriptionsPage({
                 return (
                   <tr key={sub.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="px-6 py-3">
-                      <Link href={`/tenants/${tenant?.id}`} className="font-medium text-gray-900 hover:text-violet-600">
+                      <Link
+                        href={`/tenants/${tenant?.id}`}
+                        className="font-medium text-gray-900 hover:text-violet-600"
+                      >
                         {tenant?.nome}
                       </Link>
                       <p className="text-xs text-gray-400">{tenant?.email}</p>

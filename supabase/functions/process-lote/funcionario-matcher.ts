@@ -30,7 +30,11 @@ export function associarPaginasFuncionarios(
   estrategia: EstrategiaParser
 ): PaginaAssociada[] {
   if (estrategia.tipo === 'paginas-fixas') {
-    return estrategiaPaginasFixas(textosPorPagina.length, funcionarios, estrategia.paginas_por_funcionario ?? 1)
+    return estrategiaPaginasFixas(
+      textosPorPagina.length,
+      funcionarios,
+      estrategia.paginas_por_funcionario ?? 1
+    )
   }
 
   return estrategiaCodigo(textosPorPagina, funcionarios)

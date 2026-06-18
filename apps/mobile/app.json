@@ -15,11 +15,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.contabhub.mobile"
     },
-    "plugins": [
-      "expo-router",
-      "expo-notifications",
-      "expo-secure-store"
-    ],
+    "plugins": ["expo-router", "expo-notifications", "expo-secure-store"],
     "scheme": "contabhub",
     "experiments": {
       "typedRoutes": true

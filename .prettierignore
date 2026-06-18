@@ -1,0 +1,16 @@
+# Dependências e saídas de build
+node_modules/
+dist/
+.next/
+out/
+build/
+.turbo/
+
+# Lockfile
+pnpm-lock.yaml
+
+# Estado local da CLI do Supabase (não versionado)
+supabase/.temp/
+
+# Arquivos gerados automaticamente
+packages/supabase/src/database.types.ts
