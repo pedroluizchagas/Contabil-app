@@ -49,3 +49,15 @@ enabled = false
 # webhook (Stripe-Signature). As demais funções usam verify_jwt padrão.
 [functions.stripe-webhook]
 verify_jwt = false
+
+# Edge Function: criar-empresa
+# verify_jwt = false porque a verificação é feita internamente via auth.getUser().
+# O hook custom_access_token pode gerar JWTs que o Edge Runtime rejeita antes
+# de a função executar; a verificação interna usa o serviço de Auth diretamente.
+[functions.criar-empresa]
+verify_jwt = false
+
+# Edge Function: auth-empresa
+# verify_jwt = false porque é chamada por usuários não autenticados (login via CNPJ+senha).
+[functions.auth-empresa]
+verify_jwt = false

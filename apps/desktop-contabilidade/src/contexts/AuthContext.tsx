@@ -10,6 +10,7 @@ interface AuthContextValue {
   login: (email: string, senha: string) => Promise<string | null>
   logout: () => Promise<void>
   refreshTenantId: () => Promise<string | null>
+  getAccessToken: () => Promise<string | null>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -58,6 +59,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (result as string | null) ?? null
   }
 
+  // Retorna um access token válido, renovando-o se necessário.
+  // Se o refresh falhar (ex: após supabase db reset), faz logout para limpar
+  // a sessão inválida do storage e forçar re-autenticação.
+  async function getAccessToken(): Promise<string | null> {
+    const { data, error } = await supabase.auth.refreshSession()
+    if (error || !data.session) {
+      await supabase.auth.signOut()
+      return null
+    }
+    setSession(data.session)
+    return data.session.access_token
+  }
+
   const tenantId = extrairClaim(session, 'tenant_id')
 
   return (
@@ -70,8 +84,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         refreshTenantId,
+        getAccessToken,
       }}
     >
+
       {children}
     </AuthContext.Provider>
   )
