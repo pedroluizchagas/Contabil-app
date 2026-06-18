@@ -307,13 +307,11 @@ async function processarDocumentoFuncionario({
       throw new Error(`Erro ao criar documento: ${docError?.message}`)
     }
 
-    // Registra evento de envio
-    await supabase.from('eventos_documento').insert({
-      documento_id: documento.id,
-      funcionario_id: funcionario.id,
-      tipo: 'visualizado',
-      // evento inicial registrado pelo sistema (não pelo funcionário)
-    })
+    // NÃO registramos evento 'visualizado' aqui. O documento recém-gerado
+    // ainda não foi lido por ninguém — o status 'enviado' em `documentos`
+    // já representa "foi gerado/disponibilizado". O evento 'visualizado'
+    // deve ser inserido apenas pelo app (mobile/empresa) quando o
+    // funcionário efetivamente abre o PDF, preservando a métrica de leitura.
 
     return { funcionario_id: funcionario.id, sucesso: true, storage_path: storagePath }
   } catch (err) {
