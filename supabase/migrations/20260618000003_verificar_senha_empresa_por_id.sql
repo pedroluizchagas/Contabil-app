@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration 20260618000001: Função verificar_senha_empresa_por_id
+-- Migration 20260618000003: Função verificar_senha_empresa_por_id
 --
 -- A Edge Function 'alterar-senha-empresa' valida a senha atual da
 -- empresa via este RPC antes de gravar a nova senha. A função
