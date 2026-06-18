@@ -74,12 +74,12 @@ Contabilidade (tenant)
 
 ### Serviços Externos
 
-| Serviço                 | Função                                     | Quando integrar |
-| ----------------------- | ------------------------------------------ | --------------- |
-| Autentique              | Assinatura digital com validade jurídica   | MVP             |
-| Pagar.me                | Billing recorrente (PIX + boleto + cartão) | MVP             |
-| Resend                  | E-mails transacionais                      | MVP             |
-| Expo Push Notifications | Notificações push mobile                   | MVP             |
+| Serviço                 | Função                                          | Quando integrar |
+| ----------------------- | ----------------------------------------------- | --------------- |
+| Autentique              | Assinatura digital com validade jurídica        | MVP             |
+| Stripe                  | Billing recorrente (cartão + Pix + boleto, BRL) | MVP             |
+| Resend                  | E-mails transacionais                           | MVP             |
+| Expo Push Notifications | Notificações push mobile                        | MVP             |
 
 ---
 
@@ -94,10 +94,15 @@ tenants
 
 -- Planos e Billing
 planos
-  id, nome, preco_mensal, limite_empresas, limite_funcionarios
+  id, nome, preco_mensal, limite_empresas, limite_funcionarios, stripe_price_id
 
 subscriptions
-  id, tenant_id, plano_id, status, proximo_vencimento, gateway_id
+  id, tenant_id, plano_id, status, proximo_vencimento, stripe_subscription_id
+  status alinhado ao Stripe: trialing | active | past_due | canceled | unpaid
+
+convites  -- funil de onboarding fechado (CRM leve)
+  id, nome, cnpj, email, plano_id, status, notas, created_at
+  status: lead | contatado | aprovado | ativo | recusado
 
 -- Empresas (clientes da contabilidade)
 empresas
@@ -320,27 +325,42 @@ App mobile publicado em ambiente de testes com fluxo completo: login, visualiza�
 
 ---
 
-### FASE 6 — Billing e Planos
+### FASE 6 — Billing e Planos (Stripe, modelo hosted)
 
 **Estimativa:** 1 semana
-**Objetivo:** Cobrança recorrente funcional
+**Objetivo:** Cobrança recorrente funcional, com onboarding fechado.
+
+> **Decisões (jun/2026):** gateway **Stripe** (no lugar do Pagar.me, por taxas
+> e ecossistema); **UI de cobrança hosted** (Stripe Checkout + Customer Portal);
+> **dunning delegado ao Stripe** (Smart Retries + e-mails do Stripe);
+> **onboarding fechado** (sem cadastro público — provisionamento pelo Admin).
+> Fonte da verdade: `docs/BILLING_E_ONBOARDING.md`.
 
 #### Tarefas
 
-- [ ] Definição de planos (ex: Básico, Profissional, Enterprise)
-  - Diferencial por número de empresas e/ou funcionários
-- [ ] Integração Pagar.me
-  - Criação de assinatura no cadastro do tenant
-  - Webhook: `subscription.paid` → ativar tenant
-  - Webhook: `subscription.unpaid` → bloquear acesso (grace period)
-  - Webhook: `subscription.canceled` → desativar tenant
-- [ ] Tela de planos e upgrade no Admin
-- [ ] E-mail automático: cobrança, confirmação de pagamento, inadimplência (Resend)
-- [ ] Período de trial (ex: 30 dias gratuitos)
+- [ ] Definição de planos (ex: Básico, Profissional, Enterprise) → criar os
+      `Price` recorrentes no Stripe e gravar `stripe_price_id` em `planos`.
+- [ ] Schema: `tenants.stripe_customer_id`, `subscriptions.stripe_subscription_id`,
+      `faturas`, `webhook_eventos` (idempotência), `convites` (funil de leads).
+- [ ] Edge Function `provisionar-tenant` (Admin): cria tenant + contador +
+      `Customer`/`Subscription` (trial 30 dias) no Stripe + e-mail de boas-vindas.
+- [ ] Edge Function `stripe-webhook` (idempotente, assinatura verificada):
+  - `checkout.session.completed` / `customer.subscription.created` → vincula e ativa
+  - `invoice.paid` → tenant ativo + registra fatura
+  - `invoice.payment_failed` → tenant inadimplente (grace)
+  - `customer.subscription.updated` → sincroniza (`past_due`, `canceled`…)
+  - `customer.subscription.deleted` → tenant inativo
+- [ ] Edge Function `stripe-portal`: gera link do Customer Portal para o contador.
+- [ ] Bloqueio de acesso por status do tenant (RLS/checagem) quando inadimplente.
+- [ ] E-mails transacionais via Resend (boas-vindas, pagamento confirmado,
+      cancelamento). O dunning em si fica por conta do Stripe.
+- [ ] Trial de 30 dias nativo do Stripe (`trial_period_days`).
 
 #### Entregável
 
-Tenant criado com trial de 30 dias → cobrança automática iniciada → bloqueio por inadimplência funcionando.
+Owner aprova uma contabilidade → provisiona no Admin → tenant entra em trial →
+Stripe cobra automaticamente ao fim do trial → pagamento confirmado mantém o
+acesso; falha de pagamento bloqueia (após grace). Tudo dirigido por webhook.
 
 ---
 
@@ -354,13 +374,17 @@ Tenant criado com trial de 30 dias → cobrança automática iniciada → bloque
 - [ ] Autenticação owner (e-mail protegido)
 - [ ] Dashboard geral
   - MRR, tenants ativos, churn, novos tenants
+- [ ] Módulo Convites (funil de onboarding fechado)
+  - Cadastro de leads, qualificação e aprovação manual
+  - Ação "Provisionar" → cria tenant + assinatura Stripe (trial) + e-mail
 - [ ] Módulo Tenants
   - Listagem com plano, status, MRR
   - Detalhes: empresas, funcionários, documentos, uso
   - Ações: ativar/desativar, mudar plano, extender trial
+  - Link para o Stripe (Customer/Subscription) do tenant
 - [ ] Módulo Billing
-  - Histórico de pagamentos por tenant
-  - Inadimplentes
+  - Histórico de pagamentos por tenant (faturas espelhadas do Stripe)
+  - Inadimplentes (status sincronizado via webhook)
 - [ ] Módulo Logs
   - Erros de processamento de lotes
   - Edge Function logs
@@ -403,7 +427,9 @@ Sistema validado com pelo menos 1 contabilidade real processando documentos de f
 
 - [ ] Migrar Supabase para projeto de produção separado
 - [ ] Configurar domínio e SSL
-- [ ] Landing page (pode ser Framer inicialmente)
+- [ ] Landing page **desacoplada** (Framer/estático) — apenas marketing, com
+      CTA "fale conosco" (WhatsApp/form externo). **Sem nenhuma conexão com o
+      backend** (sem signup público). Onboarding é fechado/curado.
 - [ ] Configurar monitoramento (Sentry para erros, Supabase Dashboard para banco)
 - [ ] Backup automático do banco configurado
 - [ ] Política de privacidade e termos de uso (LGPD)
