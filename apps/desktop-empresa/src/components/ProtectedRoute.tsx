@@ -6,8 +6,13 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (carregando) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+      <div className="flex h-screen items-center justify-center bg-sidebar">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-base font-bold text-white">
+            C
+          </div>
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+        </div>
       </div>
     )
   }

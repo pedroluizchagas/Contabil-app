@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { Badge, Card, PageHeader, PageSpinner } from '@/components/ui'
 
 interface Stats {
   totalFuncionarios: number
@@ -26,28 +27,37 @@ export function DashboardPage() {
   const { empresa } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
   const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState<string | null>(null)
 
   useEffect(() => {
     if (!empresa) return
-    carregarStats()
+    carregarStats(empresa.id)
   }, [empresa])
 
-  async function carregarStats() {
+  async function carregarStats(empresaId: string) {
     setCarregando(true)
+    setErro(null)
 
     const [funcRes, docsRes] = await Promise.all([
       supabase
         .from('funcionarios')
         .select('id', { count: 'exact', head: true })
-        .eq('empresa_id', empresa!.id)
+        .eq('empresa_id', empresaId)
         .eq('ativo', true),
       supabase
         .from('v_status_documentos')
         .select('*')
-        .eq('empresa_id', empresa!.id)
+        .eq('empresa_id', empresaId)
         .order('enviado_em', { ascending: false })
         .limit(100),
     ])
+
+    if (funcRes.error || docsRes.error) {
+      console.error('Erro ao carregar dashboard:', funcRes.error?.message ?? docsRes.error?.message)
+      setErro('Não foi possível carregar os dados. Tente novamente.')
+      setCarregando(false)
+      return
+    }
 
     const docs = docsRes.data ?? []
 
@@ -72,37 +82,34 @@ export function DashboardPage() {
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">
-          {empresa?.nome} · visão geral dos documentos
-        </p>
-      </div>
+      <PageHeader titulo="Dashboard" subtitulo={`${empresa?.nome ?? ''} · visão geral dos documentos`} />
 
       {carregando ? (
-        <div className="flex justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
-        </div>
+        <PageSpinner />
+      ) : erro ? (
+        <Card className="py-12 text-center">
+          <p className="text-sm text-red-600">{erro}</p>
+        </Card>
       ) : (
         <>
           {/* Cards */}
           <div className="mb-8 grid grid-cols-4 gap-4">
-            <StatCard label="Funcionários ativos" valor={stats?.totalFuncionarios ?? 0} cor="gray" />
+            <StatCard label="Funcionários ativos" valor={stats?.totalFuncionarios ?? 0} cor="ink" />
             <StatCard label="Docs não visualizados" valor={stats?.documentosNaoLidos ?? 0} cor="amber" />
             <StatCard label="Visualizados" valor={stats?.documentosLidos ?? 0} cor="blue" />
-            <StatCard label="Assinados" valor={stats?.documentosAssinados ?? 0} cor="green" />
+            <StatCard label="Assinados" valor={stats?.documentosAssinados ?? 0} cor="brand" />
           </div>
 
           {/* Taxa de leitura */}
           {stats && (stats.documentosNaoLidos + stats.documentosLidos + stats.documentosAssinados) > 0 && (
-            <div className="mb-8 rounded-xl border border-gray-200 bg-white p-5">
-              <p className="mb-3 text-sm font-medium text-gray-700">Taxa de leitura dos documentos</p>
+            <Card className="mb-8 p-5">
+              <p className="mb-3 text-sm font-medium text-ink">Taxa de leitura dos documentos</p>
               <TaxaLeitura
                 naoLidos={stats.documentosNaoLidos}
                 lidos={stats.documentosLidos}
                 assinados={stats.documentosAssinados}
               />
-            </div>
+            </Card>
           )}
 
           {/* Ações rápidas */}
@@ -122,19 +129,19 @@ export function DashboardPage() {
           </div>
 
           {/* Últimos documentos */}
-          <div className="rounded-xl border border-gray-200 bg-white">
+          <Card>
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-              <h2 className="font-semibold text-gray-800">Últimos documentos</h2>
-              <Link to="/documentos" className="text-sm text-emerald-600 hover:underline">
+              <h2 className="font-semibold text-ink">Últimos documentos</h2>
+              <Link to="/documentos" className="text-sm font-medium text-brand-dark hover:underline">
                 Ver todos
               </Link>
             </div>
             {stats?.ultimosDocumentos.length === 0 ? (
-              <p className="py-10 text-center text-sm text-gray-400">Nenhum documento disponível ainda.</p>
+              <p className="py-10 text-center text-sm text-ink-faint">Nenhum documento disponível ainda.</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-gray-400">
+                  <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-ink-faint">
                     <th className="px-6 py-3">Funcionário</th>
                     <th className="px-6 py-3">Tipo</th>
                     <th className="px-6 py-3">Período</th>
@@ -145,26 +152,24 @@ export function DashboardPage() {
                   {stats?.ultimosDocumentos.map((doc) => (
                     <tr key={doc.id} className="border-b border-gray-50 hover:bg-gray-50">
                       <td className="px-6 py-3">
-                        <p className="font-medium text-gray-900">{doc.funcionario_nome}</p>
-                        <p className="text-xs text-gray-400 font-mono">{doc.funcionario_codigo}</p>
+                        <p className="font-medium text-ink">{doc.funcionario_nome}</p>
+                        <p className="font-mono text-xs text-ink-faint">{doc.funcionario_codigo}</p>
                       </td>
                       <td className="px-6 py-3">
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                          doc.tipo === 'holerite' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                        }`}>
+                        <Badge variant={doc.tipo === 'holerite' ? 'info' : 'purple'}>
                           {doc.tipo === 'holerite' ? 'Holerite' : 'Férias'}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="px-6 py-3 text-gray-500">
+                      <td className="px-6 py-3 text-ink-muted">
                         {MESES[doc.mes_referencia]}/{doc.ano_referencia}
                       </td>
                       <td className="px-6 py-3">
                         {doc.assinado_em ? (
-                          <span className="text-xs text-green-600">✓ Assinado</span>
+                          <Badge variant="success">✓ Assinado</Badge>
                         ) : doc.visualizado_em ? (
-                          <span className="text-xs text-blue-500">✓ Lido</span>
+                          <Badge variant="info">✓ Lido</Badge>
                         ) : (
-                          <span className="text-xs text-amber-500">Pendente</span>
+                          <Badge variant="warning">Pendente</Badge>
                         )}
                       </td>
                     </tr>
@@ -172,7 +177,7 @@ export function DashboardPage() {
                 </tbody>
               </table>
             )}
-          </div>
+          </Card>
         </>
       )}
     </div>
@@ -181,13 +186,13 @@ export function DashboardPage() {
 
 function StatCard({ label, valor, cor }: { label: string; valor: number; cor: string }) {
   const cores: Record<string, string> = {
-    gray: 'text-gray-900', green: 'text-green-600', blue: 'text-blue-600', amber: 'text-amber-600',
+    ink: 'text-ink', brand: 'text-brand-dark', blue: 'text-blue-600', amber: 'text-amber-600',
   }
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className={`mt-1 text-3xl font-bold ${cores[cor] ?? 'text-gray-900'}`}>{valor}</p>
-    </div>
+    <Card className="p-5">
+      <p className="text-sm text-ink-muted">{label}</p>
+      <p className={`mt-1 text-3xl font-bold ${cores[cor] ?? 'text-ink'}`}>{valor}</p>
+    </Card>
   )
 }
 
@@ -195,14 +200,14 @@ function AcaoCard({ titulo, descricao, href, icone }: { titulo: string; descrica
   return (
     <Link
       to={href}
-      className="flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
+      className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-card transition-shadow hover:shadow-md"
     >
-      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-xl text-emerald-600">
+      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-muted text-xl">
         {icone}
       </span>
       <div>
-        <p className="font-semibold text-gray-900">{titulo}</p>
-        <p className="text-sm text-gray-500">{descricao}</p>
+        <p className="font-semibold text-ink">{titulo}</p>
+        <p className="text-sm text-ink-muted">{descricao}</p>
       </div>
     </Link>
   )
@@ -219,12 +224,12 @@ function TaxaLeitura({ naoLidos, lidos, assinados }: { naoLidos: number; lidos: 
       <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100">
         <div className="bg-amber-400" style={{ width: `${pctNaoLido}%` }} title={`Não lido: ${naoLidos}`} />
         <div className="bg-blue-400" style={{ width: `${pctLido}%` }} title={`Lido: ${lidos}`} />
-        <div className="bg-emerald-500" style={{ width: `${pctAssinado}%` }} title={`Assinado: ${assinados}`} />
+        <div className="bg-brand" style={{ width: `${pctAssinado}%` }} title={`Assinado: ${assinados}`} />
       </div>
-      <div className="mt-2 flex gap-4 text-xs text-gray-500">
-        <span><span className="inline-block h-2 w-2 rounded-full bg-amber-400 mr-1" />Não visualizado ({naoLidos})</span>
-        <span><span className="inline-block h-2 w-2 rounded-full bg-blue-400 mr-1" />Visualizado ({lidos})</span>
-        <span><span className="inline-block h-2 w-2 rounded-full bg-emerald-500 mr-1" />Assinado ({assinados})</span>
+      <div className="mt-2 flex gap-4 text-xs text-ink-muted">
+        <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-amber-400" />Não visualizado ({naoLidos})</span>
+        <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-blue-400" />Visualizado ({lidos})</span>
+        <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-brand" />Assinado ({assinados})</span>
       </div>
     </div>
   )

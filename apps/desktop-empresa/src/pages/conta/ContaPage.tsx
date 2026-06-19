@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { Button, Campo, Card, Input, PageHeader } from '@/components/ui'
+
+type Mensagem = { tipo: 'ok' | 'erro'; texto: string } | null
 
 export function ContaPage() {
   const { empresa } = useAuth()
@@ -11,8 +14,8 @@ export function ContaPage() {
 
   const [salvandoEmail, setSalvandoEmail] = useState(false)
   const [salvandoSenha, setSalvandoSenha] = useState(false)
-  const [msgEmail, setMsgEmail] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
-  const [msgSenha, setMsgSenha] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
+  const [msgEmail, setMsgEmail] = useState<Mensagem>(null)
+  const [msgSenha, setMsgSenha] = useState<Mensagem>(null)
 
   async function handleAtualizarEmail(e: FormEvent) {
     e.preventDefault()
@@ -34,6 +37,10 @@ export function ContaPage() {
     e.preventDefault()
     setMsgSenha(null)
 
+    if (!empresa?.id) {
+      setMsgSenha({ tipo: 'erro', texto: 'Sessão da empresa não carregada. Recarregue a página.' })
+      return
+    }
     if (novaSenha !== confirmaSenha) {
       setMsgSenha({ tipo: 'erro', texto: 'As senhas não coincidem.' })
       return
@@ -48,7 +55,7 @@ export function ContaPage() {
     // Altera via Edge Function para validar a senha atual antes
     const { data, error } = await supabase.functions.invoke<{ error?: string }>('alterar-senha-empresa', {
       body: {
-        empresa_id: empresa?.id,
+        empresa_id: empresa.id,
         senha_atual: senhaAtual,
         nova_senha: novaSenha,
       },
@@ -57,7 +64,7 @@ export function ContaPage() {
     setSalvandoSenha(false)
 
     if (error || data?.error) {
-      setMsgSenha({ tipo: 'erro', texto: data?.error ?? 'Erro ao alterar senha.' })
+      setMsgSenha({ tipo: 'erro', texto: data?.error ?? error?.message ?? 'Erro ao alterar senha.' })
     } else {
       setMsgSenha({ tipo: 'ok', texto: 'Senha alterada com sucesso.' })
       setSenhaAtual('')
@@ -68,121 +75,95 @@ export function ContaPage() {
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Minha Conta</h1>
-        <p className="text-sm text-gray-500">Informações da empresa e configurações de acesso</p>
-      </div>
+      <PageHeader titulo="Minha Conta" subtitulo="Informações da empresa e configurações de acesso" />
 
       {/* Dados da empresa (somente leitura) */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 font-semibold text-gray-800">Dados da Empresa</h2>
+      <Card className="mb-6 p-6">
+        <h2 className="mb-4 font-semibold text-ink">Dados da Empresa</h2>
         <dl className="grid grid-cols-2 gap-4 text-sm">
           <InfoItem label="Razão Social" valor={empresa?.nome ?? '—'} />
           <InfoItem label="CNPJ" valor={formatarCnpj(empresa?.cnpj ?? '')} monoFont />
         </dl>
-        <p className="mt-4 text-xs text-gray-400">
+        <p className="mt-4 text-xs text-ink-faint">
           Para alterar dados cadastrais, entre em contato com sua contabilidade.
         </p>
-      </div>
+      </Card>
 
       {/* Alterar e-mail */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 font-semibold text-gray-800">Alterar E-mail de Notificações</h2>
+      <Card className="mb-6 p-6">
+        <h2 className="mb-4 font-semibold text-ink">Alterar E-mail de Notificações</h2>
 
-        {msgEmail && (
-          <div className={`mb-4 rounded-lg px-4 py-3 text-sm border ${
-            msgEmail.tipo === 'ok'
-              ? 'bg-green-50 text-green-700 border-green-200'
-              : 'bg-red-50 text-red-700 border-red-200'
-          }`}>
-            {msgEmail.texto}
-          </div>
-        )}
+        <MensagemBox msg={msgEmail} />
 
         <form onSubmit={handleAtualizarEmail} className="flex gap-3">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="novo@email.com.br"
-            required
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-          <button
-            type="submit"
-            disabled={salvandoEmail || !email}
-            className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
-          >
+          <div className="flex-1">
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="novo@email.com.br"
+              required
+            />
+          </div>
+          <Button type="submit" size="lg" loading={salvandoEmail} disabled={salvandoEmail || !email}>
             {salvandoEmail ? 'Salvando...' : 'Atualizar'}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
 
       {/* Alterar senha */}
-      <div className="max-w-md rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 font-semibold text-gray-800">Alterar Senha de Acesso</h2>
+      <Card className="max-w-md p-6">
+        <h2 className="mb-4 font-semibold text-ink">Alterar Senha de Acesso</h2>
 
-        {msgSenha && (
-          <div className={`mb-4 rounded-lg px-4 py-3 text-sm border ${
-            msgSenha.tipo === 'ok'
-              ? 'bg-green-50 text-green-700 border-green-200'
-              : 'bg-red-50 text-red-700 border-red-200'
-          }`}>
-            {msgSenha.texto}
-          </div>
-        )}
+        <MensagemBox msg={msgSenha} />
 
         <form onSubmit={handleAlterarSenha} className="space-y-4">
-          <Campo label="Senha atual">
-            <input
+          <Campo label="Senha atual" obrigatorio>
+            <Input
               type="password"
               value={senhaAtual}
               onChange={(e) => setSenhaAtual(e.target.value)}
               required
-              className={inputClass}
             />
           </Campo>
-          <Campo label="Nova senha">
-            <input
+          <Campo label="Nova senha" obrigatorio hint="Mínimo 8 caracteres">
+            <Input
               type="password"
               value={novaSenha}
               onChange={(e) => setNovaSenha(e.target.value)}
               required
               minLength={8}
               placeholder="Mínimo 8 caracteres"
-              className={inputClass}
             />
           </Campo>
-          <Campo label="Confirmar nova senha">
-            <input
+          <Campo label="Confirmar nova senha" obrigatorio>
+            <Input
               type="password"
               value={confirmaSenha}
               onChange={(e) => setConfirmaSenha(e.target.value)}
               required
-              className={inputClass}
             />
           </Campo>
-          <button
-            type="submit"
-            disabled={salvandoSenha}
-            className="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
-          >
+          <Button type="submit" size="lg" loading={salvandoSenha} disabled={salvandoSenha} className="w-full">
             {salvandoSenha ? 'Alterando...' : 'Alterar senha'}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   )
 }
 
-const inputClass =
-  'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'
-
-function Campo({ label, children }: { label: string; children: React.ReactNode }) {
+function MensagemBox({ msg }: { msg: Mensagem }) {
+  if (!msg) return null
   return (
-    <div>
-      <label className="mb-1.5 block text-sm font-medium text-gray-700">{label}</label>
-      {children}
+    <div
+      className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
+        msg.tipo === 'ok'
+          ? 'border-brand-light bg-brand-muted text-brand-darker'
+          : 'border-red-200 bg-red-50 text-red-700'
+      }`}
+    >
+      {msg.texto}
     </div>
   )
 }
@@ -190,8 +171,8 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
 function InfoItem({ label, valor, monoFont }: { label: string; valor: string; monoFont?: boolean }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase text-gray-400">{label}</dt>
-      <dd className={`mt-0.5 text-gray-900 ${monoFont ? 'font-mono' : ''}`}>{valor}</dd>
+      <dt className="text-xs font-medium uppercase text-ink-faint">{label}</dt>
+      <dd className={`mt-0.5 text-ink ${monoFont ? 'font-mono' : ''}`}>{valor}</dd>
     </div>
   )
 }
