@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "turbo run build --filter=desktop-empresa",
+  "outputDirectory": "dist",
+  "ignoreCommand": "npx turbo-ignore desktop-empresa",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
