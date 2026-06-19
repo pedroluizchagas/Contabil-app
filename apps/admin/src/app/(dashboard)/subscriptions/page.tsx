@@ -23,7 +23,7 @@ export default async function SubscriptionsPage({
     .order('created_at', { ascending: false })
 
   if (searchParams.status) {
-    query = query.eq('status', searchParams.status)
+    query = query.eq('status', searchParams.status as 'ativo' | 'trial' | 'inadimplente' | 'cancelado')
   }
 
   const { data: subs } = await query

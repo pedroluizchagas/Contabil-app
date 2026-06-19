@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext'
 const TAMANHO = 6
 
 export default function OtpScreen() {
-  const { pendingAuth, loginStep1, loginStep2, cancelarLogin } = useAuth()
+  const { pendingAuth, loginStep2, cancelarLogin } = useAuth()
   const router = useRouter()
 
   const [digitos, setDigitos] = useState<string[]>(Array(TAMANHO).fill(''))

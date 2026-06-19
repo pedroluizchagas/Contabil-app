@@ -1,5 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
-import { createClient as createSupabase } from '@supabase/supabase-js'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createClient as createSupabase, type SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { Database } from '@contabhub/supabase'
 
@@ -12,18 +12,25 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 /** Cliente para Server Components e Route Handlers (respeita RLS da sessão) */
-export function createClient() {
+export function createClient(): SupabaseClient<Database> {
   const cookieStore = cookies()
+  // O tipo de retorno de @supabase/ssr está atrelado a uma versão mais antiga
+  // do supabase-js; reafirmamos o tipo do client instalado para que as queries
+  // tipadas resolvam corretamente (em vez de colapsar para `never`).
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get: (name) => cookieStore.get(name)?.value,
-      set: (name, value, options) => { cookieStore.set({ name, value, ...options }) },
-      remove: (name, options) => { cookieStore.set({ name, value: '', ...options }) },
+      get: (name: string) => cookieStore.get(name)?.value,
+      set: (name: string, value: string, options: CookieOptions) => {
+        cookieStore.set({ name, value, ...options })
+      },
+      remove: (name: string, options: CookieOptions) => {
+        cookieStore.set({ name, value: '', ...options })
+      },
     },
-  })
+  }) as unknown as SupabaseClient<Database>
 }
 
 /** Cliente admin com service role — usa apenas em Server Actions protegidas */
-export function createAdminClient() {
+export function createAdminClient(): SupabaseClient<Database> {
   return createSupabase<Database>(supabaseUrl, supabaseServiceRoleKey)
 }

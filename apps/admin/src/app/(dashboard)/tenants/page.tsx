@@ -23,7 +23,7 @@ export default async function TenantsPage({
     .order('created_at', { ascending: false })
 
   if (searchParams.status) {
-    query = query.eq('status', searchParams.status)
+    query = query.eq('status', searchParams.status as 'ativo' | 'inativo' | 'trial' | 'inadimplente')
   }
 
   const { data: tenants } = await query
