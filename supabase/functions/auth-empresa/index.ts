@@ -83,7 +83,9 @@ Deno.serve(async (req) => {
     }
 
     // Busca o email do usuário Auth (verificar_senha_empresa não retorna email)
-    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(empresa.auth_user_id)
+    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(
+      empresa.auth_user_id
+    )
     if (authUserError || !authUserData?.user?.email) {
       console.error('Erro ao buscar usuário Auth da empresa:', authUserError)
       return new Response(
@@ -104,10 +106,10 @@ Deno.serve(async (req) => {
 
     if (updateError) {
       console.error('Erro ao preparar autenticação:', updateError)
-      return new Response(
-        JSON.stringify({ error: 'Erro ao criar sessão.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ error: 'Erro ao criar sessão.' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
@@ -122,16 +124,16 @@ Deno.serve(async (req) => {
 
     if (signInError || !signInData.session) {
       console.error('Erro ao criar sessão:', signInError)
-      return new Response(
-        JSON.stringify({ error: 'Erro ao criar sessão.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ error: 'Erro ao criar sessão.' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    return new Response(
-      JSON.stringify({ session: signInData.session }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ session: signInData.session }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   } catch (err) {
     console.error('Erro inesperado:', err)
     return new Response(JSON.stringify({ error: 'Erro interno.' }), {

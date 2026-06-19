@@ -87,7 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         getAccessToken,
       }}
     >
-
       {children}
     </AuthContext.Provider>
   )

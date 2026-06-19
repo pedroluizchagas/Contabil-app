@@ -87,11 +87,16 @@ export function EmpresaFormPage() {
       if (error) {
         let mensagem = error.message
         try {
-          const body = await (error as any).context?.json()
+          const body = await (error as { context?: Response }).context?.json()
           console.error('[criar-empresa] error body:', body)
           if (body?.error) mensagem = body.error
         } catch (parseErr) {
-          console.error('[criar-empresa] falha ao ler body:', parseErr, 'context:', (error as any).context)
+          console.error(
+            '[criar-empresa] falha ao ler body:',
+            parseErr,
+            'context:',
+            (error as { context?: Response }).context
+          )
         }
         setErro(mensagem)
         setSalvando(false)

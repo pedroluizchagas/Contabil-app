@@ -69,9 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       let mensagem = error.message
       try {
-        const body = await (error as any).context?.json()
+        const body = await (error as { context?: Response }).context?.json()
         if (body?.error) mensagem = body.error
-      } catch { /* response body não legível */ }
+      } catch {
+        /* response body não legível */
+      }
       return traduzirErro(mensagem)
     }
 

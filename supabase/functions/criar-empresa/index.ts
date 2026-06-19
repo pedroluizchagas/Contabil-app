@@ -38,7 +38,10 @@ Deno.serve(async (req) => {
 
     // auth.getUser(token) envia o JWT ao serviço de Auth para verificação —
     // não depende do Edge Runtime verificar a assinatura localmente.
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token)
     if (userError || !user) return r(401, { error: 'Token inválido ou sessão expirada.' })
 
     // 2. Confirmar que o usuário é uma Contabilidade (tenant)
