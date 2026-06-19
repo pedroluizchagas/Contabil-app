@@ -44,15 +44,15 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
   return (
     <div className="p-8">
       <div className="mb-2">
-        <Link href="/tenants" className="text-sm text-gray-500 hover:text-gray-700">
+        <Link href="/tenants" className="text-sm text-ink-muted hover:text-ink">
           ← Tenants
         </Link>
       </div>
 
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{tenant.nome}</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-ink">{tenant.nome}</h1>
+          <p className="text-sm text-ink-muted">
             {formatarCnpj(tenant.cnpj)} · {tenant.email}
           </p>
         </div>
@@ -64,41 +64,41 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         {/* Subscription */}
-        <div className="col-span-1 rounded-xl border border-gray-200 bg-white p-5">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">Subscription</h2>
+        <div className="col-span-1 rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
+          <h2 className="mb-3 text-sm font-semibold text-ink">Subscription</h2>
           {sub ? (
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Plano</span>
+                <span className="text-ink-muted">Plano</span>
                 <span className="font-medium">{sub.planos?.nome}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Valor</span>
+                <span className="text-ink-muted">Valor</span>
                 <span className="font-medium">{formatarMoeda(sub.planos?.preco_mensal ?? 0)}/mês</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Status</span>
+                <span className="text-ink-muted">Status</span>
                 <StatusBadgeSubscription status={sub.status} />
               </div>
               {sub.proximo_vencimento && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Vencimento</span>
+                  <span className="text-ink-muted">Vencimento</span>
                   <span>{formatarData(sub.proximo_vencimento)}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">Limite empresas</span>
+                <span className="text-ink-muted">Limite empresas</span>
                 <span>{sub.planos?.limite_empresas}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Uso atual</span>
+                <span className="text-ink-muted">Uso atual</span>
                 <span className={empresas.length > sub.planos?.limite_empresas ? 'text-red-600 font-semibold' : ''}>
                   {empresas.length} / {sub.planos?.limite_empresas}
                 </span>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-400">Sem subscription ativa.</p>
+            <p className="text-sm text-ink-faint">Sem subscription ativa.</p>
           )}
         </div>
 
@@ -114,16 +114,16 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
       </div>
 
       {/* Lista de empresas */}
-      <div className="rounded-xl border border-gray-200 bg-white">
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-card">
         <div className="border-b border-gray-100 px-6 py-4">
-          <h2 className="font-semibold text-gray-800">Empresas ({empresas.length})</h2>
+          <h2 className="font-semibold text-ink">Empresas ({empresas.length})</h2>
         </div>
         {empresas.length === 0 ? (
-          <p className="py-8 text-center text-sm text-gray-400">Nenhuma empresa cadastrada.</p>
+          <p className="py-8 text-center text-sm text-ink-faint">Nenhuma empresa cadastrada.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-gray-400">
+              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-ink-faint">
                 <th className="px-6 py-3">Nome</th>
                 <th className="px-6 py-3">CNPJ</th>
                 <th className="px-6 py-3">Status</th>
@@ -133,14 +133,14 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
             <tbody>
               {empresas.map((empresa) => (
                 <tr key={empresa.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-gray-900">{empresa.nome}</td>
-                  <td className="px-6 py-3 font-mono text-gray-500 text-xs">{formatarCnpj(empresa.cnpj)}</td>
+                  <td className="px-6 py-3 font-medium text-ink">{empresa.nome}</td>
+                  <td className="px-6 py-3 font-mono text-ink-muted text-xs">{formatarCnpj(empresa.cnpj)}</td>
                   <td className="px-6 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${empresa.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${empresa.ativo ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-ink-muted'}`}>
                       {empresa.ativo ? 'Ativa' : 'Inativa'}
                     </span>
                   </td>
-                  <td className="px-6 py-3 text-xs text-gray-400">{formatarData(empresa.created_at)}</td>
+                  <td className="px-6 py-3 text-xs text-ink-faint">{formatarData(empresa.created_at)}</td>
                 </tr>
               ))}
             </tbody>
@@ -153,12 +153,12 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
 
 function MiniCard({ label, valor, cor = 'gray' }: { label: string; valor: number | string; cor?: string }) {
   const cores: Record<string, string> = {
-    gray: 'text-gray-900', green: 'text-green-600', blue: 'text-blue-600',
+    gray: 'text-ink', green: 'text-brand-dark', blue: 'text-blue-600',
   }
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className={`mt-1 text-2xl font-bold ${cores[cor] ?? 'text-gray-900'}`}>{valor}</p>
+    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-card">
+      <p className="text-xs text-ink-faint">{label}</p>
+      <p className={`mt-1 text-2xl font-bold ${cores[cor] ?? 'text-ink'}`}>{valor}</p>
     </div>
   )
 }

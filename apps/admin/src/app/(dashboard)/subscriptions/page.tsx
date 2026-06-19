@@ -45,10 +45,10 @@ export default async function SubscriptionsPage({
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Subscriptions</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-ink">Subscriptions</h1>
+        <p className="text-sm text-ink-muted">
           {lista.length} assinatura{lista.length !== 1 ? 's' : ''} ·{' '}
-          MRR filtrado: <strong>{formatarMoeda(mrr)}</strong>
+          MRR filtrado: <strong className="text-ink">{formatarMoeda(mrr)}</strong>
         </p>
       </div>
 
@@ -60,8 +60,8 @@ export default async function SubscriptionsPage({
             href={op.valor ? `/subscriptions?status=${op.valor}` : '/subscriptions'}
             className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
               searchParams.status === op.valor || (!searchParams.status && !op.valor)
-                ? 'bg-violet-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-brand text-white'
+                : 'bg-gray-100 text-ink-muted hover:bg-gray-200'
             }`}
           >
             {op.label}
@@ -70,13 +70,13 @@ export default async function SubscriptionsPage({
       </div>
 
       {/* Tabela */}
-      <div className="rounded-xl border border-gray-200 bg-white">
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-card">
         {lista.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-400">Nenhuma subscription encontrada.</p>
+          <p className="py-12 text-center text-sm text-ink-faint">Nenhuma subscription encontrada.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-gray-400">
+              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-ink-faint">
                 <th className="px-6 py-3">Tenant</th>
                 <th className="px-6 py-3">Plano</th>
                 <th className="px-6 py-3">Valor</th>
@@ -94,27 +94,27 @@ export default async function SubscriptionsPage({
                 return (
                   <tr key={sub.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="px-6 py-3">
-                      <Link href={`/tenants/${tenant?.id}`} className="font-medium text-gray-900 hover:text-violet-600">
+                      <Link href={`/tenants/${tenant?.id}`} className="font-medium text-ink hover:text-brand-dark">
                         {tenant?.nome}
                       </Link>
-                      <p className="text-xs text-gray-400">{tenant?.email}</p>
+                      <p className="text-xs text-ink-faint">{tenant?.email}</p>
                     </td>
-                    <td className="px-6 py-3 text-gray-600">{plano?.nome}</td>
-                    <td className="px-6 py-3 font-medium text-gray-900">
+                    <td className="px-6 py-3 text-ink-muted">{plano?.nome}</td>
+                    <td className="px-6 py-3 font-medium text-ink">
                       {formatarMoeda(plano?.preco_mensal ?? 0)}
                     </td>
                     <td className="px-6 py-3">
                       <StatusBadgeSubscription status={sub.status as StatusSubscription} />
                     </td>
-                    <td className="px-6 py-3 text-gray-500">
+                    <td className="px-6 py-3 text-ink-muted">
                       {sub.proximo_vencimento ? formatarData(sub.proximo_vencimento) : '—'}
                     </td>
                     <td className="px-6 py-3">
-                      <span className="font-mono text-xs text-gray-400">
+                      <span className="font-mono text-xs text-ink-faint">
                         {sub.gateway_id ?? '—'}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-xs text-gray-400">
+                    <td className="px-6 py-3 text-xs text-ink-faint">
                       {formatarData(sub.created_at)}
                     </td>
                   </tr>

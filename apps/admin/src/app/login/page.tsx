@@ -48,16 +48,19 @@ export default function LoginPage({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-app-bg">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">ContaHub</h1>
-          <p className="mt-1 text-sm text-gray-500">Painel de Administração</p>
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">
+            C
+          </div>
+          <h1 className="text-2xl font-bold text-white">ContaHub</h1>
+          <p className="mt-1 text-sm text-ink-faint">Painel de Administração</p>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-800">Acesso restrito</h2>
+        <div className="rounded-2xl bg-surface p-8 shadow-card">
+          <h2 className="mb-6 text-lg font-semibold text-ink">Acesso restrito</h2>
 
           {erro && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -75,7 +78,7 @@ export default function LoginPage({
                 required
                 autoFocus
                 placeholder="admin@contabhub.com.br"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
               />
             </div>
 
@@ -87,14 +90,14 @@ export default function LoginPage({
                 onChange={(e) => setSenha(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
               />
             </div>
 
             <button
               type="submit"
               disabled={carregando}
-              className="mt-2 w-full rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50 transition-colors"
+              className="mt-2 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:opacity-50"
             >
               {carregando ? 'Entrando...' : 'Entrar'}
             </button>

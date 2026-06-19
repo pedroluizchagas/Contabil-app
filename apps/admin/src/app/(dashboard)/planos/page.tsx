@@ -24,15 +24,15 @@ export default async function PlanosPage() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Planos</h1>
-        <p className="text-sm text-gray-500">Gerencie os planos de assinatura do ContaHub</p>
+        <h1 className="text-2xl font-bold text-ink">Planos</h1>
+        <p className="text-sm text-ink-muted">Gerencie os planos de assinatura do ContaHub</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Lista de planos */}
         <div className="space-y-4">
           {planos.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400">
+            <div className="rounded-2xl border border-dashed border-gray-300 p-8 text-center text-sm text-ink-faint">
               Nenhum plano cadastrado ainda.
             </div>
           ) : (
@@ -43,37 +43,37 @@ export default async function PlanosPage() {
               return (
                 <div
                   key={plano.id}
-                  className={`rounded-xl border bg-white p-5 ${!plano.ativo ? 'opacity-60' : 'border-gray-200'}`}
+                  className={`rounded-2xl border border-gray-100 bg-white p-5 shadow-card ${!plano.ativo ? 'opacity-60' : ''}`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{plano.nome}</h3>
-                      <p className="text-xl font-bold text-violet-600 mt-0.5">
-                        {formatarMoeda(plano.preco_mensal)}<span className="text-sm font-normal text-gray-400">/mês</span>
+                      <h3 className="font-semibold text-ink">{plano.nome}</h3>
+                      <p className="text-xl font-bold text-brand-dark mt-0.5">
+                        {formatarMoeda(plano.preco_mensal)}<span className="text-sm font-normal text-ink-faint">/mês</span>
                       </p>
                     </div>
                     {!plano.ativo && (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Inativo</span>
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-ink-muted">Inativo</span>
                     )}
                   </div>
 
                   <div className="grid grid-cols-3 gap-3 text-center text-sm mb-3">
                     <div className="rounded-lg bg-gray-50 p-2">
-                      <p className="text-xs text-gray-400">Empresas</p>
-                      <p className="font-semibold">{plano.limite_empresas}</p>
+                      <p className="text-xs text-ink-faint">Empresas</p>
+                      <p className="font-semibold text-ink">{plano.limite_empresas}</p>
                     </div>
                     <div className="rounded-lg bg-gray-50 p-2">
-                      <p className="text-xs text-gray-400">Funcionários</p>
-                      <p className="font-semibold">{plano.limite_funcionarios}</p>
+                      <p className="text-xs text-ink-faint">Funcionários</p>
+                      <p className="font-semibold text-ink">{plano.limite_funcionarios}</p>
                     </div>
                     <div className="rounded-lg bg-gray-50 p-2">
-                      <p className="text-xs text-gray-400">Assinantes</p>
-                      <p className="font-semibold text-green-600">{ativos}</p>
+                      <p className="text-xs text-ink-faint">Assinantes</p>
+                      <p className="font-semibold text-brand-dark">{ativos}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>MRR deste plano: <strong className="text-gray-700">{formatarMoeda(mrr)}</strong></span>
+                  <div className="flex items-center justify-between text-xs text-ink-muted">
+                    <span>MRR deste plano: <strong className="text-ink">{formatarMoeda(mrr)}</strong></span>
                     <PlanoToggle planoId={plano.id} ativo={plano.ativo} />
                   </div>
                 </div>
