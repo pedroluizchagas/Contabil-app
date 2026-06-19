@@ -15,14 +15,20 @@
  * 9. Atualiza o lote com totais e status final
  *
  * POST /functions/v1/process-lote
- * Headers: Authorization: Bearer <service_role_key>
+ * Headers: Authorization: Bearer <jwt do contador | service_role_key>
  * Body: {
  *   "lote_id": "uuid",
  *   "tipo": "holerite" | "ferias",
  *   "mes_referencia": 3,
  *   "ano_referencia": 2026,
- *   "estrategia": { "tipo": "codigo" }  // opcional, padrão: codigo
+ *   "estrategia": { "tipo": "codigo" }, // opcional, padrão: codigo
+ *   "dry_run": false                    // opcional; ver abaixo
  * }
+ *
+ * dry_run = true: NÃO grava documentos nem altera o lote. Apenas devolve a
+ * previsão do matching (quais páginas vão para qual funcionário, páginas sem
+ * associação e funcionários sem páginas). Serve para auditar um PDF novo de um
+ * software contábil antes de processá-lo de verdade.
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -33,10 +39,63 @@ import type { LoteRow, FuncionarioRow, ResultadoDocumento, EstrategiaParser } fr
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+/** Decodifica o payload de um JWT (sem verificar assinatura). */
+function decodificarJwt(token: string): Record<string, unknown> | null {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(json) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Valida que o chamador pode processar o lote do tenant informado (B4).
+ *
+ * - O service_role (backend confiável) é sempre permitido.
+ * - Um usuário só pode disparar o processamento de lotes do PRÓPRIO tenant e
+ *   apenas com o perfil 'contabilidade'. A autenticidade do token de usuário é
+ *   confirmada via auth.getUser() (rejeita tokens forjados/expirados).
+ */
+async function validarAcessoTenant(
+  authHeader: string | null,
+  loteTenantId: string
+): Promise<{ ok: boolean; status: number; error?: string }> {
+  const token = (authHeader ?? '').replace(/^Bearer\s+/i, '').trim()
+  if (!token) {
+    return { ok: false, status: 401, error: 'Token de autenticação ausente.' }
+  }
+
+  const claims = decodificarJwt(token)
+
+  // service_role: chamada interna/backend confiável.
+  if (claims?.role === 'service_role') {
+    return { ok: true, status: 200 }
+  }
+
+  // Token de usuário: confirma autenticidade antes de confiar nas claims.
+  const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  })
+  const { data: userData, error: userError } = await authClient.auth.getUser()
+  if (userError || !userData?.user) {
+    return { ok: false, status: 401, error: 'Token inválido.' }
+  }
+
+  if (claims?.user_role !== 'contabilidade' || claims?.tenant_id !== loteTenantId) {
+    return { ok: false, status: 403, error: 'Acesso negado a este lote.' }
+  }
+
+  return { ok: true, status: 200 }
 }
 
 Deno.serve(async (req) => {
@@ -53,11 +112,17 @@ Deno.serve(async (req) => {
       mes_referencia,
       ano_referencia,
       estrategia = { tipo: 'codigo' } as EstrategiaParser,
+      // dry_run: apenas calcula e devolve a previsão de matching (quais páginas
+      // vão para qual funcionário), SEM gravar documentos nem alterar o lote.
+      // Útil para auditar um PDF novo antes de processar de verdade.
+      dry_run = false,
     } = await req.json()
 
     // ── Validação básica ──────────────────────────────────────────────────────
     if (!lote_id || !tipo || !mes_referencia || !ano_referencia) {
-      return resposta(400, { error: 'lote_id, tipo, mes_referencia e ano_referencia são obrigatórios.' })
+      return resposta(400, {
+        error: 'lote_id, tipo, mes_referencia e ano_referencia são obrigatórios.',
+      })
     }
 
     if (!['holerite', 'ferias'].includes(tipo)) {
@@ -75,6 +140,12 @@ Deno.serve(async (req) => {
       return resposta(404, { error: 'Lote não encontrado.' })
     }
 
+    // ── Validação de acesso ao tenant (B4) ────────────────────────────────────
+    const acesso = await validarAcessoTenant(req.headers.get('Authorization'), lote.tenant_id)
+    if (!acesso.ok) {
+      return resposta(acesso.status, { error: acesso.error })
+    }
+
     if (lote.status === 'processando') {
       return resposta(409, { error: 'Lote já está sendo processado.' })
     }
@@ -83,8 +154,10 @@ Deno.serve(async (req) => {
       return resposta(409, { error: 'Lote já foi processado.' })
     }
 
-    // Marca como "processando"
-    await supabase.from('lotes').update({ status: 'processando' }).eq('id', lote_id)
+    // Marca como "processando" (dry-run não altera o estado do lote)
+    if (!dry_run) {
+      await supabase.from('lotes').update({ status: 'processando' }).eq('id', lote_id)
+    }
 
     // ── Carrega funcionários ativos da empresa ────────────────────────────────
     const { data: funcionarios, error: funcError } = await supabase
@@ -94,7 +167,11 @@ Deno.serve(async (req) => {
       .eq('ativo', true)
 
     if (funcError || !funcionarios?.length) {
-      await finalizarLoteComErro(supabase, lote_id, 'Nenhum funcionário ativo encontrado para esta empresa.')
+      await finalizarLoteComErro(
+        supabase,
+        lote_id,
+        'Nenhum funcionário ativo encontrado para esta empresa.'
+      )
       return resposta(422, { error: 'Nenhum funcionário ativo encontrado.' })
     }
 
@@ -122,7 +199,7 @@ Deno.serve(async (req) => {
     let totalPaginas: number
 
     try {
-      textosPorPagina = extrairTextoPorPagina(pdfBytes)
+      textosPorPagina = await extrairTextoPorPagina(pdfBytes)
       totalPaginas = await contarPaginas(pdfBytes)
 
       // Garante que temos o mesmo número de entradas que páginas reais
@@ -130,6 +207,13 @@ Deno.serve(async (req) => {
         textosPorPagina.push('')
       }
       textosPorPagina = textosPorPagina.slice(0, totalPaginas)
+
+      // Se nenhuma página rendeu texto, a extração falhou (PDF escaneado ou
+      // formato não suportado) — cai para a estratégia de páginas-fixas.
+      if (textosPorPagina.every((t) => t.trim() === '')) {
+        estrategia.tipo = 'paginas-fixas'
+        estrategia.paginas_por_funcionario = Math.floor(totalPaginas / funcionarios.length) || 1
+      }
     } catch (err) {
       console.error('Erro na extração de texto:', err)
       // Fallback: usa estratégia de páginas fixas
@@ -139,7 +223,9 @@ Deno.serve(async (req) => {
       estrategia.paginas_por_funcionario = Math.floor(totalPaginas / funcionarios.length) || 1
     }
 
-    console.log(`PDF carregado: ${totalPaginas} páginas, ${funcionarios.length} funcionários, estratégia: ${estrategia.tipo}`)
+    console.log(
+      `PDF carregado: ${totalPaginas} páginas, ${funcionarios.length} funcionários, estratégia: ${estrategia.tipo}`
+    )
 
     // ── Associa páginas a funcionários ────────────────────────────────────────
     const associacoes = associarPaginasFuncionarios(
@@ -147,6 +233,35 @@ Deno.serve(async (req) => {
       funcionarios as FuncionarioRow[],
       estrategia
     )
+
+    // ── dry-run: devolve a previsão sem gravar nada ───────────────────────────
+    if (dry_run) {
+      const paginasAssociadas = new Set(associacoes.flatMap((a) => a.indices_pagina))
+      const idsAssociados = new Set(associacoes.map((a) => a.funcionario.id))
+
+      const paginasSemAssociacao: number[] = []
+      for (let i = 0; i < totalPaginas; i++) {
+        if (!paginasAssociadas.has(i)) paginasSemAssociacao.push(i + 1)
+      }
+
+      return resposta(200, {
+        dry_run: true,
+        total_paginas: totalPaginas,
+        estrategia: estrategia.tipo,
+        total_associacoes: associacoes.length,
+        associacoes: associacoes.map((a) => ({
+          funcionario_id: a.funcionario.id,
+          nome: a.funcionario.nome,
+          codigo: a.funcionario.codigo,
+          // páginas em 1-based, mais legível para auditoria humana
+          paginas: a.indices_pagina.map((i) => i + 1),
+        })),
+        paginas_sem_associacao: paginasSemAssociacao,
+        funcionarios_sem_paginas: (funcionarios as FuncionarioRow[])
+          .filter((f) => !idsAssociados.has(f.id))
+          .map((f) => ({ id: f.id, nome: f.nome, codigo: f.codigo })),
+      })
+    }
 
     if (associacoes.length === 0) {
       await finalizarLoteComErro(
@@ -162,10 +277,7 @@ Deno.serve(async (req) => {
     const tokensParaNotificacao: string[] = []
     const idsParaNotificacao: string[] = []
 
-    await supabase
-      .from('lotes')
-      .update({ total_documentos: associacoes.length })
-      .eq('id', lote_id)
+    await supabase.from('lotes').update({ total_documentos: associacoes.length }).eq('id', lote_id)
 
     for (const associacao of associacoes) {
       const resultado = await processarDocumentoFuncionario({
@@ -200,7 +312,14 @@ Deno.serve(async (req) => {
 
       if (tokens?.length) {
         const mensagens = tokens.map((t: { token: string; funcionario_id: string }) =>
-          montarMensagem(tipo, mes_referencia, ano_referencia, empresa?.nome ?? '', t.token, t.funcionario_id)
+          montarMensagem(
+            tipo,
+            mes_referencia,
+            ano_referencia,
+            empresa?.nome ?? '',
+            t.token,
+            t.funcionario_id
+          )
         )
 
         const resultadosPush = await enviarNotificacoes(mensagens)
@@ -222,10 +341,7 @@ Deno.serve(async (req) => {
     const totalErros = resultados.filter((r) => !r.sucesso).length
     const statusFinal = totalErros === resultados.length ? 'erro' : 'concluido'
 
-    await supabase
-      .from('lotes')
-      .update({ status: statusFinal })
-      .eq('id', lote_id)
+    await supabase.from('lotes').update({ status: statusFinal }).eq('id', lote_id)
 
     const resumo = {
       lote_id,
@@ -307,18 +423,19 @@ async function processarDocumentoFuncionario({
       throw new Error(`Erro ao criar documento: ${docError?.message}`)
     }
 
-    // Registra evento de envio
-    await supabase.from('eventos_documento').insert({
-      documento_id: documento.id,
-      funcionario_id: funcionario.id,
-      tipo: 'visualizado',
-      // evento inicial registrado pelo sistema (não pelo funcionário)
-    })
+    // NÃO registramos evento 'visualizado' aqui. O documento recém-gerado
+    // ainda não foi lido por ninguém — o status 'enviado' em `documentos`
+    // já representa "foi gerado/disponibilizado". O evento 'visualizado'
+    // deve ser inserido apenas pelo app (mobile/empresa) quando o
+    // funcionário efetivamente abre o PDF, preservando a métrica de leitura.
 
     return { funcionario_id: funcionario.id, sucesso: true, storage_path: storagePath }
   } catch (err) {
     const mensagemErro = err instanceof Error ? err.message : String(err)
-    console.error(`Erro ao processar funcionário ${funcionario.id} (${funcionario.nome}):`, mensagemErro)
+    console.error(
+      `Erro ao processar funcionário ${funcionario.id} (${funcionario.nome}):`,
+      mensagemErro
+    )
     return { funcionario_id: funcionario.id, sucesso: false, erro: mensagemErro }
   }
 }

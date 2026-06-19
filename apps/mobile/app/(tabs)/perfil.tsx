@@ -8,21 +8,17 @@ export default function PerfilScreen() {
   const router = useRouter()
 
   async function handleLogout() {
-    Alert.alert(
-      'Sair',
-      'Deseja sair da sua conta?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            await logout()
-            router.replace('/(auth)/login')
-          },
+    Alert.alert('Sair', 'Deseja sair da sua conta?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sair',
+        style: 'destructive',
+        onPress: async () => {
+          await logout()
+          router.replace('/(auth)/login')
         },
-      ]
-    )
+      },
+    ])
   }
 
   return (

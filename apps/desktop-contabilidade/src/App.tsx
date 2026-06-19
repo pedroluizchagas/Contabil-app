@@ -35,7 +35,10 @@ export default function App() {
             <Route path="empresas/:empresaId" element={<EmpresaFormPage />} />
             <Route path="empresas/:empresaId/funcionarios" element={<FuncionariosPage />} />
             <Route path="empresas/:empresaId/funcionarios/novo" element={<FuncionarioFormPage />} />
-            <Route path="empresas/:empresaId/funcionarios/:funcId" element={<FuncionarioFormPage />} />
+            <Route
+              path="empresas/:empresaId/funcionarios/:funcId"
+              element={<FuncionarioFormPage />}
+            />
             <Route path="lotes" element={<LotesPage />} />
             <Route path="lotes/upload" element={<UploadLotePage />} />
             <Route path="lotes/:loteId" element={<LoteDetalhesPage />} />

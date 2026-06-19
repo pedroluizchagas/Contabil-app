@@ -48,7 +48,9 @@ export function AlterarStatusTenant({
         className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 disabled:opacity-50"
       >
         {opcoes.map((op) => (
-          <option key={op.valor} value={op.valor}>{op.label}</option>
+          <option key={op.valor} value={op.valor}>
+            {op.label}
+          </option>
         ))}
       </select>
     </div>

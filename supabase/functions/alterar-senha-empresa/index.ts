@@ -35,19 +35,19 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
     // Verifica se a senha atual está correta
-    const { data: valido } = await supabase
-      .rpc('verificar_senha_empresa_por_id', {
-        p_empresa_id: empresa_id,
-        p_senha: senha_atual,
-      }) as { data: boolean }
+    const { data: valido } = (await supabase.rpc('verificar_senha_empresa_por_id', {
+      p_empresa_id: empresa_id,
+      p_senha: senha_atual,
+    })) as { data: boolean }
 
     if (!valido) {
       return r(401, { error: 'Senha atual incorreta.' })
     }
 
     // Gera hash da nova senha
-    const { data: novoHash } = await supabase
-      .rpc('hash_texto', { p_texto: nova_senha }) as { data: string }
+    const { data: novoHash } = (await supabase.rpc('hash_texto', { p_texto: nova_senha })) as {
+      data: string
+    }
 
     // Atualiza a senha
     const { error: updateError } = await supabase

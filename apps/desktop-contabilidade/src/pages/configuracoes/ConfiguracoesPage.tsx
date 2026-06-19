@@ -4,7 +4,11 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button, Card, CardContent, Campo, AlertaErro, PageHeader, Input } from '@/components/ui'
 
 /* ── Section wrapper ─────────────────────────────────────────────── */
-function Section({ titulo, descricao, children }: {
+function Section({
+  titulo,
+  descricao,
+  children,
+}: {
   titulo: string
   descricao: string
   children: React.ReactNode
@@ -47,14 +51,20 @@ export function ConfiguracoesPage() {
   /* Iniciais do avatar */
   const exibicao = nome.trim() || email
   const iniciais = exibicao
-    .split(/[\s@]/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('')
+    .split(/[\s@]/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? '')
+    .join('')
 
   /* ── Salvar nome ─────────────────────────────────────────────── */
   async function handleSalvarNome(e: FormEvent) {
     e.preventDefault()
     setErroNome(null)
     setSucessoNome(false)
-    if (!nome.trim()) { setErroNome('O nome não pode ficar em branco.'); return }
+    if (!nome.trim()) {
+      setErroNome('O nome não pode ficar em branco.')
+      return
+    }
     setSalvarNome(true)
     const { error } = await supabase.auth.updateUser({ data: { full_name: nome.trim() } })
     setSalvarNome(false)
@@ -101,18 +111,11 @@ export function ConfiguracoesPage() {
 
   return (
     <div className="p-8">
-      <PageHeader
-        titulo="Configurações"
-        subtitulo="Gerencie seu perfil e preferências de conta"
-      />
+      <PageHeader titulo="Configurações" subtitulo="Gerencie seu perfil e preferências de conta" />
 
       <div className="max-w-3xl space-y-10">
-
         {/* ── Perfil ──────────────────────────────────────────────── */}
-        <Section
-          titulo="Perfil"
-          descricao="Informações que identificam sua conta no sistema."
-        >
+        <Section titulo="Perfil" descricao="Informações que identificam sua conta no sistema.">
           {/* Avatar */}
           <div className="mb-6 flex items-center gap-4">
             <div
@@ -139,18 +142,16 @@ export function ConfiguracoesPage() {
               <Input
                 type="text"
                 value={nome}
-                onChange={(e) => { setNome(e.target.value); setSucessoNome(false) }}
+                onChange={(e) => {
+                  setNome(e.target.value)
+                  setSucessoNome(false)
+                }}
                 placeholder="Seu nome completo"
               />
             </Campo>
 
             <Campo label="E-mail">
-              <Input
-                type="email"
-                value={email}
-                disabled
-                className="cursor-not-allowed"
-              />
+              <Input type="email" value={email} disabled className="cursor-not-allowed" />
             </Campo>
 
             <div className="flex items-center gap-3">
@@ -165,10 +166,7 @@ export function ConfiguracoesPage() {
         <hr className="border-gray-100" />
 
         {/* ── Segurança ────────────────────────────────────────────── */}
-        <Section
-          titulo="Segurança"
-          descricao="Mantenha sua conta protegida com uma senha forte."
-        >
+        <Section titulo="Segurança" descricao="Mantenha sua conta protegida com uma senha forte.">
           <AlertaErro mensagem={erroSenha} />
           {sucessoSenha && (
             <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -181,7 +179,10 @@ export function ConfiguracoesPage() {
               <Input
                 type="password"
                 value={senhaAtual}
-                onChange={(e) => { setSenhaAtual(e.target.value); setSucessoSenha(false) }}
+                onChange={(e) => {
+                  setSenhaAtual(e.target.value)
+                  setSucessoSenha(false)
+                }}
                 placeholder="••••••••"
                 required
               />
@@ -191,7 +192,10 @@ export function ConfiguracoesPage() {
               <Input
                 type="password"
                 value={novaSenha}
-                onChange={(e) => { setNovaSenha(e.target.value); setSucessoSenha(false) }}
+                onChange={(e) => {
+                  setNovaSenha(e.target.value)
+                  setSucessoSenha(false)
+                }}
                 placeholder="••••••••"
                 required
                 minLength={8}
@@ -202,7 +206,10 @@ export function ConfiguracoesPage() {
               <Input
                 type="password"
                 value={confirmarSenha}
-                onChange={(e) => { setConfirmarSenha(e.target.value); setSucessoSenha(false) }}
+                onChange={(e) => {
+                  setConfirmarSenha(e.target.value)
+                  setSucessoSenha(false)
+                }}
                 placeholder="••••••••"
                 required
               />
@@ -218,10 +225,7 @@ export function ConfiguracoesPage() {
         <hr className="border-gray-100" />
 
         {/* ── Plano ────────────────────────────────────────────────── */}
-        <Section
-          titulo="Plano atual"
-          descricao="Detalhes da sua assinatura ContaHub."
-        >
+        <Section titulo="Plano atual" descricao="Detalhes da sua assinatura ContaHub.">
           <div className="flex items-start justify-between">
             <div>
               <div className="mb-1 flex items-center gap-2">
@@ -238,7 +242,6 @@ export function ConfiguracoesPage() {
             </Button>
           </div>
         </Section>
-
       </div>
     </div>
   )

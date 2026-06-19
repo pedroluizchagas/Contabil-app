@@ -3,14 +3,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native'
+import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native'
 import * as Linking from 'expo-linking'
@@ -21,7 +14,21 @@ import type { Database } from '@contabhub/supabase'
 
 type StatusDoc = Database['public']['Views']['v_status_documentos']['Row']
 
-const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const MESES = [
+  '',
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
 
 export default function HomeScreen() {
   const { funcionario } = useAuth()
@@ -123,7 +130,8 @@ export default function HomeScreen() {
                 </View>
                 <View className="flex-1">
                   <Text className="font-semibold text-amber-900">
-                    {naoLidos.length} documento{naoLidos.length > 1 ? 's' : ''} pendente{naoLidos.length > 1 ? 's' : ''}
+                    {naoLidos.length} documento{naoLidos.length > 1 ? 's' : ''} pendente
+                    {naoLidos.length > 1 ? 's' : ''}
                   </Text>
                   <Text className="text-xs text-amber-700">Toque para visualizar</Text>
                 </View>
@@ -156,25 +164,25 @@ export default function HomeScreen() {
                   }`}
                 >
                   {/* Ícone */}
-                  <View className={`mr-3 h-10 w-10 items-center justify-center rounded-xl ${
-                    doc.tipo === 'holerite' ? 'bg-blue-50' : 'bg-purple-50'
-                  }`}>
+                  <View
+                    className={`mr-3 h-10 w-10 items-center justify-center rounded-xl ${
+                      doc.tipo === 'holerite' ? 'bg-blue-50' : 'bg-purple-50'
+                    }`}
+                  >
                     <Text className="text-lg">{doc.tipo === 'holerite' ? '💵' : '🏖'}</Text>
                   </View>
 
                   {/* Info */}
                   <View className="flex-1">
                     <Text className="text-sm font-medium text-gray-900">
-                      {doc.tipo === 'holerite' ? 'Holerite' : 'Recibo de Férias'}
-                      {' '}— {MESES[doc.mes_referencia]}/{doc.ano_referencia}
+                      {doc.tipo === 'holerite' ? 'Holerite' : 'Recibo de Férias'} —{' '}
+                      {MESES[doc.mes_referencia]}/{doc.ano_referencia}
                     </Text>
                     <StatusLine doc={doc} />
                   </View>
 
                   {/* Badge não lido */}
-                  {!doc.visualizado_em && (
-                    <View className="h-2 w-2 rounded-full bg-amber-500" />
-                  )}
+                  {!doc.visualizado_em && <View className="h-2 w-2 rounded-full bg-amber-500" />}
                 </Pressable>
               ))
             )}
@@ -185,11 +193,7 @@ export default function HomeScreen() {
             <View className="mb-6 rounded-2xl bg-white border border-gray-100 p-4">
               <Text className="mb-3 font-semibold text-gray-800">Resumo {anoAtual}</Text>
               <View className="flex-row gap-3">
-                <ResumoItem
-                  label="Enviados"
-                  valor={docsAnoAtual.length}
-                  cor="text-gray-700"
-                />
+                <ResumoItem label="Enviados" valor={docsAnoAtual.length} cor="text-gray-700" />
                 <ResumoItem
                   label="Lidos"
                   valor={docsAnoAtual.filter((d) => d.visualizado_em).length}

@@ -45,7 +45,7 @@ export function FuncionariosPage() {
     (f) =>
       f.nome.toLowerCase().includes(busca.toLowerCase()) ||
       f.codigo.toLowerCase().includes(busca.toLowerCase()) ||
-      f.email.toLowerCase().includes(busca.toLowerCase()),
+      f.email.toLowerCase().includes(busca.toLowerCase())
   )
 
   const ativos = funcionarios.filter((f) => f.ativo).length
@@ -67,7 +67,12 @@ export function FuncionariosPage() {
               className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path
+                  d="M7 1v12M1 7h12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
               Novo Funcionário
             </Link>
@@ -85,7 +90,12 @@ export function FuncionariosPage() {
           leftIcon={
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4" />
-              <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <path
+                d="M9.5 9.5L13 13"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
             </svg>
           }
         />
@@ -98,7 +108,9 @@ export function FuncionariosPage() {
         ) : filtrados.length === 0 ? (
           <EmptyState
             icone="👤"
-            titulo={busca ? 'Nenhum funcionário encontrado.' : 'Nenhum funcionário cadastrado ainda.'}
+            titulo={
+              busca ? 'Nenhum funcionário encontrado.' : 'Nenhum funcionário cadastrado ainda.'
+            }
             acao={
               !busca && (
                 <Link to={`/empresas/${empresaId}/funcionarios/novo`}>
@@ -112,7 +124,10 @@ export function FuncionariosPage() {
             <thead>
               <tr className="border-b border-gray-100">
                 {['Nome', 'Código', 'E-mail', 'Status', 'Ações'].map((col) => (
-                  <th key={col} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint">
+                  <th
+                    key={col}
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint"
+                  >
                     {col}
                   </th>
                 ))}
@@ -120,7 +135,10 @@ export function FuncionariosPage() {
             </thead>
             <tbody>
               {filtrados.map((func) => (
-                <tr key={func.id} className="border-b border-gray-50 transition-colors hover:bg-gray-50/60">
+                <tr
+                  key={func.id}
+                  className="border-b border-gray-50 transition-colors hover:bg-gray-50/60"
+                >
                   <td className="px-6 py-3.5 font-medium text-ink">{func.nome}</td>
                   <td className="px-6 py-3.5 font-mono text-sm text-ink-muted">{func.codigo}</td>
                   <td className="px-6 py-3.5 text-ink-muted">{func.email}</td>
@@ -160,7 +178,10 @@ export function FuncionariosPage() {
         <ImportacaoExcel
           empresaId={empresaId!}
           onFechar={() => setMostrarImportacao(false)}
-          onConcluir={() => { setMostrarImportacao(false); carregarFuncionarios() }}
+          onConcluir={() => {
+            setMostrarImportacao(false)
+            carregarFuncionarios()
+          }}
         />
       )}
     </div>

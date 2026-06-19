@@ -17,7 +17,6 @@ import { useAuth } from '@/contexts/AuthContext'
 // Configuração global: mostra notificações mesmo com app em foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldShowBanner: true,
     shouldShowList: true,
     shouldPlaySound: true,
@@ -56,9 +55,9 @@ export function useNotifications() {
 
     if (!token) return
 
-    // Salva/atualiza no banco. A unique key é (funcionario_id, token),
-    // permitindo múltiplos dispositivos por funcionário; reativa o token
-    // caso já exista para este dispositivo.
+    // Salva/atualiza no banco. A migration 0009 permite múltiplos
+    // dispositivos por funcionário (UNIQUE funcionario_id,token), então o
+    // conflito é resolvido pela combinação dos dois campos.
     await supabase.from('expo_push_tokens').upsert(
       {
         funcionario_id: funcionario!.id,
@@ -74,7 +73,7 @@ export function useNotifications() {
         name: 'Novos Documentos',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#7DC82E',
+        lightColor: '#0d9488',
       })
     }
   }

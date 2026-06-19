@@ -9,8 +9,14 @@
 
 **ContaHub** é um SaaS multi-tenant que permite contabilidades enviarem holerites e recibos de férias de forma automatizada e individualizada para cada funcionário, com assinatura digital e rastreabilidade de leitura.
 
-**Modelo de negócio:** Recorrência mensal por contabilidade (tenant).
+**Modelo de negócio:** Recorrência mensal por contabilidade (tenant), via Stripe.
 **Escala alvo:** 100 a 1.000 contabilidades (tenants).
+
+**Onboarding fechado (invite-only):** **não há cadastro público**. A landing
+page é apenas marketing, sem nenhuma conexão com o backend. As contabilidades
+são qualificadas e aprovadas manualmente pelo owner, que as provisiona pelo
+Admin SaaS (cria o tenant + a assinatura no Stripe). Decisão tomada para
+proteger a plataforma e curar quem assina. Ver `docs/BILLING_E_ONBOARDING.md`.
 
 ---
 
@@ -37,12 +43,12 @@ Contabilidade (tenant)
 
 ### Módulos do Sistema
 
-| Módulo              | Stack                      | Usuário        | Diretório                       |
-|---------------------|----------------------------|----------------|---------------------------------|
-| App Contabilidade   | Tauri v2 + React + TS      | Contador       | `apps/desktop-contabilidade/`   |
-| App Empresa         | Tauri v2 + React + TS      | Empresa cliente| `apps/desktop-empresa/`         |
-| App Funcionário     | Expo SDK + React Native    | Funcionário    | `apps/mobile/`                  |
-| Admin SaaS          | Next.js 14                 | Owner          | `apps/admin/`                   |
+| Módulo            | Stack                   | Usuário         | Diretório                     |
+| ----------------- | ----------------------- | --------------- | ----------------------------- |
+| App Contabilidade | Tauri v2 + React + TS   | Contador        | `apps/desktop-contabilidade/` |
+| App Empresa       | Tauri v2 + React + TS   | Empresa cliente | `apps/desktop-empresa/`       |
+| App Funcionário   | Expo SDK + React Native | Funcionário     | `apps/mobile/`                |
+| Admin SaaS        | Next.js 14              | Owner           | `apps/admin/`                 |
 
 ---
 
@@ -51,7 +57,7 @@ Contabilidade (tenant)
 ### Backend & Dados
 
 | Camada         | Tecnologia              | Função                               |
-|----------------|-------------------------|--------------------------------------|
+| -------------- | ----------------------- | ------------------------------------ |
 | Banco de dados | Supabase (PostgreSQL)   | Dados relacionais com RLS            |
 | Autenticação   | Supabase Auth           | 3 perfis de usuário                  |
 | Storage        | Supabase Storage        | PDFs por tenant/empresa/funcionário  |
@@ -60,12 +66,12 @@ Contabilidade (tenant)
 
 ### Frontend
 
-| App                  | Stack                                    | Alvo                       |
-|----------------------|------------------------------------------|----------------------------|
-| Desktop Contabilidade| Tauri v2 + React + TypeScript + Tailwind | Windows (prioritário), macOS |
-| Desktop Empresa      | Tauri v2 + React + TypeScript + Tailwind | Windows (prioritário), macOS |
-| Mobile Funcionário   | Expo SDK + React Native + NativeWind     | Android (prioritário), iOS |
-| Admin Web            | Next.js 14 + Vercel                      | Web                        |
+| App                   | Stack                                    | Alvo                         |
+| --------------------- | ---------------------------------------- | ---------------------------- |
+| Desktop Contabilidade | Tauri v2 + React + TypeScript + Tailwind | Windows (prioritário), macOS |
+| Desktop Empresa       | Tauri v2 + React + TypeScript + Tailwind | Windows (prioritário), macOS |
+| Mobile Funcionário    | Expo SDK + React Native + NativeWind     | Android (prioritário), iOS   |
+| Admin Web             | Next.js 14 + Vercel                      | Web                          |
 
 ### Design System
 
@@ -76,13 +82,18 @@ Contabilidade (tenant)
 
 ### Serviços Externos
 
-| Serviço                 | Função                                    |
-|-------------------------|-------------------------------------------|
-| Autentique              | Assinatura digital com validade jurídica  |
-| Pagar.me                | Billing recorrente (PIX + boleto + cartão)|
-| Resend                  | E-mails transacionais                     |
-| Expo Push Notifications | Notificações push mobile                  |
-| Sentry                  | Monitoramento de erros                    |
+| Serviço                 | Função                                          |
+| ----------------------- | ----------------------------------------------- |
+| Autentique              | Assinatura digital com validade jurídica        |
+| Stripe                  | Billing recorrente (cartão + Pix + boleto, BRL) |
+| Resend                  | E-mails transacionais                           |
+| Expo Push Notifications | Notificações push mobile                        |
+| Sentry                  | Monitoramento de erros                          |
+
+> **Billing via Stripe (modelo hosted):** usamos **Stripe Checkout** (pagamento)
+> e **Stripe Customer Portal** (trocar cartão, ver faturas). A cobrança em
+> atraso (dunning) é delegada ao Stripe (Smart Retries + e-mails do Stripe);
+> nosso `stripe-webhook` apenas reage ao status para liberar/bloquear o tenant.
 
 ---
 
@@ -117,11 +128,23 @@ Contabilidade (tenant)
 
 ```sql
 -- Tenants (Contabilidades)
-tenants (id, nome, cnpj, email, plano, status, created_at)
+tenants (id, nome, cnpj, email, plano, status, stripe_customer_id, created_at)
 
--- Planos e Billing
-planos (id, nome, preco_mensal, limite_empresas, limite_funcionarios)
-subscriptions (id, tenant_id, plano_id, status, proximo_vencimento, gateway_id)
+-- Planos e Billing (Stripe)
+planos (id, nome, preco_mensal, limite_empresas, limite_funcionarios, stripe_price_id)
+subscriptions (id, tenant_id, plano_id, status, proximo_vencimento, stripe_subscription_id)
+  status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'  (alinhado ao Stripe)
+
+-- Funil de onboarding (CRM leve — invite-only)
+convites (id, nome, cnpj, email, plano_id, status, notas, created_at)
+  status: 'lead' | 'contatado' | 'aprovado' | 'ativo' | 'recusado'
+
+-- Idempotência de webhooks (Stripe / Autentique)
+webhook_eventos (id, gateway, event_id, tipo, payload, processado_em, created_at)
+  UNIQUE (gateway, event_id)
+
+-- Faturas (espelho das invoices do Stripe)
+faturas (id, tenant_id, subscription_id, stripe_invoice_id, valor, status, vencimento, paga_em, created_at)
 
 -- Empresas (clientes da contabilidade)
 empresas (id, tenant_id, nome, cnpj, senha_hash, email, ativo, created_at)
@@ -162,13 +185,18 @@ CREATE POLICY "tenant_isolation" ON <tabela>
 
 ## Fluxos de Autenticação
 
-| Perfil        | Credenciais                               | Mecanismo                              |
-|---------------|-------------------------------------------|----------------------------------------|
-| Contabilidade | E-mail + senha                            | Supabase Auth padrão                   |
-| Empresa       | CNPJ + senha                              | Supabase Auth com campo customizado    |
+| Perfil        | Credenciais                                  | Mecanismo                                 |
+| ------------- | -------------------------------------------- | ----------------------------------------- |
+| Contabilidade | E-mail + senha                               | Supabase Auth padrão                      |
+| Empresa       | CNPJ + senha                                 | Supabase Auth com campo customizado       |
 | Funcionário   | CPF + data de nascimento + código por e-mail | Supabase Auth com verificação em 2 etapas |
 
 O JWT deve conter `tenant_id` e `role` no payload para que o RLS funcione corretamente.
+
+> **Sem signup público:** `enable_signup = false` no Supabase Auth. O usuário do
+> contador é criado pelo Admin no provisionamento (service role) e recebe um
+> link para definir a senha (convite por e-mail via Resend). Empresa e
+> funcionário já têm logins customizados.
 
 ---
 
@@ -188,9 +216,24 @@ Função principal responsável pelo split de PDF:
 8. Atualiza o `lote` com totais e status
 
 **Estratégia de parsing de PDF:**
+
 - Preferir parsing por texto (PDFs gerados digitalmente)
 - Evitar OCR no MVP (complexidade alta)
 - Testar com PDFs reais de: Domínio, Alterdata, Questor (coletar amostras antes de implementar)
+
+### Billing e Onboarding (Stripe)
+
+- `stripe-webhook` — recebe eventos do Stripe, valida a assinatura
+  (`Stripe-Signature`), garante idempotência (`webhook_eventos.event_id`) e
+  sincroniza `subscriptions`/`faturas` + o status do tenant.
+- `provisionar-tenant` — **ação do Admin** (não pública): cria `tenants` +
+  usuário do contador + `Customer`/`Subscription` no Stripe (com trial) e
+  dispara o e-mail de boas-vindas (Resend).
+- `stripe-portal` — gera uma sessão do Stripe Customer Portal para o contador
+  gerenciar pagamento/faturas.
+- `enviar-email` — wrapper sobre o Resend (templates transacionais).
+
+Detalhes completos em `docs/BILLING_E_ONBOARDING.md`.
 
 ---
 
@@ -260,7 +303,8 @@ SUPABASE_LOCAL_URL=http://localhost:54321
 
 # Serviços externos
 AUTENTIQUE_API_KEY=
-PAGARME_API_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 RESEND_API_KEY=
 
 # Admin (Next.js)
@@ -319,18 +363,18 @@ pnpm --filter mobile expo build
 
 ## Fases do Projeto (Status)
 
-| Fase | Descrição                    | Status      |
-|------|------------------------------|-------------|
-| 0    | Fundação do Monorepo         | Pendente    |
-| 1    | Banco de Dados e Auth        | Pendente    |
-| 2    | Engine de Split de PDF       | Pendente    |
-| 3    | App Desktop: Contabilidade   | Pendente    |
-| 4    | App Desktop: Empresa         | Pendente    |
-| 5    | App Mobile: Funcionário      | Pendente    |
-| 6    | Billing e Planos             | Pendente    |
-| 7    | Admin SaaS                   | Pendente    |
-| 8    | Beta com Contabilidades Reais| Pendente    |
-| 9    | Lançamento MVP               | Pendente    |
+| Fase | Descrição                     | Status   |
+| ---- | ----------------------------- | -------- |
+| 0    | Fundação do Monorepo          | Pendente |
+| 1    | Banco de Dados e Auth         | Pendente |
+| 2    | Engine de Split de PDF        | Pendente |
+| 3    | App Desktop: Contabilidade    | Pendente |
+| 4    | App Desktop: Empresa          | Pendente |
+| 5    | App Mobile: Funcionário       | Pendente |
+| 6    | Billing e Planos              | Pendente |
+| 7    | Admin SaaS                    | Pendente |
+| 8    | Beta com Contabilidades Reais | Pendente |
+| 9    | Lançamento MVP                | Pendente |
 
 Consultar `ROADMAP.md` para detalhamento completo de cada fase.
 
@@ -345,4 +389,4 @@ Consultar `ROADMAP.md` para detalhamento completo de cada fase.
 
 ---
 
-*Última atualização: Março 2026*
+_Última atualização: Março 2026_

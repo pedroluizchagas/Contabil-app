@@ -3,7 +3,21 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { Button, Badge, Card, PageHeader, EmptyState, PageSpinner, Select } from '@/components/ui'
 
-const MESES_ABREV = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const MESES_ABREV = [
+  '',
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
 
 interface Lote {
   id: string
@@ -28,12 +42,13 @@ const STATUS_OPTS = [
 ]
 
 function statusBadge(status: string) {
-  const map: Record<string, { variant: 'success' | 'info' | 'neutral' | 'error'; label: string }> = {
-    concluido:   { variant: 'success', label: 'Concluído' },
-    processando: { variant: 'info',    label: 'Processando' },
-    aguardando:  { variant: 'neutral', label: 'Aguardando' },
-    erro:        { variant: 'error',   label: 'Erro' },
-  }
+  const map: Record<string, { variant: 'success' | 'info' | 'neutral' | 'error'; label: string }> =
+    {
+      concluido: { variant: 'success', label: 'Concluído' },
+      processando: { variant: 'info', label: 'Processando' },
+      aguardando: { variant: 'neutral', label: 'Aguardando' },
+      erro: { variant: 'error', label: 'Erro' },
+    }
   const s = map[status] ?? { variant: 'neutral', label: status }
   return <Badge variant={s.variant}>{s.label}</Badge>
 }
@@ -54,7 +69,9 @@ export function LotesPage() {
     setCarregando(true)
     const { data } = await supabase
       .from('lotes')
-      .select('id, empresa_id, tipo, mes_referencia, ano_referencia, status, total_documentos, processados, erros, created_at, empresas(nome)')
+      .select(
+        'id, empresa_id, tipo, mes_referencia, ano_referencia, status, total_documentos, processados, erros, created_at, empresas(nome)'
+      )
       .order('created_at', { ascending: false })
       .limit(200)
     setLotes(
@@ -70,7 +87,7 @@ export function LotesPage() {
         processados: l.processados,
         erros: l.erros,
         created_at: l.created_at,
-      })),
+      }))
     )
     setCarregando(false)
   }
@@ -100,7 +117,12 @@ export function LotesPage() {
             className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path
+                d="M7 1v12M1 7h12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
             Enviar novo lote
           </Link>
@@ -116,7 +138,9 @@ export function LotesPage() {
         >
           <option value="">Todas as empresas</option>
           {empresas.map((e) => (
-            <option key={e.id} value={e.id}>{e.nome}</option>
+            <option key={e.id} value={e.id}>
+              {e.nome}
+            </option>
           ))}
         </Select>
 
@@ -126,13 +150,18 @@ export function LotesPage() {
           className="max-w-[180px]"
         >
           {STATUS_OPTS.map((s) => (
-            <option key={s.value} value={s.value}>{s.label}</option>
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
           ))}
         </Select>
 
         {(filtroEmpresa || filtroStatus) && (
           <button
-            onClick={() => { setFiltroEmpresa(''); setFiltroStatus('') }}
+            onClick={() => {
+              setFiltroEmpresa('')
+              setFiltroStatus('')
+            }}
             className="text-[11px] text-ink-xfaint transition-colors hover:text-ink-muted"
           >
             Limpar filtros
@@ -153,7 +182,8 @@ export function LotesPage() {
                 : 'Nenhum lote enviado ainda.'
             }
             acao={
-              !filtroEmpresa && !filtroStatus && (
+              !filtroEmpresa &&
+              !filtroStatus && (
                 <Link to="/lotes/upload">
                   <Button size="sm">Enviar primeiro lote</Button>
                 </Link>
@@ -164,14 +194,16 @@ export function LotesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {['Empresa', 'Período', 'Tipo', 'Status', 'Progresso', 'Erros', 'Data'].map((col) => (
-                  <th
-                    key={col}
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint"
-                  >
-                    {col}
-                  </th>
-                ))}
+                {['Empresa', 'Período', 'Tipo', 'Status', 'Progresso', 'Erros', 'Data'].map(
+                  (col) => (
+                    <th
+                      key={col}
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-xfaint"
+                    >
+                      {col}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
             <tbody>

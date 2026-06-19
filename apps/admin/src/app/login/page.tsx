@@ -4,18 +4,16 @@ import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { erro?: string }
-}) {
+export default function LoginPage({ searchParams }: { searchParams: { erro?: string } }) {
   const router = useRouter()
   const supabase = createClient()
 
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState<string | null>(
-    searchParams.erro === 'acesso-negado' ? 'Acesso negado. Esta conta não tem permissão de admin.' : null
+    searchParams.erro === 'acesso-negado'
+      ? 'Acesso negado. Esta conta não tem permissão de admin.'
+      : null
   )
   const [carregando, setCarregando] = useState(false)
 

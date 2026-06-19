@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-type IconName = 'grid' | 'building' | 'list' | 'card'
+type IconName = 'grid' | 'building' | 'list' | 'card' | 'mail'
 
 function Icon({ name }: { name: IconName }) {
   const common = { width: 18, height: 18, viewBox: '0 0 18 18', fill: 'none' } as const
@@ -41,6 +41,13 @@ function Icon({ name }: { name: IconName }) {
           <rect x="1.5" y="3.5" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
           <path d="M1.5 7.5h15" stroke="currentColor" strokeWidth="1.5" />
           <path d="M4.5 11.5h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      )
+    case 'mail':
+      return (
+        <svg {...common}>
+          <rect x="1.5" y="3.5" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M2 5l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
   }

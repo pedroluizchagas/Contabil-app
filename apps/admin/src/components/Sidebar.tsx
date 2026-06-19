@@ -4,6 +4,7 @@ import { NavItem } from './NavItem'
 
 const navItems = [
   { href: '/dashboard',     label: 'Dashboard',     icon: 'grid' as const },
+  { href: '/convites',      label: 'Convites',      icon: 'mail' as const },
   { href: '/tenants',       label: 'Tenants',       icon: 'building' as const },
   { href: '/planos',        label: 'Planos',        icon: 'list' as const },
   { href: '/subscriptions', label: 'Subscriptions', icon: 'card' as const },

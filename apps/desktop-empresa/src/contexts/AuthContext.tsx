@@ -34,7 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession)
       if (newSession) carregarEmpresa(newSession)
-      else { setEmpresa(null); setCarregando(false) }
+      else {
+        setEmpresa(null)
+        setCarregando(false)
+      }
     })
 
     return () => listener.subscription.unsubscribe()
@@ -62,12 +65,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const cnpjLimpo = cnpj.replace(/\D/g, '')
 
     // Chama Edge Function customizada (CNPJ + senha → sessão Supabase)
-    const { data, error } = await supabase.functions.invoke<{ session: Session; error?: string }>('auth-empresa', {
+    const { data, error } = await supabase.functions.invoke<{ session: Session }>('auth-empresa', {
       body: { cnpj: cnpjLimpo, senha },
     })
 
-    if (error || data?.error) {
-      return traduzirErro((data?.error ?? error?.message) ?? '')
+    if (error) {
+      let mensagem = error.message
+      try {
+        const body = await (error as { context?: Response }).context?.json()
+        if (body?.error) mensagem = body.error
+      } catch {
+        /* response body não legível */
+      }
+      return traduzirErro(mensagem)
     }
 
     if (!data?.session) return 'Erro ao criar sessão. Tente novamente.'
@@ -103,7 +113,8 @@ function traduzirErro(msg: string): string {
   const map: Record<string, string> = {
     'CNPJ ou senha inválidos.': 'CNPJ ou senha incorretos.',
     'Empresa inativa. Contate sua contabilidade.': 'Empresa inativa. Contate sua contabilidade.',
-    'Conta não configurada. Contate sua contabilidade.': 'Conta não configurada. Contate sua contabilidade.',
+    'Conta não configurada. Contate sua contabilidade.':
+      'Conta não configurada. Contate sua contabilidade.',
   }
   return map[msg] ?? (msg || 'Erro ao fazer login. Tente novamente.')
 }

@@ -9,7 +9,13 @@ interface PageHeaderProps {
   acao?: ReactNode
 }
 
-export function PageHeader({ titulo, subtitulo, voltar, voltarLabel = 'Voltar', acao }: PageHeaderProps) {
+export function PageHeader({
+  titulo,
+  subtitulo,
+  voltar,
+  voltarLabel = 'Voltar',
+  acao,
+}: PageHeaderProps) {
   const navigate = useNavigate()
 
   return (
@@ -20,7 +26,13 @@ export function PageHeader({ titulo, subtitulo, voltar, voltarLabel = 'Voltar', 
           className="mb-3 flex items-center gap-1.5 text-sm text-ink-faint transition-colors hover:text-ink"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M8.5 11L4.5 7L8.5 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M8.5 11L4.5 7L8.5 3"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           {voltarLabel}
         </button>
