@@ -20,7 +20,10 @@ CREATE OR REPLACE FUNCTION buscar_funcionario_id_por_cpf(
 RETURNS TABLE(id uuid, auth_user_id uuid, ativo boolean)
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = public
+-- 'extensions' no path: o pgcrypto (crypt) é instalado nesse schema no
+-- Supabase hosted; com search_path = public apenas, crypt() não resolve
+-- e a função falha (testado no projeto hosted).
+SET search_path = public, extensions
 AS $$
   SELECT f.id, f.auth_user_id, f.ativo
   FROM funcionarios f
