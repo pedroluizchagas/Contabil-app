@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "turbo run build --filter=desktop-contabilidade",
+  "outputDirectory": "dist",
+  "ignoreCommand": "npx turbo-ignore desktop-contabilidade",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
