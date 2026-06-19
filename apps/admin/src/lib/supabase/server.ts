@@ -3,12 +3,15 @@ import { createClient as createSupabase, type SupabaseClient } from '@supabase/s
 import { cookies } from 'next/headers'
 import type { Database } from '@contabhub/supabase'
 
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('SUPABASE_URL e SUPABASE_ANON_KEY são obrigatórios')
+// A validação é feita dentro das funções (lazy) para não lançar no carregamento
+// do módulo — caso contrário o `next build` falha ao coletar dados das páginas
+// quando as variáveis ainda não estão presentes no ambiente de build.
+function lerEnv(nome: string): string {
+  const valor = process.env[nome]
+  if (!valor) {
+    throw new Error(`Variável de ambiente obrigatória ausente: ${nome}`)
+  }
+  return valor
 }
 
 /** Cliente para Server Components e Route Handlers (respeita RLS da sessão) */
@@ -17,7 +20,7 @@ export function createClient(): SupabaseClient<Database> {
   // O tipo de retorno de @supabase/ssr está atrelado a uma versão mais antiga
   // do supabase-js; reafirmamos o tipo do client instalado para que as queries
   // tipadas resolvam corretamente (em vez de colapsar para `never`).
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createServerClient<Database>(lerEnv('SUPABASE_URL'), lerEnv('SUPABASE_ANON_KEY'), {
     cookies: {
       get: (name: string) => cookieStore.get(name)?.value,
       set: (name: string, value: string, options: CookieOptions) => {
@@ -32,5 +35,5 @@ export function createClient(): SupabaseClient<Database> {
 
 /** Cliente admin com service role — usa apenas em Server Actions protegidas */
 export function createAdminClient(): SupabaseClient<Database> {
-  return createSupabase<Database>(supabaseUrl, supabaseServiceRoleKey)
+  return createSupabase<Database>(lerEnv('SUPABASE_URL'), lerEnv('SUPABASE_SERVICE_ROLE_KEY'))
 }
