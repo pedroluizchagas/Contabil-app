@@ -6,7 +6,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#0d9488', // teal-600
+        tabBarActiveTintColor: '#7DC82E', // brand
         tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
           backgroundColor: '#ffffff',
@@ -47,5 +47,5 @@ export default function TabsLayout() {
 }
 
 function TabIcon({ emoji, color }: { emoji: string; color: string }) {
-  return <Text style={{ fontSize: 20, opacity: color === '#0d9488' ? 1 : 0.5 }}>{emoji}</Text>
+  return <Text style={{ fontSize: 20, opacity: color === '#7DC82E' ? 1 : 0.5 }}>{emoji}</Text>
 }

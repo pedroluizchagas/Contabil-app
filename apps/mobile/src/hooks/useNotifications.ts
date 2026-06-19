@@ -74,7 +74,7 @@ export function useNotifications() {
         name: 'Novos Documentos',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#0d9488',
+        lightColor: '#7DC82E',
       })
     }
   }
