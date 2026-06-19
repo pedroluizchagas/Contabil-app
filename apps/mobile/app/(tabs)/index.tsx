@@ -94,7 +94,7 @@ export default function HomeScreen() {
   if (carregando) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator color="#0d9488" size="large" />
+        <ActivityIndicator color="#7DC82E" size="large" />
       </SafeAreaView>
     )
   }
@@ -106,15 +106,15 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => carregarDocs(true)}
-            tintColor="#0d9488"
+            tintColor="#7DC82E"
           />
         }
       >
         {/* Header */}
-        <View className="bg-teal-600 px-5 pb-8 pt-12">
-          <Text className="text-sm text-teal-200">Olá,</Text>
+        <View className="bg-brand px-5 pb-8 pt-12">
+          <Text className="text-sm text-white/80">Olá,</Text>
           <Text className="text-xl font-bold text-white">{funcionario?.nome.split(' ')[0]}</Text>
-          <Text className="text-sm text-teal-200">{funcionario?.empresa_nome}</Text>
+          <Text className="text-sm text-white/80">{funcionario?.empresa_nome}</Text>
         </View>
 
         <View className="-mt-4 px-4">
@@ -145,7 +145,7 @@ export default function HomeScreen() {
             <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
               <Text className="font-semibold text-gray-800">Documentos recentes</Text>
               <Pressable onPress={() => router.push('/(tabs)/documentos')}>
-                <Text className="text-sm text-teal-600">Ver todos</Text>
+                <Text className="text-sm text-brand-700">Ver todos</Text>
               </Pressable>
             </View>
 

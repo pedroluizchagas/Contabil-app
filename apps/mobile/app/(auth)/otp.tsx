@@ -97,7 +97,7 @@ export default function OtpScreen() {
     <View className="flex-1 bg-white px-6 py-12">
       {/* Botão voltar */}
       <Pressable onPress={handleVoltar} className="mb-8 self-start">
-        <Text className="text-base text-teal-600">← Voltar</Text>
+        <Text className="text-base text-brand-700">← Voltar</Text>
       </Pressable>
 
       {/* Header */}
@@ -136,7 +136,7 @@ export default function OtpScreen() {
             selectTextOnFocus
             className={`h-14 flex-1 rounded-xl border text-center text-xl font-bold ${
               digito
-                ? 'border-teal-500 bg-teal-50 text-teal-700'
+                ? 'border-brand-500 bg-brand-50 text-brand-700'
                 : 'border-gray-300 bg-gray-50 text-gray-900'
             }`}
           />
@@ -148,7 +148,7 @@ export default function OtpScreen() {
         onPress={handleConfirmar}
         disabled={!completo || carregando}
         className={`items-center rounded-xl py-4 ${
-          completo && !carregando ? 'bg-teal-600' : 'bg-teal-300'
+          completo && !carregando ? 'bg-brand' : 'bg-brand-300'
         }`}
       >
         {carregando ? (

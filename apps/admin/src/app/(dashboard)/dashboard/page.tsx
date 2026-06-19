@@ -9,9 +9,7 @@ export default async function DashboardPage() {
   const agora = new Date()
   const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString()
 
-  // Paralelo: todas as queries ao mesmo tempo. Os contadores de trial e
-  // inadimplência derivam de `tenantsRes` abaixo, então não consultamos
-  // `subscriptions` separadamente aqui.
+  // Paralelo: todas as queries ao mesmo tempo
   const [tenantsRes, subAtivasRes, novosTenantsRes, documentosRes, lotesRes, planosRes] =
     await Promise.all([
       supabase.from('tenants').select('id, status', { count: 'exact' }),
@@ -46,17 +44,17 @@ export default async function DashboardPage() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-ink">Dashboard</h1>
+        <p className="text-sm text-ink-muted">
           Visão geral do SaaS — {formatarData(agora.toISOString())}
         </p>
       </div>
 
       {/* MRR destaque */}
-      <div className="mb-6 rounded-xl border border-violet-200 bg-violet-50 p-6">
-        <p className="text-sm font-medium text-violet-600">MRR (Receita Recorrente Mensal)</p>
-        <p className="mt-1 text-4xl font-bold text-violet-700">{formatarMoeda(mrr)}</p>
-        <p className="mt-1 text-xs text-violet-500">
+      <div className="mb-6 rounded-2xl border border-brand-light bg-brand-muted p-6 shadow-card">
+        <p className="text-sm font-medium text-brand-dark">MRR (Receita Recorrente Mensal)</p>
+        <p className="mt-1 text-4xl font-bold text-brand-darker">{formatarMoeda(mrr)}</p>
+        <p className="mt-1 text-xs text-brand-dark">
           {subAtivasRes.data?.length ?? 0} subscriptions ativas
         </p>
       </div>
@@ -80,13 +78,13 @@ export default async function DashboardPage() {
       </div>
 
       {/* Lotes recentes */}
-      <div className="rounded-xl border border-gray-200 bg-white">
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-card">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="font-semibold text-gray-800">Lotes recentes (todos os tenants)</h2>
+          <h2 className="font-semibold text-ink">Lotes recentes (todos os tenants)</h2>
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-gray-400">
+            <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-ink-faint">
               <th className="px-6 py-3">Tenant</th>
               <th className="px-6 py-3">Empresa</th>
               <th className="px-6 py-3">Status</th>
@@ -96,16 +94,18 @@ export default async function DashboardPage() {
           <tbody>
             {(lotesRes.data ?? []).map((lote) => (
               <tr key={lote.id} className="border-b border-gray-50 hover:bg-gray-50">
-                <td className="px-6 py-3 text-gray-500 text-xs">
+                <td className="px-6 py-3 text-ink-muted text-xs">
                   {(lote.tenants as unknown as { nome: string })?.nome ?? '—'}
                 </td>
-                <td className="px-6 py-3 font-medium text-gray-900">
+                <td className="px-6 py-3 font-medium text-ink">
                   {(lote.empresas as unknown as { nome: string })?.nome ?? '—'}
                 </td>
                 <td className="px-6 py-3">
                   <StatusLote status={lote.status} />
                 </td>
-                <td className="px-6 py-3 text-gray-400 text-xs">{formatarData(lote.created_at)}</td>
+                <td className="px-6 py-3 text-ink-faint text-xs">
+                  {formatarData(lote.created_at)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -127,16 +127,16 @@ function MetricCard({
   cor?: 'gray' | 'green' | 'blue' | 'red'
 }) {
   const cores: Record<string, string> = {
-    gray: 'text-gray-900',
-    green: 'text-green-600',
+    gray: 'text-ink',
+    green: 'text-brand-dark',
     blue: 'text-blue-600',
     red: 'text-red-600',
   }
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5">
-      <p className="text-sm text-gray-500">{label}</p>
+    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
+      <p className="text-sm text-ink-muted">{label}</p>
       <p className={`mt-1 text-3xl font-bold ${cores[cor]}`}>{valor}</p>
-      {sub && <p className="mt-0.5 text-xs text-gray-400">{sub}</p>}
+      {sub && <p className="mt-0.5 text-xs text-ink-faint">{sub}</p>}
     </div>
   )
 }

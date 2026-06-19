@@ -86,7 +86,7 @@ export default function DocumentosScreen() {
   if (carregando) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator color="#0d9488" size="large" />
+        <ActivityIndicator color="#7DC82E" size="large" />
       </SafeAreaView>
     )
   }
@@ -104,7 +104,7 @@ export default function DocumentosScreen() {
               key={t}
               onPress={() => setFiltro(t)}
               className={`flex-1 items-center rounded-lg py-2 ${
-                filtro === t ? 'bg-teal-600' : 'bg-gray-100'
+                filtro === t ? 'bg-brand' : 'bg-gray-100'
               }`}
             >
               <Text
@@ -130,7 +130,7 @@ export default function DocumentosScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => carregarDocs(true)}
-              tintColor="#0d9488"
+              tintColor="#7DC82E"
             />
           }
           contentContainerStyle={{ padding: 16, paddingBottom: 32 }}

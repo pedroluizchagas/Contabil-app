@@ -46,13 +46,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function carregarEmpresa(sess: Session) {
     // O auth_user_id da empresa está na sessão — busca os dados dela
     const userId = sess.user.id
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('empresas')
       .select('id, nome, cnpj, tenant_id')
       .eq('auth_user_id', userId)
       .single()
 
-    if (data) {
+    if (error) {
+      console.error('Erro ao carregar empresa:', error.message)
+      setEmpresa(null)
+    } else if (data) {
       setEmpresa({ id: data.id, nome: data.nome, cnpj: data.cnpj, tenantId: data.tenant_id })
     }
     setCarregando(false)

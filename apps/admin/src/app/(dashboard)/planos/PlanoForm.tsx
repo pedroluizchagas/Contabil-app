@@ -44,8 +44,8 @@ export function PlanoForm() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6">
-      <h2 className="mb-4 font-semibold text-gray-800">Criar novo plano</h2>
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-card">
+      <h2 className="mb-4 font-semibold text-ink">Criar novo plano</h2>
 
       {ok && (
         <div className="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
@@ -106,7 +106,7 @@ export function PlanoForm() {
         <button
           type="submit"
           disabled={salvando}
-          className="w-full rounded-lg bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50 transition-colors"
+          className="w-full rounded-lg bg-brand py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:opacity-50"
         >
           {salvando ? 'Criando...' : 'Criar plano'}
         </button>
@@ -116,7 +116,7 @@ export function PlanoForm() {
 }
 
 const inputClass =
-  'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100'
+  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15'
 
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (

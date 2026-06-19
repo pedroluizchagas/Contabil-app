@@ -32,8 +32,8 @@ export default function PerfilScreen() {
         {/* Avatar + nome */}
         <View className="mx-4 mt-4 rounded-2xl bg-white border border-gray-100 p-5">
           <View className="items-center mb-4">
-            <View className="h-16 w-16 items-center justify-center rounded-full bg-teal-100 mb-3">
-              <Text className="text-2xl font-bold text-teal-700">
+            <View className="h-16 w-16 items-center justify-center rounded-full bg-brand-100 mb-3">
+              <Text className="text-2xl font-bold text-brand-700">
                 {funcionario?.nome.charAt(0).toUpperCase() ?? '?'}
               </Text>
             </View>

@@ -25,7 +25,10 @@ export default async function TenantsPage({
     .order('created_at', { ascending: false })
 
   if (searchParams.status) {
-    query = query.eq('status', searchParams.status as StatusTenant)
+    query = query.eq(
+      'status',
+      searchParams.status as 'ativo' | 'inativo' | 'trial' | 'inadimplente'
+    )
   }
 
   const { data: tenants } = await query
@@ -43,12 +46,12 @@ export default async function TenantsPage({
     <div className="p-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tenants</h1>
-          <p className="text-sm text-gray-500">{filtrados.length} contabilidades cadastradas</p>
+          <h1 className="text-2xl font-bold text-ink">Tenants</h1>
+          <p className="text-sm text-ink-muted">{filtrados.length} contabilidades cadastradas</p>
         </div>
         <Link
           href="/tenants/novo"
-          className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 transition-colors"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
         >
           + Novo Tenant
         </Link>
@@ -63,19 +66,19 @@ export default async function TenantsPage({
             name="busca"
             defaultValue={searchParams.busca}
             placeholder="Buscar por nome, CNPJ ou e-mail..."
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 w-72"
+            className="w-72 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
           />
         </form>
       </div>
 
       {/* Tabela */}
-      <div className="rounded-xl border border-gray-200 bg-white">
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-card">
         {filtrados.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-400">Nenhum tenant encontrado.</p>
+          <p className="py-12 text-center text-sm text-ink-faint">Nenhum tenant encontrado.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-gray-400">
+              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-ink-faint">
                 <th className="px-6 py-3">Nome</th>
                 <th className="px-6 py-3">CNPJ</th>
                 <th className="px-6 py-3">Status</th>
@@ -99,10 +102,10 @@ export default async function TenantsPage({
                 return (
                   <tr key={tenant.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="px-6 py-3">
-                      <p className="font-medium text-gray-900">{tenant.nome}</p>
-                      <p className="text-xs text-gray-400">{tenant.email}</p>
+                      <p className="font-medium text-ink">{tenant.nome}</p>
+                      <p className="text-xs text-ink-faint">{tenant.email}</p>
                     </td>
-                    <td className="px-6 py-3 font-mono text-gray-500 text-xs">
+                    <td className="px-6 py-3 font-mono text-ink-muted text-xs">
                       {formatarCnpj(tenant.cnpj)}
                     </td>
                     <td className="px-6 py-3">
@@ -115,17 +118,17 @@ export default async function TenantsPage({
                           <StatusBadgeSubscription status={sub.status} />
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-xs text-ink-faint">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-3 text-gray-600">{qtdEmpresas}</td>
-                    <td className="px-6 py-3 text-xs text-gray-400">
+                    <td className="px-6 py-3 text-ink-muted">{qtdEmpresas}</td>
+                    <td className="px-6 py-3 text-xs text-ink-faint">
                       {formatarData(tenant.created_at)}
                     </td>
                     <td className="px-6 py-3">
                       <Link
                         href={`/tenants/${tenant.id}`}
-                        className="text-violet-600 hover:underline text-xs font-medium"
+                        className="text-xs font-medium text-brand-dark hover:underline"
                       >
                         Ver detalhe
                       </Link>
@@ -157,8 +160,8 @@ function FiltroStatus({ atual }: { atual?: string }) {
           href={op.valor ? `/tenants?status=${op.valor}` : '/tenants'}
           className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
             atual === op.valor || (!atual && !op.valor)
-              ? 'bg-violet-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-brand text-white'
+              : 'bg-gray-100 text-ink-muted hover:bg-gray-200'
           }`}
         >
           {op.label}

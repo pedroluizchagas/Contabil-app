@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Database } from '@contabhub/supabase'
+import { Badge, Card, EmptyState, Input, PageHeader, PageSpinner } from '@/components/ui'
 
 type Funcionario = Database['public']['Tables']['funcionarios']['Row'] & {
   docs_total?: number
@@ -13,22 +14,35 @@ export function FuncionariosPage() {
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([])
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState<string | null>(null)
 
   useEffect(() => {
     if (!empresa) return
-    carregarFuncionarios()
+    carregarFuncionarios(empresa.id)
   }, [empresa])
 
-  async function carregarFuncionarios() {
+  async function carregarFuncionarios(empresaId: string) {
     setCarregando(true)
+    setErro(null)
 
     const [funcsRes, docsRes] = await Promise.all([
-      supabase.from('funcionarios').select('*').eq('empresa_id', empresa!.id).order('nome'),
+      supabase.from('funcionarios').select('*').eq('empresa_id', empresaId).order('nome'),
       supabase
         .from('v_status_documentos')
         .select('funcionario_id, visualizado_em')
-        .eq('empresa_id', empresa!.id),
+        .eq('empresa_id', empresaId),
     ])
+
+    if (funcsRes.error || docsRes.error) {
+      console.error(
+        'Erro ao carregar funcionários:',
+        funcsRes.error?.message ?? docsRes.error?.message
+      )
+      setErro('Não foi possível carregar os funcionários. Tente novamente.')
+      setFuncionarios([])
+      setCarregando(false)
+      return
+    }
 
     const docs = docsRes.data ?? []
     const contagem = new Map<string, { total: number; naoLidos: number }>()
@@ -50,47 +64,51 @@ export function FuncionariosPage() {
     setCarregando(false)
   }
 
+  const termo = busca.toLowerCase()
   const filtrados = funcionarios.filter(
     (f) =>
-      f.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      f.codigo.toLowerCase().includes(busca.toLowerCase()) ||
-      f.email.toLowerCase().includes(busca.toLowerCase())
+      (f.nome ?? '').toLowerCase().includes(termo) ||
+      (f.codigo ?? '').toLowerCase().includes(termo) ||
+      (f.email ?? '').toLowerCase().includes(termo)
   )
 
   const ativos = funcionarios.filter((f) => f.ativo).length
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Funcionários</h1>
-        <p className="text-sm text-gray-500">
-          {ativos} ativos de {funcionarios.length} cadastrados
-        </p>
-      </div>
+      <PageHeader
+        titulo="Funcionários"
+        subtitulo={`${ativos} ativos de ${funcionarios.length} cadastrados`}
+      />
 
-      <div className="mb-4">
-        <input
+      <div className="mb-4 max-w-sm">
+        <Input
           type="text"
           placeholder="Buscar por nome, código ou e-mail..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="w-full max-w-sm rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
         />
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white">
-        {carregando ? (
-          <div className="flex justify-center py-16">
-            <div className="h-7 w-7 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
-          </div>
-        ) : filtrados.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-400">
-            {busca ? 'Nenhum funcionário encontrado.' : 'Nenhum funcionário cadastrado.'}
-          </p>
-        ) : (
+      {carregando ? (
+        <PageSpinner />
+      ) : erro ? (
+        <Card className="py-12 text-center">
+          <p className="text-sm text-red-600">{erro}</p>
+        </Card>
+      ) : filtrados.length === 0 ? (
+        <Card>
+          <EmptyState
+            icone="👥"
+            titulo={busca ? 'Nenhum funcionário encontrado' : 'Nenhum funcionário cadastrado'}
+            descricao={busca ? 'Tente outro termo de busca.' : undefined}
+          />
+        </Card>
+      ) : (
+        <Card>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-gray-400">
+              <tr className="border-b border-gray-100 text-left text-xs font-medium uppercase text-ink-faint">
                 <th className="px-6 py-3">Nome</th>
                 <th className="px-6 py-3">Código</th>
                 <th className="px-6 py-3">E-mail</th>
@@ -102,35 +120,31 @@ export function FuncionariosPage() {
             <tbody>
               {filtrados.map((func) => (
                 <tr key={func.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-gray-900">{func.nome}</td>
-                  <td className="px-6 py-3 font-mono text-gray-500">{func.codigo}</td>
-                  <td className="px-6 py-3 text-gray-500">{func.email}</td>
-                  <td className="px-6 py-3 text-gray-700">{func.docs_total ?? 0}</td>
+                  <td className="px-6 py-3 font-medium text-ink">{func.nome}</td>
+                  <td className="px-6 py-3 font-mono text-ink-muted">{func.codigo}</td>
+                  <td className="px-6 py-3 text-ink-muted">{func.email}</td>
+                  <td className="px-6 py-3 text-ink">{func.docs_total ?? 0}</td>
                   <td className="px-6 py-3">
                     {(func.docs_nao_lidos ?? 0) > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-amber-600 text-xs font-medium">
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                         {func.docs_nao_lidos}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-400">—</span>
+                      <span className="text-xs text-ink-faint">—</span>
                     )}
                   </td>
                   <td className="px-6 py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        func.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
+                    <Badge variant={func.ativo ? 'success' : 'neutral'}>
                       {func.ativo ? 'Ativo' : 'Inativo'}
-                    </span>
+                    </Badge>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </Card>
+      )}
     </div>
   )
 }

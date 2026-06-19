@@ -79,7 +79,7 @@ export default function LoginScreen() {
         <View className="flex-1 justify-center px-6 py-12">
           {/* Header */}
           <View className="mb-10 items-center">
-            <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-teal-600">
+            <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-brand">
               <Text className="text-3xl font-bold text-white">C</Text>
             </View>
             <Text className="text-2xl font-bold text-gray-900">ContaHub</Text>
@@ -135,7 +135,7 @@ export default function LoginScreen() {
               onPress={handleContinuar}
               disabled={!podeContinuar || carregando}
               className={`mt-2 items-center rounded-xl py-4 ${
-                podeContinuar && !carregando ? 'bg-teal-600' : 'bg-teal-300'
+                podeContinuar && !carregando ? 'bg-brand' : 'bg-brand-300'
               }`}
             >
               {carregando ? (
