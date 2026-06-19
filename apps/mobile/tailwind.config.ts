@@ -9,7 +9,7 @@ export default {
         // Escala da marca (verde ContaHub — #7DC82E)
         brand: {
           DEFAULT: '#7DC82E',
-          50:  '#F4FAE9',
+          50: '#F4FAE9',
           100: '#EBF7D4',
           200: '#D6EFA8',
           300: '#B0DE70',

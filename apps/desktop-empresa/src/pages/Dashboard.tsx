@@ -21,7 +21,21 @@ interface Stats {
   }>
 }
 
-const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const MESES = [
+  '',
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
 
 export function DashboardPage() {
   const { empresa } = useAuth()
@@ -82,7 +96,10 @@ export function DashboardPage() {
 
   return (
     <div className="p-8">
-      <PageHeader titulo="Dashboard" subtitulo={`${empresa?.nome ?? ''} · visão geral dos documentos`} />
+      <PageHeader
+        titulo="Dashboard"
+        subtitulo={`${empresa?.nome ?? ''} · visão geral dos documentos`}
+      />
 
       {carregando ? (
         <PageSpinner />
@@ -95,22 +112,27 @@ export function DashboardPage() {
           {/* Cards */}
           <div className="mb-8 grid grid-cols-4 gap-4">
             <StatCard label="Funcionários ativos" valor={stats?.totalFuncionarios ?? 0} cor="ink" />
-            <StatCard label="Docs não visualizados" valor={stats?.documentosNaoLidos ?? 0} cor="amber" />
+            <StatCard
+              label="Docs não visualizados"
+              valor={stats?.documentosNaoLidos ?? 0}
+              cor="amber"
+            />
             <StatCard label="Visualizados" valor={stats?.documentosLidos ?? 0} cor="blue" />
             <StatCard label="Assinados" valor={stats?.documentosAssinados ?? 0} cor="brand" />
           </div>
 
           {/* Taxa de leitura */}
-          {stats && (stats.documentosNaoLidos + stats.documentosLidos + stats.documentosAssinados) > 0 && (
-            <Card className="mb-8 p-5">
-              <p className="mb-3 text-sm font-medium text-ink">Taxa de leitura dos documentos</p>
-              <TaxaLeitura
-                naoLidos={stats.documentosNaoLidos}
-                lidos={stats.documentosLidos}
-                assinados={stats.documentosAssinados}
-              />
-            </Card>
-          )}
+          {stats &&
+            stats.documentosNaoLidos + stats.documentosLidos + stats.documentosAssinados > 0 && (
+              <Card className="mb-8 p-5">
+                <p className="mb-3 text-sm font-medium text-ink">Taxa de leitura dos documentos</p>
+                <TaxaLeitura
+                  naoLidos={stats.documentosNaoLidos}
+                  lidos={stats.documentosLidos}
+                  assinados={stats.documentosAssinados}
+                />
+              </Card>
+            )}
 
           {/* Ações rápidas */}
           <div className="mb-8 grid grid-cols-2 gap-4">
@@ -132,12 +154,17 @@ export function DashboardPage() {
           <Card>
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <h2 className="font-semibold text-ink">Últimos documentos</h2>
-              <Link to="/documentos" className="text-sm font-medium text-brand-dark hover:underline">
+              <Link
+                to="/documentos"
+                className="text-sm font-medium text-brand-dark hover:underline"
+              >
                 Ver todos
               </Link>
             </div>
             {stats?.ultimosDocumentos.length === 0 ? (
-              <p className="py-10 text-center text-sm text-ink-faint">Nenhum documento disponível ainda.</p>
+              <p className="py-10 text-center text-sm text-ink-faint">
+                Nenhum documento disponível ainda.
+              </p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
@@ -186,7 +213,10 @@ export function DashboardPage() {
 
 function StatCard({ label, valor, cor }: { label: string; valor: number; cor: string }) {
   const cores: Record<string, string> = {
-    ink: 'text-ink', brand: 'text-brand-dark', blue: 'text-blue-600', amber: 'text-amber-600',
+    ink: 'text-ink',
+    brand: 'text-brand-dark',
+    blue: 'text-blue-600',
+    amber: 'text-amber-600',
   }
   return (
     <Card className="p-5">
@@ -196,7 +226,17 @@ function StatCard({ label, valor, cor }: { label: string; valor: number; cor: st
   )
 }
 
-function AcaoCard({ titulo, descricao, href, icone }: { titulo: string; descricao: string; href: string; icone: string }) {
+function AcaoCard({
+  titulo,
+  descricao,
+  href,
+  icone,
+}: {
+  titulo: string
+  descricao: string
+  href: string
+  icone: string
+}) {
   return (
     <Link
       to={href}
@@ -213,7 +253,15 @@ function AcaoCard({ titulo, descricao, href, icone }: { titulo: string; descrica
   )
 }
 
-function TaxaLeitura({ naoLidos, lidos, assinados }: { naoLidos: number; lidos: number; assinados: number }) {
+function TaxaLeitura({
+  naoLidos,
+  lidos,
+  assinados,
+}: {
+  naoLidos: number
+  lidos: number
+  assinados: number
+}) {
   const total = naoLidos + lidos + assinados
   const pctNaoLido = (naoLidos / total) * 100
   const pctLido = (lidos / total) * 100
@@ -222,14 +270,31 @@ function TaxaLeitura({ naoLidos, lidos, assinados }: { naoLidos: number; lidos: 
   return (
     <div>
       <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100">
-        <div className="bg-amber-400" style={{ width: `${pctNaoLido}%` }} title={`Não lido: ${naoLidos}`} />
+        <div
+          className="bg-amber-400"
+          style={{ width: `${pctNaoLido}%` }}
+          title={`Não lido: ${naoLidos}`}
+        />
         <div className="bg-blue-400" style={{ width: `${pctLido}%` }} title={`Lido: ${lidos}`} />
-        <div className="bg-brand" style={{ width: `${pctAssinado}%` }} title={`Assinado: ${assinados}`} />
+        <div
+          className="bg-brand"
+          style={{ width: `${pctAssinado}%` }}
+          title={`Assinado: ${assinados}`}
+        />
       </div>
       <div className="mt-2 flex gap-4 text-xs text-ink-muted">
-        <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-amber-400" />Não visualizado ({naoLidos})</span>
-        <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-blue-400" />Visualizado ({lidos})</span>
-        <span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-brand" />Assinado ({assinados})</span>
+        <span>
+          <span className="mr-1 inline-block h-2 w-2 rounded-full bg-amber-400" />
+          Não visualizado ({naoLidos})
+        </span>
+        <span>
+          <span className="mr-1 inline-block h-2 w-2 rounded-full bg-blue-400" />
+          Visualizado ({lidos})
+        </span>
+        <span>
+          <span className="mr-1 inline-block h-2 w-2 rounded-full bg-brand" />
+          Assinado ({assinados})
+        </span>
       </div>
     </div>
   )

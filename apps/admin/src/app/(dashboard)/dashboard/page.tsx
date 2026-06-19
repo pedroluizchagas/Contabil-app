@@ -10,23 +10,25 @@ export default async function DashboardPage() {
   const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString()
 
   // Paralelo: todas as queries ao mesmo tempo
-  const [
-    tenantsRes,
-    subAtivasRes,
-    novosTenantsRes,
-    documentosRes,
-    lotesRes,
-    planosRes,
-  ] = await Promise.all([
-    supabase.from('tenants').select('id, status', { count: 'exact' }),
-    supabase.from('subscriptions').select('plano_id, planos(preco_mensal)').eq('status', 'ativo'),
-    supabase.from('tenants').select('id', { count: 'exact', head: true }).gte('created_at', inicioMes),
-    supabase.from('documentos').select('id', { count: 'exact', head: true }).gte('created_at', inicioMes),
-    supabase.from('lotes').select('id, status, created_at, empresas(nome), tenants(nome)')
-      .order('created_at', { ascending: false })
-      .limit(8),
-    supabase.from('planos').select('id, nome, preco_mensal').eq('ativo', true),
-  ])
+  const [tenantsRes, subAtivasRes, novosTenantsRes, documentosRes, lotesRes, planosRes] =
+    await Promise.all([
+      supabase.from('tenants').select('id, status', { count: 'exact' }),
+      supabase.from('subscriptions').select('plano_id, planos(preco_mensal)').eq('status', 'ativo'),
+      supabase
+        .from('tenants')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', inicioMes),
+      supabase
+        .from('documentos')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', inicioMes),
+      supabase
+        .from('lotes')
+        .select('id, status, created_at, empresas(nome), tenants(nome)')
+        .order('created_at', { ascending: false })
+        .limit(8),
+      supabase.from('planos').select('id, nome, preco_mensal').eq('ativo', true),
+    ])
 
   // Calcula MRR
   const mrr = (subAtivasRes.data ?? []).reduce((acc, s) => {
@@ -43,14 +45,18 @@ export default async function DashboardPage() {
     <div className="p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-ink">Dashboard</h1>
-        <p className="text-sm text-ink-muted">Visão geral do SaaS — {formatarData(agora.toISOString())}</p>
+        <p className="text-sm text-ink-muted">
+          Visão geral do SaaS — {formatarData(agora.toISOString())}
+        </p>
       </div>
 
       {/* MRR destaque */}
       <div className="mb-6 rounded-2xl border border-brand-light bg-brand-muted p-6 shadow-card">
         <p className="text-sm font-medium text-brand-dark">MRR (Receita Recorrente Mensal)</p>
         <p className="mt-1 text-4xl font-bold text-brand-darker">{formatarMoeda(mrr)}</p>
-        <p className="mt-1 text-xs text-brand-dark">{subAtivasRes.data?.length ?? 0} subscriptions ativas</p>
+        <p className="mt-1 text-xs text-brand-dark">
+          {subAtivasRes.data?.length ?? 0} subscriptions ativas
+        </p>
       </div>
 
       {/* Métricas */}
@@ -110,12 +116,21 @@ export default async function DashboardPage() {
 }
 
 function MetricCard({
-  label, valor, sub, cor = 'gray',
+  label,
+  valor,
+  sub,
+  cor = 'gray',
 }: {
-  label: string; valor: number; sub?: string; cor?: 'gray' | 'green' | 'blue' | 'red'
+  label: string
+  valor: number
+  sub?: string
+  cor?: 'gray' | 'green' | 'blue' | 'red'
 }) {
   const cores: Record<string, string> = {
-    gray: 'text-ink', green: 'text-brand-dark', blue: 'text-blue-600', red: 'text-red-600',
+    gray: 'text-ink',
+    green: 'text-brand-dark',
+    blue: 'text-blue-600',
+    red: 'text-red-600',
   }
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
@@ -134,7 +149,9 @@ function StatusLote({ status }: { status: string }) {
     erro: 'bg-red-100 text-red-700',
   }
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${estilos[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${estilos[status] ?? 'bg-gray-100 text-gray-600'}`}
+    >
       {status}
     </span>
   )

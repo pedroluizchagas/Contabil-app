@@ -6,8 +6,21 @@ import { Badge, Card, EmptyState, Input, PageHeader, PageSpinner, Select } from 
 
 type StatusDoc = Database['public']['Views']['v_status_documentos']['Row']
 
-const MESES = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+const MESES = [
+  '',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+]
 
 export function DocumentosPage() {
   const { empresa } = useAuth()
@@ -18,7 +31,9 @@ export function DocumentosPage() {
   // Filtros
   const [busca, setBusca] = useState('')
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'holerite' | 'ferias'>('todos')
-  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'nao_lido' | 'lido' | 'assinado'>('todos')
+  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'nao_lido' | 'lido' | 'assinado'>(
+    'todos'
+  )
   const [filtroAno, setFiltroAno] = useState<number>(new Date().getFullYear())
 
   useEffect(() => {
@@ -48,7 +63,9 @@ export function DocumentosPage() {
   }
 
   async function abrirPdf(storagePath: string) {
-    const { data, error } = await supabase.storage.from('documentos').createSignedUrl(storagePath, 120)
+    const { data, error } = await supabase.storage
+      .from('documentos')
+      .createSignedUrl(storagePath, 120)
     if (error || !data?.signedUrl) {
       console.error('Erro ao gerar link do PDF:', error?.message)
       return
@@ -93,7 +110,11 @@ export function DocumentosPage() {
           onChange={(e) => setFiltroAno(Number(e.target.value))}
           className="w-auto"
         >
-          {anos.map((a) => <option key={a} value={a}>{a}</option>)}
+          {anos.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
         </Select>
 
         <Select
@@ -120,7 +141,8 @@ export function DocumentosPage() {
 
       {/* Contador */}
       <p className="mb-3 text-sm text-ink-faint">
-        {filtrados.length} documento{filtrados.length !== 1 ? 's' : ''} encontrado{filtrados.length !== 1 ? 's' : ''}
+        {filtrados.length} documento{filtrados.length !== 1 ? 's' : ''} encontrado
+        {filtrados.length !== 1 ? 's' : ''}
       </p>
 
       {/* Tabela agrupada por mês */}

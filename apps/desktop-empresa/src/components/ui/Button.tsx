@@ -13,11 +13,11 @@ const base =
   'disabled:pointer-events-none disabled:opacity-50 select-none'
 
 const variants: Record<NonNullable<ButtonProps['variant']>, string> = {
-  primary:   'bg-brand text-white hover:bg-brand-dark active:bg-brand-darker',
+  primary: 'bg-brand text-white hover:bg-brand-dark active:bg-brand-darker',
   secondary: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:bg-gray-100',
-  outline:   'border border-gray-300 text-gray-700 hover:bg-gray-50',
-  ghost:     'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-  danger:    'bg-red-600 text-white hover:bg-red-700',
+  outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
+  ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+  danger: 'bg-red-600 text-white hover:bg-red-700',
 }
 
 const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
@@ -27,7 +27,19 @@ const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading, leftIcon, children, disabled, className = '', ...props }, ref) => (
+  (
+    {
+      variant = 'primary',
+      size = 'md',
+      loading,
+      leftIcon,
+      children,
+      disabled,
+      className = '',
+      ...props
+    },
+    ref
+  ) => (
     <button
       ref={ref}
       disabled={disabled || loading}
@@ -41,6 +53,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       )}
       {children}
     </button>
-  ),
+  )
 )
 Button.displayName = 'Button'

@@ -14,8 +14,10 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
   const [tenantRes, empresasRes, docsRes] = await Promise.all([
     supabase
       .from('tenants')
-      .select(`id, nome, cnpj, email, status, created_at,
-        subscriptions(id, status, proximo_vencimento, planos(nome, preco_mensal, limite_empresas, limite_funcionarios))`)
+      .select(
+        `id, nome, cnpj, email, status, created_at,
+        subscriptions(id, status, proximo_vencimento, planos(nome, preco_mensal, limite_empresas, limite_funcionarios))`
+      )
       .eq('id', params.id)
       .single(),
     supabase
@@ -27,19 +29,29 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
       .from('documentos')
       .select('id, tipo, created_at')
       .eq('tenant_id', params.id)
-      .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+      .gte(
+        'created_at',
+        new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+      ),
   ])
 
   if (!tenantRes.data) notFound()
 
   const tenant = tenantRes.data
   const empresas = empresasRes.data ?? []
-  const sub = (tenant.subscriptions as unknown as Array<{
-    id: string
-    status: StatusSubscription
-    proximo_vencimento: string | null
-    planos: { nome: string; preco_mensal: number; limite_empresas: number; limite_funcionarios: number }
-  }>)?.[0]
+  const sub = (
+    tenant.subscriptions as unknown as Array<{
+      id: string
+      status: StatusSubscription
+      proximo_vencimento: string | null
+      planos: {
+        nome: string
+        preco_mensal: number
+        limite_empresas: number
+        limite_funcionarios: number
+      }
+    }>
+  )?.[0]
 
   return (
     <div className="p-8">
@@ -74,7 +86,9 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
               </div>
               <div className="flex justify-between">
                 <span className="text-ink-muted">Valor</span>
-                <span className="font-medium">{formatarMoeda(sub.planos?.preco_mensal ?? 0)}/mês</span>
+                <span className="font-medium">
+                  {formatarMoeda(sub.planos?.preco_mensal ?? 0)}/mês
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-ink-muted">Status</span>
@@ -92,7 +106,13 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
               </div>
               <div className="flex justify-between">
                 <span className="text-ink-muted">Uso atual</span>
-                <span className={empresas.length > sub.planos?.limite_empresas ? 'text-red-600 font-semibold' : ''}>
+                <span
+                  className={
+                    empresas.length > sub.planos?.limite_empresas
+                      ? 'text-red-600 font-semibold'
+                      : ''
+                  }
+                >
                   {empresas.length} / {sub.planos?.limite_empresas}
                 </span>
               </div>
@@ -107,8 +127,14 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
           <MiniCard label="Empresas" valor={empresas.length} />
           <MiniCard label="Ativas" valor={empresas.filter((e) => e.ativo).length} cor="green" />
           <MiniCard label="Docs este mês" valor={docsRes.data?.length ?? 0} cor="blue" />
-          <MiniCard label="Holerites" valor={(docsRes.data ?? []).filter((d) => d.tipo === 'holerite').length} />
-          <MiniCard label="Férias" valor={(docsRes.data ?? []).filter((d) => d.tipo === 'ferias').length} />
+          <MiniCard
+            label="Holerites"
+            valor={(docsRes.data ?? []).filter((d) => d.tipo === 'holerite').length}
+          />
+          <MiniCard
+            label="Férias"
+            valor={(docsRes.data ?? []).filter((d) => d.tipo === 'ferias').length}
+          />
           <MiniCard label="Cliente desde" valor={new Date(tenant.created_at).getFullYear()} />
         </div>
       </div>
@@ -134,13 +160,19 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
               {empresas.map((empresa) => (
                 <tr key={empresa.id} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="px-6 py-3 font-medium text-ink">{empresa.nome}</td>
-                  <td className="px-6 py-3 font-mono text-ink-muted text-xs">{formatarCnpj(empresa.cnpj)}</td>
+                  <td className="px-6 py-3 font-mono text-ink-muted text-xs">
+                    {formatarCnpj(empresa.cnpj)}
+                  </td>
                   <td className="px-6 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${empresa.ativo ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-ink-muted'}`}>
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${empresa.ativo ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-ink-muted'}`}
+                    >
                       {empresa.ativo ? 'Ativa' : 'Inativa'}
                     </span>
                   </td>
-                  <td className="px-6 py-3 text-xs text-ink-faint">{formatarData(empresa.created_at)}</td>
+                  <td className="px-6 py-3 text-xs text-ink-faint">
+                    {formatarData(empresa.created_at)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -151,9 +183,19 @@ export default async function TenantDetalhePage({ params }: { params: { id: stri
   )
 }
 
-function MiniCard({ label, valor, cor = 'gray' }: { label: string; valor: number | string; cor?: string }) {
+function MiniCard({
+  label,
+  valor,
+  cor = 'gray',
+}: {
+  label: string
+  valor: number | string
+  cor?: string
+}) {
   const cores: Record<string, string> = {
-    gray: 'text-ink', green: 'text-brand-dark', blue: 'text-blue-600',
+    gray: 'text-ink',
+    green: 'text-brand-dark',
+    blue: 'text-blue-600',
   }
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-card">

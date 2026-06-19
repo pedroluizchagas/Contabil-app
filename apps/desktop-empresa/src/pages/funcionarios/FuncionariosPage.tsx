@@ -26,11 +26,7 @@ export function FuncionariosPage() {
     setErro(null)
 
     const [funcsRes, docsRes] = await Promise.all([
-      supabase
-        .from('funcionarios')
-        .select('*')
-        .eq('empresa_id', empresaId)
-        .order('nome'),
+      supabase.from('funcionarios').select('*').eq('empresa_id', empresaId).order('nome'),
       supabase
         .from('v_status_documentos')
         .select('funcionario_id, visualizado_em')
@@ -38,7 +34,10 @@ export function FuncionariosPage() {
     ])
 
     if (funcsRes.error || docsRes.error) {
-      console.error('Erro ao carregar funcionários:', funcsRes.error?.message ?? docsRes.error?.message)
+      console.error(
+        'Erro ao carregar funcionários:',
+        funcsRes.error?.message ?? docsRes.error?.message
+      )
       setErro('Não foi possível carregar os funcionários. Tente novamente.')
       setFuncionarios([])
       setCarregando(false)

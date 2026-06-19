@@ -12,24 +12,69 @@ function Icon({ name }: { name: IconName }) {
       return (
         <svg {...common}>
           <rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-          <rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-          <rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-          <rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+          <rect
+            x="10"
+            y="1"
+            width="7"
+            height="7"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="1"
+            y="10"
+            width="7"
+            height="7"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="10"
+            y="10"
+            width="7"
+            height="7"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
         </svg>
       )
     case 'building':
       return (
         <svg {...common}>
-          <path d="M2 16V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M2 16V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v11"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
           <path d="M1 16h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M6 8h2M10 8h2M6 11.5h2M10 11.5h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M7 16v-3h4v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M6 8h2M10 8h2M6 11.5h2M10 11.5h2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M7 16v-3h4v3"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       )
     case 'list':
       return (
         <svg {...common}>
-          <path d="M6 4.5h10M6 9h10M6 13.5h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M6 4.5h10M6 9h10M6 13.5h10"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
           <circle cx="2.5" cy="4.5" r="1" fill="currentColor" />
           <circle cx="2.5" cy="9" r="1" fill="currentColor" />
           <circle cx="2.5" cy="13.5" r="1" fill="currentColor" />
@@ -38,7 +83,15 @@ function Icon({ name }: { name: IconName }) {
     case 'card':
       return (
         <svg {...common}>
-          <rect x="1.5" y="3.5" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
+          <rect
+            x="1.5"
+            y="3.5"
+            width="15"
+            height="11"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
           <path d="M1.5 7.5h15" stroke="currentColor" strokeWidth="1.5" />
           <path d="M4.5 11.5h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
@@ -46,8 +99,22 @@ function Icon({ name }: { name: IconName }) {
     case 'mail':
       return (
         <svg {...common}>
-          <rect x="1.5" y="3.5" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M2 5l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <rect
+            x="1.5"
+            y="3.5"
+            width="15"
+            height="11"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M2 5l7 5 7-5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       )
   }

@@ -53,18 +53,24 @@ export function ContaPage() {
     setSalvandoSenha(true)
 
     // Altera via Edge Function para validar a senha atual antes
-    const { data, error } = await supabase.functions.invoke<{ error?: string }>('alterar-senha-empresa', {
-      body: {
-        empresa_id: empresa.id,
-        senha_atual: senhaAtual,
-        nova_senha: novaSenha,
-      },
-    })
+    const { data, error } = await supabase.functions.invoke<{ error?: string }>(
+      'alterar-senha-empresa',
+      {
+        body: {
+          empresa_id: empresa.id,
+          senha_atual: senhaAtual,
+          nova_senha: novaSenha,
+        },
+      }
+    )
 
     setSalvandoSenha(false)
 
     if (error || data?.error) {
-      setMsgSenha({ tipo: 'erro', texto: data?.error ?? error?.message ?? 'Erro ao alterar senha.' })
+      setMsgSenha({
+        tipo: 'erro',
+        texto: data?.error ?? error?.message ?? 'Erro ao alterar senha.',
+      })
     } else {
       setMsgSenha({ tipo: 'ok', texto: 'Senha alterada com sucesso.' })
       setSenhaAtual('')
@@ -75,7 +81,10 @@ export function ContaPage() {
 
   return (
     <div className="p-8">
-      <PageHeader titulo="Minha Conta" subtitulo="Informações da empresa e configurações de acesso" />
+      <PageHeader
+        titulo="Minha Conta"
+        subtitulo="Informações da empresa e configurações de acesso"
+      />
 
       {/* Dados da empresa (somente leitura) */}
       <Card className="mb-6 p-6">
@@ -105,7 +114,12 @@ export function ContaPage() {
               required
             />
           </div>
-          <Button type="submit" size="lg" loading={salvandoEmail} disabled={salvandoEmail || !email}>
+          <Button
+            type="submit"
+            size="lg"
+            loading={salvandoEmail}
+            disabled={salvandoEmail || !email}
+          >
             {salvandoEmail ? 'Salvando...' : 'Atualizar'}
           </Button>
         </form>
@@ -144,7 +158,13 @@ export function ContaPage() {
               required
             />
           </Campo>
-          <Button type="submit" size="lg" loading={salvandoSenha} disabled={salvandoSenha} className="w-full">
+          <Button
+            type="submit"
+            size="lg"
+            loading={salvandoSenha}
+            disabled={salvandoSenha}
+            className="w-full"
+          >
             {salvandoSenha ? 'Alterando...' : 'Alterar senha'}
           </Button>
         </form>
@@ -168,7 +188,15 @@ function MensagemBox({ msg }: { msg: Mensagem }) {
   )
 }
 
-function InfoItem({ label, valor, monoFont }: { label: string; valor: string; monoFont?: boolean }) {
+function InfoItem({
+  label,
+  valor,
+  monoFont,
+}: {
+  label: string
+  valor: string
+  monoFont?: boolean
+}) {
   return (
     <div>
       <dt className="text-xs font-medium uppercase text-ink-faint">{label}</dt>

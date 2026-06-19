@@ -15,8 +15,20 @@ function IconGrid() {
 function IconFile() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M10 1H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-5-5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M10 1v5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M10 1H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-5-5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 1v5h5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <path d="M6 10h6M6 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
@@ -25,8 +37,18 @@ function IconUsers() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
       <circle cx="6.5" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M1.5 15.5c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M12.5 4.2a2.3 2.3 0 0 1 0 4.4M13 11.1c1.9.4 3.3 2 3.5 4.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M1.5 15.5c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12.5 4.2a2.3 2.3 0 0 1 0 4.4M13 11.1c1.9.4 3.3 2 3.5 4.4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }
@@ -36,7 +58,9 @@ function IconSettings() {
       <circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M9 1.5v1.2M9 15.3v1.2M1.5 9h1.2M15.3 9h1.2M3.7 3.7l.85.85M13.45 13.45l.85.85M3.7 14.3l.85-.85M13.45 4.55l.85-.85"
-        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
       />
     </svg>
   )
@@ -44,8 +68,19 @@ function IconSettings() {
 function IconLogout() {
   return (
     <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-      <path d="M6 14.5H3a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M11.5 11.5L14.5 8.5L11.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 14.5H3a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M11.5 11.5L14.5 8.5L11.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <path d="M14.5 8.5H6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
@@ -53,14 +88,12 @@ function IconLogout() {
 
 /* ── Nav items ──────────────────────────────────────────────────── */
 const navMain = [
-  { to: '/dashboard',    label: 'Dashboard',    Icon: IconGrid },
-  { to: '/documentos',   label: 'Documentos',   Icon: IconFile },
+  { to: '/dashboard', label: 'Dashboard', Icon: IconGrid },
+  { to: '/documentos', label: 'Documentos', Icon: IconFile },
   { to: '/funcionarios', label: 'Funcionários', Icon: IconUsers },
 ]
 
-const navConfig = [
-  { to: '/conta', label: 'Minha Conta', Icon: IconSettings },
-]
+const navConfig = [{ to: '/conta', label: 'Minha Conta', Icon: IconSettings }]
 
 function navClass({ isActive }: { isActive: boolean }) {
   return [

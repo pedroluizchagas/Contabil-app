@@ -3,16 +3,18 @@ import { LogoutButton } from './LogoutButton'
 import { NavItem } from './NavItem'
 
 const navItems = [
-  { href: '/dashboard',     label: 'Dashboard',     icon: 'grid' as const },
-  { href: '/convites',      label: 'Convites',      icon: 'mail' as const },
-  { href: '/tenants',       label: 'Tenants',       icon: 'building' as const },
-  { href: '/planos',        label: 'Planos',        icon: 'list' as const },
+  { href: '/dashboard', label: 'Dashboard', icon: 'grid' as const },
+  { href: '/convites', label: 'Convites', icon: 'mail' as const },
+  { href: '/tenants', label: 'Tenants', icon: 'building' as const },
+  { href: '/planos', label: 'Planos', icon: 'list' as const },
   { href: '/subscriptions', label: 'Subscriptions', icon: 'card' as const },
 ]
 
 export async function Sidebar() {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   const email = user?.email ?? ''
   const iniciais = email.slice(0, 2).toUpperCase() || 'AD'
 
@@ -24,8 +26,12 @@ export async function Sidebar() {
           C
         </div>
         <div className="leading-tight">
-          <span className="block text-[15px] font-semibold tracking-tight text-white">ContaHub</span>
-          <span className="block text-[10px] uppercase tracking-widest text-gray-500">Admin Panel</span>
+          <span className="block text-[15px] font-semibold tracking-tight text-white">
+            ContaHub
+          </span>
+          <span className="block text-[10px] uppercase tracking-widest text-gray-500">
+            Admin Panel
+          </span>
         </div>
       </div>
 
