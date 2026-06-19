@@ -15,7 +15,7 @@ const VAZIO: FormData = { nome: '', cnpj: '', email: '', senha: '' }
 
 export function EmpresaFormPage() {
   const { empresaId } = useParams<{ empresaId: string }>()
-  const { tenantId, refreshTenantId } = useAuth()
+  const { getAccessToken } = useAuth()
   const navigate = useNavigate()
   const ehEdicao = Boolean(empresaId)
 
@@ -65,28 +65,39 @@ export function EmpresaFormPage() {
         return
       }
     } else {
-      const tid = tenantId ?? (await refreshTenantId())
-      if (!tid) {
-        setErro('Sessão inválida. Faça login novamente.')
-        setSalvando(false)
-        return
-      }
       if (!form.senha || form.senha.length < 8) {
         setErro('A senha deve ter pelo menos 8 caracteres.')
         setSalvando(false)
         return
       }
-      const { data, error } = await supabase.functions.invoke('criar-empresa', {
-        body: {
-          tenant_id: tid,
-          nome: form.nome,
-          cnpj: cnpjLimpo,
-          email: form.email,
-          senha: form.senha,
-        },
+
+      // Renova o token antes de chamar a Edge Function.
+      // getAccessToken faz logout automático se o refresh falhar (ex: supabase db reset).
+      const accessToken = await getAccessToken()
+      if (!accessToken) {
+        setErro('Sessão expirada. Faça login novamente.')
+        setSalvando(false)
+        return
+      }
+      // tenant_id é derivado pelo servidor a partir do JWT — não enviamos no body.
+      const { error } = await supabase.functions.invoke('criar-empresa', {
+        body: { nome: form.nome, cnpj: cnpjLimpo, email: form.email, senha: form.senha },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (error) {
-        const mensagem = (data as { error?: string } | null)?.error ?? error.message
+        let mensagem = error.message
+        try {
+          const body = await (error as { context?: Response }).context?.json()
+          console.error('[criar-empresa] error body:', body)
+          if (body?.error) mensagem = body.error
+        } catch (parseErr) {
+          console.error(
+            '[criar-empresa] falha ao ler body:',
+            parseErr,
+            'context:',
+            (error as { context?: Response }).context
+          )
+        }
         setErro(mensagem)
         setSalvando(false)
         return

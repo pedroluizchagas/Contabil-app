@@ -6,7 +6,7 @@
  * Fluxo:
  * 1. Recebe { cnpj, senha } no body
  * 2. Verifica a senha usando pgcrypto (via RPC) sem expor o hash
- * 3. Retorna uma sessão Supabase válida via auth.admin.createSession
+ * 3. Retorna uma sessão Supabase válida via signInWithPassword (OTP interno)
  *
  * POST /functions/v1/auth-empresa
  * Body: { "cnpj": "12345678000195", "senha": "MinhaSenh@" }
@@ -82,22 +82,55 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Cria sessão para o auth_user_id da empresa
-    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession(
-      {
-        user_id: empresa.auth_user_id,
-      }
+    // Busca o email do usuário Auth (verificar_senha_empresa não retorna email)
+    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(
+      empresa.auth_user_id
+    )
+    if (authUserError || !authUserData?.user?.email) {
+      console.error('Erro ao buscar usuário Auth da empresa:', authUserError)
+      return new Response(
+        JSON.stringify({ error: 'Conta não configurada. Contate sua contabilidade.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    const email = authUserData.user.email
+
+    // auth.admin.createSession não existe no supabase-js v2.
+    // Estratégia: definir uma senha OTP aleatória, fazer signIn, descartar a senha.
+    const senhaOtp = crypto.randomUUID() + crypto.randomUUID()
+
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      empresa.auth_user_id,
+      { password: senhaOtp }
     )
 
-    if (sessionError) {
-      console.error('Erro ao criar sessão:', sessionError)
+    if (updateError) {
+      console.error('Erro ao preparar autenticação:', updateError)
       return new Response(JSON.stringify({ error: 'Erro ao criar sessão.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    return new Response(JSON.stringify({ session: sessionData.session }), {
+    const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password: senhaOtp,
+    })
+
+    // Nota: não invalidamos a senha OTP após o sign-in porque isso revoga o
+    // refresh_token da sessão recém-criada, fazendo o cliente ser deslogado
+    // imediatamente. O OTP é aleatório (UUID+UUID) e será substituído por um
+    // novo OTP no próximo login, então não há risco de reutilização.
+
+    if (signInError || !signInData.session) {
+      console.error('Erro ao criar sessão:', signInError)
+      return new Response(JSON.stringify({ error: 'Erro ao criar sessão.' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    return new Response(JSON.stringify({ session: signInData.session }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

@@ -62,15 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const cnpjLimpo = cnpj.replace(/\D/g, '')
 
     // Chama Edge Function customizada (CNPJ + senha → sessão Supabase)
-    const { data, error } = await supabase.functions.invoke<{ session: Session; error?: string }>(
-      'auth-empresa',
-      {
-        body: { cnpj: cnpjLimpo, senha },
-      }
-    )
+    const { data, error } = await supabase.functions.invoke<{ session: Session }>('auth-empresa', {
+      body: { cnpj: cnpjLimpo, senha },
+    })
 
-    if (error || data?.error) {
-      return traduzirErro(data?.error ?? error?.message ?? '')
+    if (error) {
+      let mensagem = error.message
+      try {
+        const body = await (error as { context?: Response }).context?.json()
+        if (body?.error) mensagem = body.error
+      } catch {
+        /* response body não legível */
+      }
+      return traduzirErro(mensagem)
     }
 
     if (!data?.session) return 'Erro ao criar sessão. Tente novamente.'
