@@ -229,8 +229,10 @@ Deno.serve(async (req) => {
         return resposta(500, { error: 'Erro ao criar sessão.' })
       }
 
-      const { data: signInData, error: signInError } =
-        await supabaseAdmin.auth.signInWithPassword({ email, password: senhaOtp })
+      const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+        email,
+        password: senhaOtp,
+      })
 
       // Nota: não invalidamos o OTP após o sign-in porque isso revogaria o
       // refresh_token da sessão recém-criada. O OTP é aleatório (UUID+UUID) e é
