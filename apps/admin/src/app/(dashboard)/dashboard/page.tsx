@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { formatarMoeda, formatarData } from '@contabhub/shared'
-import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,14 +8,11 @@ export default async function DashboardPage() {
 
   const agora = new Date()
   const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString()
-  const inicioMesPassado = new Date(agora.getFullYear(), agora.getMonth() - 1, 1).toISOString()
 
   // Paralelo: todas as queries ao mesmo tempo
   const [
     tenantsRes,
     subAtivasRes,
-    subTrialRes,
-    subInadRes,
     novosTenantsRes,
     documentosRes,
     lotesRes,
@@ -24,8 +20,6 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase.from('tenants').select('id, status', { count: 'exact' }),
     supabase.from('subscriptions').select('plano_id, planos(preco_mensal)').eq('status', 'ativo'),
-    supabase.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'trial'),
-    supabase.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'inadimplente'),
     supabase.from('tenants').select('id', { count: 'exact', head: true }).gte('created_at', inicioMes),
     supabase.from('documentos').select('id', { count: 'exact', head: true }).gte('created_at', inicioMes),
     supabase.from('lotes').select('id, status, created_at, empresas(nome), tenants(nome)')

@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabase } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { Database } from '@contabhub/supabase'
 
@@ -24,6 +25,5 @@ export function createClient() {
 
 /** Cliente admin com service role — usa apenas em Server Actions protegidas */
 export function createAdminClient() {
-  const { createClient: createSupabase } = require('@supabase/supabase-js')
   return createSupabase<Database>(supabaseUrl, supabaseServiceRoleKey)
 }
