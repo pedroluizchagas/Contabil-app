@@ -1,0 +1,51 @@
+name: Deploy Supabase Functions
+
+# Deploya as Edge Functions automaticamente no merge para main, mantendo o
+# que está em produção alinhado ao repositório (fim do "deploy manual").
+#
+# REQUER o secret SUPABASE_ACCESS_TOKEN (Settings → Secrets → Actions):
+# um token de uma conta com acesso ao projeto bybkvipmwckemyftqoda
+# (gerar em https://supabase.com/dashboard/account/tokens, logado na conta
+# que enxerga o projeto "markin-punheteiro"). Sem o secret, o job só emite
+# um aviso e é pulado — não falha.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - 'supabase/config.toml'
+      - '.github/workflows/supabase-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Edge Functions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verifica secret
+        id: check
+        env:
+          TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SUPABASE_ACCESS_TOKEN não configurado — deploy pulado. Adicione o secret em Settings → Secrets → Actions."
+          fi
+
+      - name: Checkout
+        if: steps.check.outputs.ok == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        if: steps.check.outputs.ok == 'true'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy functions
+        if: steps.check.outputs.ok == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy --project-ref bybkvipmwckemyftqoda
