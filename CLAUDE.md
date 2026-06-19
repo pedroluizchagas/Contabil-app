@@ -363,20 +363,22 @@ pnpm --filter mobile expo build
 
 ## Fases do Projeto (Status)
 
-| Fase | Descrição                     | Status   |
-| ---- | ----------------------------- | -------- |
-| 0    | Fundação do Monorepo          | Pendente |
-| 1    | Banco de Dados e Auth         | Pendente |
-| 2    | Engine de Split de PDF        | Pendente |
-| 3    | App Desktop: Contabilidade    | Pendente |
-| 4    | App Desktop: Empresa          | Pendente |
-| 5    | App Mobile: Funcionário       | Pendente |
-| 6    | Billing e Planos              | Pendente |
-| 7    | Admin SaaS                    | Pendente |
-| 8    | Beta com Contabilidades Reais | Pendente |
-| 9    | Lançamento MVP                | Pendente |
+| Fase | Descrição                     | Status                             |
+| ---- | ----------------------------- | ---------------------------------- |
+| 0    | Fundação do Monorepo          | ✅ Concluída                       |
+| 1    | Banco de Dados e Auth         | ✅ Concluída (RLS + 3 perfis)      |
+| 2    | Engine de Split de PDF        | ✅ Concluída (`process-lote`)      |
+| 3    | App Desktop: Contabilidade    | ✅ Concluída                       |
+| 4    | App Desktop: Empresa          | ✅ Concluída                       |
+| 5    | App Mobile: Funcionário       | ✅ Concluída (sem assinatura)      |
+| 6    | Billing e Planos              | 🔒 Código pronto, não provisionado |
+| 7    | Admin SaaS                    | ✅ Concluída (faturas/UI parcial)  |
+| 8    | Beta com Contabilidades Reais | ⏳ Pendente                        |
+| 9    | Lançamento MVP                | ⏳ Pendente                        |
 
-Consultar `ROADMAP.md` para detalhamento completo de cada fase.
+> **Estado real e detalhado em [`docs/ESTADO_DO_PROJETO.md`](docs/ESTADO_DO_PROJETO.md)** (o que está
+> implementado/funcionando, por módulo) e operação em [`docs/OPERACAO.md`](docs/OPERACAO.md).
+> Planejamento por fase em `ROADMAP.md` e `docs/IMPLEMENTATION_PLAN.md`.
 
 ---
 
@@ -389,4 +391,4 @@ Consultar `ROADMAP.md` para detalhamento completo de cada fase.
 
 ---
 
-_Última atualização: Março 2026_
+_Última atualização: Junho 2026 — ver `docs/ESTADO_DO_PROJETO.md` para o estado atual._
