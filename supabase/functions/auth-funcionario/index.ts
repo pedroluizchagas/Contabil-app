@@ -206,18 +206,42 @@ Deno.serve(async (req) => {
         return resposta(400, { error: 'Conta não configurada. Contate sua empresa.' })
       }
 
-      // Cria sessão para o funcionário
-      const { data: sessionData, error: sessionError } =
-        await supabaseAdmin.auth.admin.createSession({
-          user_id: funcionario.auth_user_id,
-        })
+      // Busca o email do usuário Auth (buscar_funcionario_id_por_cpf não retorna email)
+      const { data: authUserData, error: authUserError } =
+        await supabaseAdmin.auth.admin.getUserById(funcionario.auth_user_id)
+      if (authUserError || !authUserData?.user?.email) {
+        console.error('Erro ao buscar usuário Auth do funcionário:', authUserError)
+        return resposta(400, { error: 'Conta não configurada. Contate sua empresa.' })
+      }
+      const email = authUserData.user.email
 
-      if (sessionError) {
-        console.error('Erro ao criar sessão:', sessionError)
+      // auth.admin.createSession não existe no supabase-js v2.
+      // Estratégia: definir uma senha OTP aleatória, fazer signIn, descartar a senha.
+      const senhaOtp = crypto.randomUUID() + crypto.randomUUID()
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        funcionario.auth_user_id,
+        { password: senhaOtp }
+      )
+
+      if (updateError) {
+        console.error('Erro ao preparar autenticação:', updateError)
         return resposta(500, { error: 'Erro ao criar sessão.' })
       }
 
-      return resposta(200, { session: sessionData.session })
+      const { data: signInData, error: signInError } =
+        await supabaseAdmin.auth.signInWithPassword({ email, password: senhaOtp })
+
+      // Nota: não invalidamos o OTP após o sign-in porque isso revogaria o
+      // refresh_token da sessão recém-criada. O OTP é aleatório (UUID+UUID) e é
+      // substituído por um novo no próximo login — sem risco de reutilização.
+
+      if (signInError || !signInData.session) {
+        console.error('Erro ao criar sessão:', signInError)
+        return resposta(500, { error: 'Erro ao criar sessão.' })
+      }
+
+      return resposta(200, { session: signInData.session })
     }
 
     return resposta(400, { error: 'Parâmetro "step" inválido. Use "verify" ou "confirm".' })
