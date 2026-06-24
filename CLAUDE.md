@@ -79,6 +79,10 @@ Contabilidade (tenant)
 - **Tailwind CSS** para estilização
 - **NativeWind** para o app mobile (Tailwind para React Native)
 - Design system compartilhado em `packages/ui/`
+- **Marca:** verde `#7DC82E` (`brand`) + tokens `ink` + fonte DM Sans. A
+  referência é o `desktop-contabilidade`. A unificação do design entre todos os
+  apps (via pacote compartilhado) e a geração dos instaláveis estão planejadas
+  em `docs/FRONTEND_E_DISTRIBUICAO.md`.
 
 ### Serviços Externos
 
